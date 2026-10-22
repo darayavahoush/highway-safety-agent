@@ -45,6 +45,20 @@
     "severity": "P2",
     "description": "Sudden emergency braking indicating obstacle or collision danger"
   },
+  "feeder_intrusion": {
+    "enabled": true,
+    "min_cross_velocity_kmh": 8.0,
+    "min_speed_kmh": 10.0,
+    "min_age_seconds": 1.2,
+    "severity": "P1",
+    "description": "Vehicle abruptly cutting across service/feeder road boundary into live travel lane without safe merging corridor"
+  },
+  "night_protocol": {
+    "enabled": true,
+    "night_hours": [18, 6],
+    "shoulder_night_severity": "P1",
+    "description": "Elevates unlit stationary shoulder stops to P1 hazard after dusk (18:00 - 06:00)"
+  },
   "operational": {
     "dedupe_cooldown_seconds": 25.0,
     "evidence_buffer_seconds": 10.0,

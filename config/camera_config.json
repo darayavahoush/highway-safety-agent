@@ -12,6 +12,15 @@
   "pixels_per_meter": 22.0,
   "lanes": [
     {
+      "id": "lane_0_feeder",
+      "name": "Service / Feeder Road Margin",
+      "type": "feeder",
+      "direction": [1.0, 0.0],
+      "polygon": [[0.0, 0.0], [1.0, 0.0], [1.0, 0.15], [0.0, 0.15]],
+      "speed_limit_kmh": 40,
+      "allowed_classes": ["Car", "Van", "Truck", "Motorbike", "Tractor"]
+    },
+    {
       "id": "lane_1_fast",
       "name": "Fast / Overtaking Lane (Right)",
       "type": "travel",

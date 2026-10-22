@@ -41,7 +41,67 @@ class SafetyPolicyEngine:
             is_shoulder = (candidate.severity in [IncidentSeverity.P2, "P2"]) or ("shoulder" in (candidate.lane_id or "").lower())
             lane_desc = candidate.lane_id or ("Emergency Shoulder" if is_shoulder else "active travel lane")
 
-            if is_shoulder:
+            is_night = bool(candidate.evidence_details.get("is_night", False)) or (candidate.severity in [IncidentSeverity.P1, "P1"] and is_shoulder)
+
+            if is_shoulder and is_night:
+                briefing = (
+                    f"Night Hazard: Unlit {p_class} #{p_track} stopped on {lane_desc} after dusk "
+                    f"at {candidate.km_marker}. High nighttime crash hazard."
+                )
+                trace = [
+                    TraceStep(
+                        stage="observed",
+                        text=f"{p_class} #{p_track} stationary on {lane_desc} in dark/night conditions.",
+                        at=now_ms - 800,
+                    ),
+                    TraceStep(
+                        stage="assessed",
+                        text="Nighttime shoulder stops are a leading cause of rear-end crashes due to reduced sight distance and unlit commercial obstacles.",
+                        at=now_ms - 500,
+                    ),
+                    TraceStep(
+                        stage="decided",
+                        text="Elevate to P1 Hazard under AP Highway Night Protocol. Deploy route patrol for physical illumination.",
+                        at=now_ms - 200,
+                    ),
+                    TraceStep(
+                        stage="actions",
+                        text="VMS gantry night alert displayed. NHAI Highway Patrol queued for safety perimeter.",
+                        at=now_ms,
+                    ),
+                ]
+                dispatches.append(
+                    StakeholderDispatch(
+                        id=f"{candidate.incident_id}-D1",
+                        target=StakeholderType.VARIABLE_MESSAGE_SIGN_VMS,
+                        status="sent",
+                        sentAt=now_ms,
+                        message=f"NIGHT CAUTION: VEHICLE ON SHOULDER NEAR {candidate.km_marker} - STAY ALERT",
+                        endpoint_url=f"{self.base_url}/vms_gantry",
+                        payload={
+                            "gantry_id": "VMS-NH16-GANTRY-04",
+                            "message_text": f"NIGHT CAUTION: VEHICLE ON SHOULDER NEAR {candidate.km_marker} - STAY ALERT",
+                            "incident_id": candidate.incident_id,
+                        },
+                    )
+                )
+                dispatches.append(
+                    StakeholderDispatch(
+                        id=f"{candidate.incident_id}-D2",
+                        target=StakeholderType.HIGHWAY_PATROL_NHAI,
+                        status="queued",
+                        queuedAt=now_ms,
+                        cancelUntil=now_ms + 15000,
+                        message=f"Deploy route patrol to illuminate unlit vehicle on shoulder at {candidate.km_marker}.",
+                        endpoint_url=f"{self.base_url}/nhai_patrol",
+                        payload={
+                            "incident_id": candidate.incident_id,
+                            "km_marker": candidate.km_marker,
+                            "action": "DEPLOY_RETROREFLECTIVE_CONES",
+                        },
+                    )
+                )
+            elif is_shoulder:
                 briefing = (
                     f"Vehicle #{p_track} ({p_class}) parked on {lane_desc} "
                     f"at {candidate.km_marker}. Non-critical observation."
@@ -291,6 +351,70 @@ class SafetyPolicyEngine:
                         "vehicle_class": p_class,
                         "advisory_type": "DANGEROUS_TAILGATING_WARNING",
                         "km_marker": candidate.km_marker,
+                    },
+                )
+            )
+
+        elif candidate.incident_type in [IncidentType.FEEDER_INTRUSION, "FEEDER_INTRUSION", "FEEDER_ROAD_INTRUSION"]:
+            briefing = (
+                f"Feeder road intrusion: Vehicle #{p_track} ({p_class}) abruptly merging across service margin "
+                f"into live travel lane without safe clearance at {candidate.km_marker}."
+            )
+            trace = [
+                TraceStep(
+                    stage="observed",
+                    text=f"{p_class} #{p_track} crossed service/feeder margin into live traffic corridor.",
+                    at=now_ms - 800,
+                ),
+                TraceStep(
+                    stage="assessed",
+                    text="Uncontrolled slip-road intrusion into high-speed travel lane creates immediate sideswipe collision risk.",
+                    at=now_ms - 500,
+                ),
+                TraceStep(
+                    stage="decided",
+                    text="Activate upstream VMS caution and alert NHAI route patrol unit for merge zone monitoring.",
+                    at=now_ms - 200,
+                ),
+                TraceStep(
+                    stage="actions",
+                    text="VMS slip-road caution displayed. NHAI Highway Patrol queued for intersection oversight.",
+                    at=now_ms,
+                ),
+            ]
+
+            # 1. Immediate: VMS Slip Road Alert
+            dispatches.append(
+                StakeholderDispatch(
+                    id=f"{candidate.incident_id}-D1",
+                    target=StakeholderType.VARIABLE_MESSAGE_SIGN_VMS,
+                    status="sent",
+                    sentAt=now_ms,
+                    message="CAUTION: VEHICLE MERGING INTO LIVE LANE AHEAD - REDUCE SPEED",
+                    endpoint_url=f"{self.base_url}/vms_gantry",
+                    payload={
+                        "gantry_id": "VMS-NH16-GANTRY-04",
+                        "message_text": "CAUTION: VEHICLE MERGING INTO LIVE LANE AHEAD - REDUCE SPEED",
+                        "incident_id": candidate.incident_id,
+                    },
+                )
+            )
+
+            # 2. Queued: NHAI Highway Patrol
+            dispatches.append(
+                StakeholderDispatch(
+                    id=f"{candidate.incident_id}-D2",
+                    target=StakeholderType.HIGHWAY_PATROL_NHAI,
+                    status="queued",
+                    queuedAt=now_ms,
+                    cancelUntil=now_ms + 15000,
+                    message=f"Monitor unsafe feeder merge at {candidate.km_marker} ({p_class} #{p_track}).",
+                    endpoint_url=f"{self.base_url}/nhai_patrol",
+                    payload={
+                        "incident_id": candidate.incident_id,
+                        "km_marker": candidate.km_marker,
+                        "vehicle_class": p_class,
+                        "priority": "P1",
                     },
                 )
             )

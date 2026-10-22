@@ -25,7 +25,7 @@ ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if ROOT_DIR not in sys.path:
     sys.path.insert(0, ROOT_DIR)
 
-from app.incident_schema import IncidentType, IncidentSeverity
+from app.incident_schema import IncidentType, IncidentSeverity, StakeholderType
 from app.incident_rules import EdgeTriggerEngine, TrackHistory
 from app.tracker import LineCrossingCounter, Track
 from app.evidence_buffer import EvidenceBuffer
@@ -315,6 +315,69 @@ def test_8_tailgating_close_follower_vs_leader_pulling_away():
     print("  [PASS] Scenario B: Faster leader pulling away correctly produced ZERO tailgating alerts!")
 
 
+def test_9_feeder_road_intrusion():
+    print("\n[TEST 9] Testing feeder road intrusion detects aggressive cross-lane merge...")
+    engine = EdgeTriggerEngine(
+        camera_config_path="config/camera_config.json",
+        rules_config_path="config/safety_rules.json",
+    )
+    policy = SafetyPolicyEngine()
+
+    base_ts = 5000.0
+    # Vehicle 1101 starts in feeder margin (y=50 in 480p, ny=0.10)
+    # Merges diagonally into fast lane (y=180, ny=0.375) across 1.5s
+    # dy = 130px = ~5.9m across 1.5s -> cross velocity = 14.1 km/h >= 8.0 km/h
+    # dx = 150px = ~6.8m across 1.5s -> forward speed ~ 20.2 km/h
+    for step in range(15):
+        t = base_ts + step * 0.1
+        cur_x = 100.0 + step * 10.0
+        cur_y = 50.0 + step * 8.67
+        engine.update_tracks([
+            (cur_x, cur_y, 50.0, 30.0, "Car", 1101, True),
+        ], now=t)
+
+    candidates = engine.evaluate_rules(640, 480, now=base_ts + 1.5)
+    intrusion_cands = [c for c in candidates if c.incident_type == IncidentType.FEEDER_INTRUSION]
+    assert len(intrusion_cands) >= 1, "Expected Feeder Road Intrusion alert!"
+    cand = intrusion_cands[0]
+    assert cand.severity == IncidentSeverity.P1, f"Feeder intrusion must be P1, got {cand.severity}"
+    assert "feeder" in cand.rule_reason.lower(), f"Reason must mention feeder road: {cand.rule_reason}"
+
+    briefing, trace, dispatches = policy.reason_and_triage(cand)
+    assert len(dispatches) >= 1, "Feeder intrusion must issue safety dispatches!"
+    assert any(d.target == StakeholderType.VARIABLE_MESSAGE_SIGN_VMS for d in dispatches), "Must alert VMS gantry!"
+    assert any(d.target == StakeholderType.HIGHWAY_PATROL_NHAI for d in dispatches), "Must alert NHAI Highway Patrol!"
+    print(f"  [PASS] Feeder intrusion successfully detected with P1 severity and VMS/Patrol dispatch! (Reason: '{cand.rule_reason}')")
+
+
+def test_10_night_protocol_shoulder_elevation():
+    print("\n[TEST 10] Testing night protocol elevates stationary shoulder stop to P1 hazard...")
+    engine = EdgeTriggerEngine(
+        camera_config_path="config/camera_config.json",
+        rules_config_path="config/safety_rules.json",
+    )
+    policy = SafetyPolicyEngine()
+    engine.force_night = True
+
+    base_ts = 6000.0
+    # Vehicle 1201 stationary on shoulder (y=430 in 480p, ny=0.89) for 4.0s
+    for step in range(25):
+        t = base_ts + step * 0.2
+        engine.update_tracks([(250.0, 430.0, 60.0, 35.0, "Truck", 1201, True)], now=t)
+
+    candidates = engine.evaluate_rules(640, 480, now=base_ts + 5.0)
+    assert len(candidates) >= 1, "Expected stationary shoulder candidate!"
+    cand = candidates[0]
+    assert cand.severity == IncidentSeverity.P1, f"Night protocol must elevate shoulder stop to P1, got {cand.severity}!"
+    assert "night" in cand.rule_reason.lower(), f"Reason must cite night protocol: {cand.rule_reason}"
+
+    briefing, trace, dispatches = policy.reason_and_triage(cand)
+    assert len(dispatches) >= 1, "Night protocol must generate safety dispatches!"
+    assert any(d.target == StakeholderType.VARIABLE_MESSAGE_SIGN_VMS for d in dispatches), "Must issue VMS night alert!"
+    assert any(d.target == StakeholderType.HIGHWAY_PATROL_NHAI for d in dispatches), "Must dispatch NHAI route patrol to illuminate vehicle!"
+    print(f"  [PASS] Stationary shoulder stop under Night Protocol elevated to P1 with active patrol dispatch!")
+
+
 if __name__ == "__main__":
     print("\n=======================================================")
     print("STARTING SYNTHETIC EDGE TRACKER & RULES VERIFICATION")
@@ -327,6 +390,8 @@ if __name__ == "__main__":
     test_6_opposite_direction_traffic_follows_own_lane()
     test_7_genuine_wrong_way_vehicle_fires_once()
     test_8_tailgating_close_follower_vs_leader_pulling_away()
+    test_9_feeder_road_intrusion()
+    test_10_night_protocol_shoulder_elevation()
     print("\n=======================================================")
-    print("ALL 8 SYNTHETIC TRACKER & RULE TESTS PASSED CLEANLY!")
+    print("ALL 10 SYNTHETIC TRACKER & RULE TESTS PASSED CLEANLY!")
     print("=======================================================\n")

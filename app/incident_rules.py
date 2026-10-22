@@ -345,7 +345,22 @@ class EdgeTriggerEngine:
                         candidates.append(cand)
 
                     elif lane_type == "shoulder":
-                        # Shoulder stop: P2 non-critical, ZERO dispatch
+                        # Shoulder stop: check night protocol
+                        night_cfg = self.rules_cfg.get("night_protocol", {})
+                        is_night = False
+                        if night_cfg.get("enabled", True):
+                            if current_time > 1700000000:
+                                import datetime
+                                dt = datetime.datetime.fromtimestamp(current_time)
+                                start_hr, end_hr = night_cfg.get("night_hours", [18, 6])
+                                if dt.hour >= start_hr or dt.hour < end_hr:
+                                    is_night = True
+                            elif getattr(self, "force_night", False):
+                                is_night = True
+
+                        severity = IncidentSeverity.P1 if is_night else IncidentSeverity.P2
+                        status_desc = "Night protocol P1 hazard: unlit shoulder obstacle after dusk." if is_night else "Non-critical shoulder stop, monitoring only."
+
                         vt = VehicleTelemetry(
                             trackId=th.track_id,
                             cls=th.label.lower(),
@@ -360,15 +375,15 @@ class EdgeTriggerEngine:
                         )
                         cand = IncidentCandidate(
                             incident_type=IncidentType.STALLED_VEHICLE,
-                            severity=IncidentSeverity.P2,
+                            severity=severity,
                             camera_id=self.camera_id,
                             km_marker=self.km_marker,
                             gps=self.gps,
                             timestamp=current_time,
                             primary_track_id=th.track_id,
                             lane_id=lane_name,
-                            rule_score=0.75,
-                            rule_reason=f"Vehicle #{th.track_id} ({th.label}) stationary on {lane_name}. Non-critical shoulder stop, monitoring only.",
+                            rule_score=0.88 if is_night else 0.75,
+                            rule_reason=f"Vehicle #{th.track_id} ({th.label}) stationary on {lane_name}. {status_desc}",
                             involved_vehicles=[vt],
                             evidence_details={
                                 "track_age_s": round(th.duration_seconds, 2),
@@ -376,6 +391,7 @@ class EdgeTriggerEngine:
                                 "stationary_duration_s": round(th.duration_seconds, 2),
                                 "lane_type": lane_type,
                                 "lane_name": lane_name,
+                                "is_night": is_night,
                             },
                         )
                         candidates.append(cand)
@@ -610,5 +626,74 @@ class EdgeTriggerEngine:
                 pair: ts for pair, ts in self._tailgate_pairs.items()
                 if pair in active_tailgate_pairs
             }
+
+        # -----------------------------------------------------------------
+        # 4. Feeder-Road Merge Hazard & Intrusion Detection (P1)
+        # -----------------------------------------------------------------
+        feeder_cfg = self.rules_cfg.get("feeder_intrusion", {})
+        if feeder_cfg.get("enabled", True):
+            min_cross_kmh = float(feeder_cfg.get("min_cross_velocity_kmh", 8.0))
+            min_spd = float(feeder_cfg.get("min_speed_kmh", 10.0))
+            min_age_s = float(feeder_cfg.get("min_age_seconds", 1.0))
+
+            for th in track_list:
+                if th.duration_seconds < min_age_s or th.current_speed_kmh < min_spd:
+                    continue
+
+                _, cur_cx, cur_cy, cur_w, cur_h, cur_gx, cur_gy = th.history[-1]
+                cur_lane = self._resolve_lane(cur_cx, cur_cy, frame_w, frame_h)
+
+                # Target must be an active travel lane
+                if cur_lane.get("type") != "travel":
+                    continue
+
+                # Check if earliest points were in feeder lane or feeder margin (ny <= 0.16)
+                start_pt = th.history[0]
+                start_lane = self._resolve_lane(start_pt[1], start_pt[2], frame_w, frame_h)
+
+                was_in_feeder = (start_lane.get("type") == "feeder") or (float(start_pt[2]) / float(frame_h) <= 0.16)
+
+                if was_in_feeder:
+                    # Compute lateral cross velocity (dy / dt) across lane boundaries
+                    dt_span = max(1e-3, th.history[-1][0] - start_pt[0])
+                    dy_m = (cur_cy - start_pt[2]) / self.px_per_m
+                    cross_vy_kmh = abs(dy_m / dt_span) * 3.6
+
+                    if cross_vy_kmh >= min_cross_kmh:
+                        lane_name = cur_lane.get("name", "Active Highway Lane")
+                        lane_idx = cur_lane.get("_index", 1)
+                        vt = VehicleTelemetry(
+                            trackId=th.track_id,
+                            cls=th.label.lower(),
+                            speedKmh=round(th.current_speed_kmh, 1),
+                            lane=lane_name,
+                            laneIndex=lane_idx,
+                            x=round(float(cur_cx / frame_w), 2),
+                            dir=1,
+                            plate=None,
+                            box=[float(cur_cx - cur_w/2), float(cur_cy - cur_h/2), float(cur_w), float(cur_h)],
+                            ground_pos=[round(cur_gx, 2), round(cur_gy, 2)],
+                        )
+                        cand = IncidentCandidate(
+                            incident_type=IncidentType.FEEDER_INTRUSION,
+                            severity=IncidentSeverity.P1,
+                            camera_id=self.camera_id,
+                            km_marker=self.km_marker,
+                            gps=self.gps,
+                            timestamp=current_time,
+                            primary_track_id=th.track_id,
+                            lane_id=lane_name,
+                            rule_score=0.94,
+                            rule_reason=f"P1 INTRUSION: Vehicle #{th.track_id} ({th.label}) cut from Service / Feeder Road directly into live travel lane ({lane_name}) at {round(th.current_speed_kmh, 1)} km/h with high lateral velocity ({round(cross_vy_kmh, 1)} km/h). Severe merge collision hazard.",
+                            involved_vehicles=[vt],
+                            evidence_details={
+                                "track_age_s": round(th.duration_seconds, 2),
+                                "measured_speed_kmh": round(th.current_speed_kmh, 1),
+                                "lateral_speed_kmh": round(cross_vy_kmh, 1),
+                                "origin_lane": start_lane.get("name", "Service / Feeder Road Margin"),
+                                "target_lane": lane_name,
+                            },
+                        )
+                        candidates.append(cand)
 
         return candidates
