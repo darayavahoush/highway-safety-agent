@@ -313,7 +313,11 @@ def replay_video():
     # Collect tracker health metrics
     track_first_seen: Dict[int, float] = {}
     track_last_seen: Dict[int, float] = {}
+    confirmed_first_seen: Dict[int, float] = {}
+    confirmed_last_seen: Dict[int, float] = {}
     all_speed_samples: List[float] = []
+    speed_samples_rejected_spikes = 0
+    speed_samples_reaching_rules = 0
 
     # Replay Loop
     latencies_ms: List[float] = []
@@ -356,12 +360,16 @@ def replay_video():
         # Step 4: Tracking (passing current_video_ts)
         tracks, _ = tracker.update(detections, now=current_video_ts)
 
-        # Track appearances & lifetimes (confirmed tracks)
+        # Track appearances & lifetimes (all and confirmed)
         for t in tracks:
             tid = t.id
             if tid not in track_first_seen:
                 track_first_seen[tid] = current_video_ts
             track_last_seen[tid] = current_video_ts
+            if t.is_confirmed:
+                if tid not in confirmed_first_seen:
+                    confirmed_first_seen[tid] = current_video_ts
+                confirmed_last_seen[tid] = current_video_ts
 
         # Step 5: Update Track History in Rule Engine (including is_confirmed flag)
         track_inputs = [
@@ -370,11 +378,15 @@ def replay_video():
         ]
         trigger_engine.update_tracks(track_inputs, now=current_video_ts)
 
-        # Collect speed samples from active tracks
+        # Collect speed samples and validation metrics
         for t in tracks:
             th = trigger_engine.tracks.get(t.id)
             if th is not None and len(th.history) >= 2:
                 all_speed_samples.append(float(th.current_speed_kmh))
+                if not th.is_speed_valid or th.invalid_speed_count > 0:
+                    speed_samples_rejected_spikes += 1
+                if th.is_confirmed and th.is_speed_valid and len(th.history) >= 4:
+                    speed_samples_reaching_rules += 1
 
         # Step 6: Rule Evaluation
         candidates = trigger_engine.evaluate_rules(rw, rh, now=current_video_ts)
@@ -461,11 +473,16 @@ def replay_video():
     }
 
     # Compute Tracker Health Metrics
-    unique_track_ids = len(track_first_seen)
-    lifetimes = [track_last_seen[tid] - track_first_seen[tid] for tid in track_first_seen]
-    median_track_lifetime_s = round(float(np.median(lifetimes)), 3) if lifetimes else 0.0
-    tracks_under_0_5s = sum(1 for lt in lifetimes if lt < 0.5)
-    pct_tracks_under_0_5s = round((tracks_under_0_5s / max(1, unique_track_ids)) * 100.0, 2)
+    total_instantiated_tracks = len(track_first_seen)
+    confirmed_unique_tracks = len(confirmed_first_seen)
+    lifetimes_all = [track_last_seen[tid] - track_first_seen[tid] for tid in track_first_seen]
+    lifetimes_conf = [confirmed_last_seen[tid] - confirmed_first_seen[tid] for tid in confirmed_first_seen]
+    
+    median_lifetime_all_s = round(float(np.median(lifetimes_all)), 3) if lifetimes_all else 0.0
+    median_lifetime_conf_s = round(float(np.median(lifetimes_conf)), 3) if lifetimes_conf else 0.0
+    
+    tracks_under_0_5s = sum(1 for lt in lifetimes_conf if lt < 0.5)
+    pct_tracks_under_0_5s = round((tracks_under_0_5s / max(1, confirmed_unique_tracks)) * 100.0, 2)
 
     total_speed_samples = len(all_speed_samples)
     speeds_above_150 = sum(1 for s in all_speed_samples if s > 150.0)
@@ -479,15 +496,20 @@ def replay_video():
 
     id_to_vehicle_ratio = None
     if args.expected_vehicles is not None and args.expected_vehicles > 0:
-        id_to_vehicle_ratio = round(unique_track_ids / float(args.expected_vehicles), 2)
+        id_to_vehicle_ratio = round(confirmed_unique_tracks / float(args.expected_vehicles), 2)
 
     tracker_health = {
-        "unique_track_ids": unique_track_ids,
+        "total_instantiated_tracks": total_instantiated_tracks,
+        "unique_confirmed_tracks": confirmed_unique_tracks,
+        "unique_track_ids": confirmed_unique_tracks,
         "expected_vehicles": args.expected_vehicles,
         "id_to_vehicle_ratio": id_to_vehicle_ratio,
-        "median_track_lifetime_s": median_track_lifetime_s,
+        "median_track_lifetime_s": median_lifetime_conf_s,
+        "median_track_lifetime_all_s": median_lifetime_all_s,
         "percent_tracks_under_0_5s": pct_tracks_under_0_5s,
         "total_speed_samples": total_speed_samples,
+        "speed_samples_rejected_spikes": speed_samples_rejected_spikes,
+        "speed_samples_reaching_rules": speed_samples_reaching_rules,
         "percent_speed_samples_above_150kmh": pct_speed_samples_above_150kmh,
         "max_speed_kmh": max_speed_kmh,
         "incidents_by_type": incidents_by_type,
@@ -547,15 +569,19 @@ def replay_video():
     print(f"p95 Latency:        {p95_latency_ms:.2f} ms")
     print(f"Mean Latency:       {mean_latency_ms:.2f} ms")
     print(f"--- Tracker Health ---")
-    print(f"Unique Track IDs:   {unique_track_ids}")
+    print(f"Total Instantiated Tracks:   {total_instantiated_tracks}")
+    print(f"Unique Confirmed Tracks:     {confirmed_unique_tracks}")
     if id_to_vehicle_ratio is not None:
-        print(f"Expected Vehicles:  {args.expected_vehicles} (ID/Vehicle Ratio: {id_to_vehicle_ratio})")
-    print(f"Median Lifetime:    {median_track_lifetime_s:.3f} s")
-    print(f"Tracks < 0.5s:      {pct_tracks_under_0_5s:.1f}%")
-    print(f"Speed Samples >150: {pct_speed_samples_above_150kmh:.1f}% ({speeds_above_150}/{total_speed_samples})")
-    print(f"Max Speed:          {max_speed_kmh:.1f} km/h")
-    print(f"Incidents by Type:  {incidents_by_type}")
-    print(f"Incidents Fired:    {len(fired_incidents)}")
+        print(f"Expected Vehicles:           {args.expected_vehicles} (ID/Vehicle Ratio: {id_to_vehicle_ratio})")
+    print(f"Median Lifetime (Confirmed): {median_lifetime_conf_s:.3f} s")
+    print(f"Tracks < 0.5s (Confirmed):   {pct_tracks_under_0_5s:.1f}%")
+    print(f"Speed Samples Total:         {total_speed_samples}")
+    print(f"Rejected Speed Spikes:       {speed_samples_rejected_spikes} (>200 km/h)")
+    print(f"Samples Reaching Rules:      {speed_samples_reaching_rules}")
+    print(f"Speed Samples >150 km/h:     {pct_speed_samples_above_150kmh:.1f}% ({speeds_above_150}/{total_speed_samples})")
+    print(f"Max Speed:                   {max_speed_kmh:.1f} km/h")
+    print(f"Incidents by Type:           {incidents_by_type}")
+    print(f"Incidents Fired:             {len(fired_incidents)}")
     for inc in fired_incidents:
         print(f"  - [{inc['id']}] {inc['type']} @ {inc['timestamp_s']:.2f}s (Track #{inc['track_id']}, score={inc['rule_score']})")
     print(f"Outputs written to: {out_dir}")

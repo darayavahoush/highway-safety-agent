@@ -47,8 +47,8 @@ def calculate_iou_matrix(boxes_a: np.ndarray, boxes_b: np.ndarray) -> np.ndarray
     if len(boxes_a) == 0 or len(boxes_b) == 0:
         return np.zeros((len(boxes_a), len(boxes_b)), dtype=np.float32)
 
-    a = np.asarray(boxes_a, dtype=np.float32)
-    b = np.asarray(boxes_b, dtype=np.float32)
+    a = np.atleast_2d(np.asarray(boxes_a, dtype=np.float32))
+    b = np.atleast_2d(np.asarray(boxes_b, dtype=np.float32))
 
     ax1 = a[:, 0]
     ay1 = a[:, 1]
@@ -330,20 +330,43 @@ class LineCrossingCounter:
                     matched_track_ids.add(tid)
 
         # 5. Initialize new tentative tracks for unmatched high-confidence detections
+        # Suppress duplicate/split bounding boxes on already tracked vehicles
+        new_boxes_this_frame = []
         for idx, (box, label, conf) in enumerate(high_dets):
             if idx not in matched_high_det_indices:
-                side = _side_of_line(_centroid(box), self.line)
-                new_track = Track(
-                    track_id=self._next_id,
-                    box=box,
-                    label=label,
-                    confidence=conf,
-                    side=side,
-                    timestamp=current_time,
-                    min_hits=self.min_hits,
-                )
-                self._tracks[self._next_id] = new_track
-                self._next_id += 1
+                bcx, bcy = _centroid(box)
+                is_duplicate = False
+                for existing_track in self._tracks.values():
+                    ecx, ecy = existing_track.centroid
+                    dist = float(np.hypot(bcx - ecx, bcy - ecy))
+                    iou_ex = calculate_iou_matrix([box], [existing_track.box])[0, 0]
+                    if iou_ex >= 0.15 or dist < 28.0:
+                        is_duplicate = True
+                        break
+
+                if not is_duplicate:
+                    for nbox in new_boxes_this_frame:
+                        ncx, ncy = _centroid(nbox)
+                        dist = float(np.hypot(bcx - ncx, bcy - ncy))
+                        iou_n = calculate_iou_matrix([box], [nbox])[0, 0]
+                        if iou_n >= 0.15 or dist < 28.0:
+                            is_duplicate = True
+                            break
+
+                if not is_duplicate:
+                    new_boxes_this_frame.append(box)
+                    side = _side_of_line(_centroid(box), self.line)
+                    new_track = Track(
+                        track_id=self._next_id,
+                        box=box,
+                        label=label,
+                        confidence=conf,
+                        side=side,
+                        timestamp=current_time,
+                        min_hits=self.min_hits,
+                    )
+                    self._tracks[self._next_id] = new_track
+                    self._next_id += 1
 
         # 6. Evaluate line crossing for confirmed tracks & update line side
         for track in list(self._tracks.values()):

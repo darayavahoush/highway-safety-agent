@@ -1,0 +1,154 @@
+{
+  "_metadata": {
+    "title": "Andhra Pradesh National Highway Corridor & Incident Response Registry",
+    "description": "Corridor metadata, designated tertiary trauma hospitals, and IRC:SP:85 compliant VMS emergency advisories for Andhra Pradesh highway safety operations.",
+    "sources": [
+      "MoRTH / IIT Kanpur AI-Identified Highway Black Spot National Inventory (Parliamentary Disclosure)",
+      "NHAI Project Implementation Unit (PIU) Vijayawada / Guntur",
+      "IRC:SP:85 Guidelines for Variable Message Signs",
+      "IRC:67 Code of Practice for Road Signs"
+    ],
+    "verified_corridor_data": true,
+    "mocked_dispatch_endpoints": true
+  },
+  "corridors": [
+    {
+      "corridor_id": "AP-NH16-CENTRAL",
+      "highway": "NH-16",
+      "name": "Amaravati - Vijayawada - Guntur Capital Region Corridor",
+      "districts": ["NTR", "Guntur"],
+      "verified_facts": {
+        "morth_blackspot_count_ntr": 197,
+        "morth_blackspot_count_guntur": 58,
+        "key_landmarks": ["Kaza Toll Plaza", "Mangalagiri Bypass", "Kanakadurga Varadhi", "Tadepalle"],
+        "verified": true
+      },
+      "designated_trauma_care": [
+        {
+          "hospital_name": "AIIMS Mangalagiri",
+          "department": "Department of Trauma and Emergency Medicine (24/7)",
+          "location": "Mangalagiri, Guntur District, AP - 522503",
+          "contact": "08645-280021 / 108 Emergency Service",
+          "verified": true
+        },
+        {
+          "hospital_name": "Government General Hospital (GGH) Guntur",
+          "department": "Tertiary Trauma Care Center",
+          "location": "Guntur City, AP",
+          "contact": "108 Central Ambulance",
+          "verified": true
+        },
+        {
+          "hospital_name": "Government General Hospital (GGH) Vijayawada",
+          "department": "Trauma & Acute Care",
+          "location": "Hanumanpet / Siddhartha Medical College Campus, NTR District, AP",
+          "contact": "108 Central Ambulance",
+          "verified": true
+        }
+      ],
+      "active_sentry_camera": {
+        "camera_id": "CAM-AP-NH16-KM42",
+        "section": "Vijayawada - Guntur Highway Stretch (Near Kaza Toll Plaza)",
+        "chainage_km": "KM 42.4",
+        "chainage_source": "Project benchmark location (mocked chainage)",
+        "verified_chainage": false,
+        "gps": {
+          "latitude": 16.5412,
+          "longitude": 80.6421,
+          "verified": false,
+          "mocked": true
+        },
+        "mock_dispatch_endpoints": {
+          "police_control": "http://127.0.0.1:8000/mock/police",
+          "medical_trauma_108": "http://127.0.0.1:8000/mock/ambulance",
+          "nhai_route_patrol": "http://127.0.0.1:8000/mock/nhai_patrol",
+          "vms_gantry": "http://127.0.0.1:8000/mock/vms"
+        }
+      }
+    },
+    {
+      "corridor_id": "AP-NH44-SOUTH",
+      "highway": "NH-44",
+      "name": "Rayalaseema North-South Corridor (Kurnool - Anantapur)",
+      "districts": ["Kurnool", "Anantapur"],
+      "verified_facts": {
+        "morth_blackspot_count_anantapur": 87,
+        "key_landmarks": ["Gooty", "Dhone", "Kurnool Bypass"],
+        "verified": true
+      },
+      "designated_trauma_care": [
+        {
+          "hospital_name": "Government General Hospital (GGH) Kurnool",
+          "department": "Tertiary Trauma Center",
+          "location": "Kurnool, AP",
+          "contact": "108",
+          "verified": true
+        },
+        {
+          "hospital_name": "Government General Hospital (GGH) Anantapur",
+          "department": "Emergency Trauma Unit",
+          "location": "Anantapur, AP",
+          "contact": "108",
+          "verified": true
+        }
+      ]
+    },
+    {
+      "corridor_id": "AP-NH16-NORTH",
+      "highway": "NH-16",
+      "name": "North Coastal Corridor (Visakhapatnam - Anakapalli - Srikakulam)",
+      "districts": ["Visakhapatnam", "Anakapalli", "Srikakulam"],
+      "verified_facts": {
+        "morth_blackspot_count_vizag": 131,
+        "morth_blackspot_count_anakapalli": 33,
+        "morth_blackspot_count_srikakulam": 30,
+        "key_landmarks": ["Anakapalli Bypass", "Maddilapalem", "Tagarapuvalasa"],
+        "verified": true
+      },
+      "designated_trauma_care": [
+        {
+          "hospital_name": "King George Hospital (KGH) Visakhapatnam",
+          "department": "Super Speciality Trauma Care",
+          "location": "Visakhapatnam, AP",
+          "contact": "108",
+          "verified": true
+        }
+      ]
+    }
+  ],
+  "vms_advisory_templates": {
+    "standard": "IRC:SP:85 Discontinuous 2-Line Dynamic LED Matrix Display",
+    "verified_format": true,
+    "templates": {
+      "stalled_live_lane": {
+        "incident_type": "STALLED_VEHICLE",
+        "severity": "P0",
+        "lane_type": "travel",
+        "line_1_en": "SLOW DOWN - VEHICLE STOPPED AHEAD",
+        "line_2_te": "నెమ్మదిగా వెళ్లండి - ముందు వాహనం నిలిచింది",
+        "notes": "Triggered only for active travel lanes. Suppressed for shoulder stops."
+      },
+      "wrong_way_driver": {
+        "incident_type": "WRONG_WAY_DRIVER",
+        "severity": "P0",
+        "line_1_en": "DANGER - WRONG WAY VEHICLE AHEAD",
+        "line_2_te": "హెచ్చరిక - ఎదురుగా వాహనం వస్తోంది",
+        "notes": "High-priority flash warning on approaching VMS gantry."
+      },
+      "tailgating_ttc": {
+        "incident_type": "TAILGATING",
+        "severity": "P1",
+        "line_1_en": "MAINTAIN SAFE DISTANCE - NO TAILGATING",
+        "line_2_te": "సురక్షిత దూరం పాటించండి",
+        "notes": "Advisory warning to prevent multi-vehicle rear-end collisions."
+      },
+      "shoulder_stop": {
+        "incident_type": "STALLED_VEHICLE",
+        "severity": "P2",
+        "lane_type": "shoulder",
+        "vms_activated": false,
+        "notes": "VMS is NOT activated for shoulder stops per IRC:SP:85 distraction guidelines."
+      }
+    }
+  }
+}

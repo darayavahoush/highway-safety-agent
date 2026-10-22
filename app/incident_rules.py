@@ -27,13 +27,13 @@ class TrackHistory:
         self,
         track_id: int,
         label: str,
-        max_points: int = 60,
+        max_points: int = 300,
         is_confirmed: bool = False,
     ):
         self.track_id = track_id
         self.label = label
         self.is_confirmed = is_confirmed
-        # Deque of (timestamp, cx, cy, w, h, ground_x, ground_y)
+        # Deque of (timestamp, cx, cy, w, h, ground_x, ground_y) - 300 points holds 6s @ 50fps or 25s @ 12hz
         self.history: deque = deque(maxlen=max_points)
         self.first_seen_ts = 0.0
         self.last_seen_ts = 0.0
@@ -121,6 +121,8 @@ class TrackHistory:
     def duration_seconds(self) -> float:
         if len(self.history) < 2:
             return 0.0
+        if self.first_seen_ts > 0.0:
+            return max(0.0, self.history[-1][0] - self.first_seen_ts)
         return self.history[-1][0] - self.history[0][0]
 
 
@@ -509,8 +511,16 @@ class EdgeTriggerEngine:
                     # Longitudinal headway: projection along lane travel direction
                     headway_m = v_ab_x * ux + v_ab_y * uy
 
-                    # A is behind B if headway_m > 0
-                    if headway_m <= 0.5 or headway_m > 40.0:
+                    # Bounding box physical overlap check (IoU > 0.05 indicates split boxes on the same vehicle)
+                    from app.tracker import calculate_iou_matrix
+                    box_a = [ax - aw / 2.0, ay - ah / 2.0, aw, ah]
+                    box_b = [bx - bw / 2.0, by - bh / 2.0, bw, bh]
+                    iou_ab = calculate_iou_matrix([box_a], [box_b])[0, 0]
+                    if iou_ab > 0.05:
+                        continue
+
+                    # A is behind B if headway_m > 0 (minimum 1.0m headway)
+                    if headway_m < 1.0 or headway_m > 40.0:
                         continue
 
                     # Closing speed in m/s: Vehicle A speed minus Vehicle B speed
