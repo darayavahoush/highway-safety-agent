@@ -1,0 +1,37 @@
+{
+  "stalled_vehicle": {
+    "enabled": true,
+    "min_stationary_seconds": 3.0,
+    "max_speed_kmh": 3.5,
+    "severity": "CRITICAL",
+    "description": "Stationary or broken-down vehicle in an active highway lane"
+  },
+  "tailgating_ttc": {
+    "enabled": true,
+    "critical_ttc_seconds": 1.2,
+    "warning_ttc_seconds": 2.0,
+    "min_speed_kmh": 15.0,
+    "mixed_traffic_boost": 1.3,
+    "severity": "HIGH",
+    "description": "Hazardous Time-To-Collision headway between following vehicles"
+  },
+  "wrong_way": {
+    "enabled": true,
+    "min_speed_kmh": 8.0,
+    "min_displacement_px": 25.0,
+    "severity": "CRITICAL",
+    "description": "Vehicle traveling against authorized flow of traffic"
+  },
+  "sudden_braking": {
+    "enabled": true,
+    "min_deceleration_kmh_per_sec": 25.0,
+    "severity": "MEDIUM",
+    "description": "Sudden emergency braking indicating obstacle or collision danger"
+  },
+  "operational": {
+    "dedupe_cooldown_seconds": 30.0,
+    "evidence_buffer_seconds": 10.0,
+    "queue_max_size": 100,
+    "fps_target": 15.0
+  }
+}
