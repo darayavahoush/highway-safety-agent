@@ -130,10 +130,16 @@ class EdgeTriggerEngine:
                     # Ensure it is in active roadway (not off the screen edges)
                     if 0.05 * frame_w < cx < 0.95 * frame_w and 0.1 * frame_h < cy < 0.9 * frame_h:
                         lane_name = self._resolve_lane_name(cy / float(frame_h))
+                        lane_idx = self._resolve_lane_index(cy / float(frame_h))
                         vt = VehicleTelemetry(
-                            track_id=th.track_id,
-                            label=th.label,
-                            speed_kmh=round(th.current_speed_kmh, 1),
+                            trackId=th.track_id,
+                            cls=th.label.lower(),
+                            speedKmh=round(th.current_speed_kmh, 1),
+                            lane=lane_name,
+                            laneIndex=lane_idx,
+                            x=round(float(cx / frame_w), 2),
+                            dir=1,
+                            plate=None,
                             box=[float(cx - w/2), float(cy - h/2), float(w), float(h)],
                             ground_pos=[round(gx, 2), round(gy, 2)],
                         )
@@ -169,10 +175,16 @@ class EdgeTriggerEngine:
                 if is_wrong_direction and th.current_speed_kmh >= min_speed:
                     _, cx, cy, w, h, gx, gy = th.history[-1]
                     lane_name = self._resolve_lane_name(cy / float(frame_h))
+                    lane_idx = self._resolve_lane_index(cy / float(frame_h))
                     vt = VehicleTelemetry(
-                        track_id=th.track_id,
-                        label=th.label,
-                        speed_kmh=round(th.current_speed_kmh, 1),
+                        trackId=th.track_id,
+                        cls=th.label.lower(),
+                        speedKmh=round(th.current_speed_kmh, 1),
+                        lane=lane_name,
+                        laneIndex=lane_idx,
+                        x=round(float(cx / frame_w), 2),
+                        dir=-1,
+                        plate=None,
                         box=[float(cx - w/2), float(cy - h/2), float(w), float(h)],
                         ground_pos=[round(gx, 2), round(gy, 2)],
                     )
@@ -235,17 +247,31 @@ class EdgeTriggerEngine:
                         threshold = crit_ttc * 1.3 if is_mixed else crit_ttc
 
                         if ttc < threshold:
+                            lane_name_a = self._resolve_lane_name(ay / float(frame_h))
+                            lane_idx_a = self._resolve_lane_index(ay / float(frame_h))
                             vt_a = VehicleTelemetry(
-                                track_id=th_a.track_id,
-                                label=th_a.label,
-                                speed_kmh=round(th_a.current_speed_kmh, 1),
+                                trackId=th_a.track_id,
+                                cls=th_a.label.lower(),
+                                speedKmh=round(th_a.current_speed_kmh, 1),
+                                lane=lane_name_a,
+                                laneIndex=lane_idx_a,
+                                x=round(float(ax / frame_w), 2),
+                                dir=1,
+                                plate=None,
                                 box=[float(ax - aw/2), float(ay - ah/2), float(aw), float(ah)],
                                 ground_pos=[round(agx, 2), round(agy, 2)],
                             )
+                            lane_name_b = self._resolve_lane_name(by / float(frame_h))
+                            lane_idx_b = self._resolve_lane_index(by / float(frame_h))
                             vt_b = VehicleTelemetry(
-                                track_id=th_b.track_id,
-                                label=th_b.label,
-                                speed_kmh=round(th_b.current_speed_kmh, 1),
+                                trackId=th_b.track_id,
+                                cls=th_b.label.lower(),
+                                speedKmh=round(th_b.current_speed_kmh, 1),
+                                lane=lane_name_b,
+                                laneIndex=lane_idx_b,
+                                x=round(float(bx / frame_w), 2),
+                                dir=1,
+                                plate=None,
                                 box=[float(bx - bw/2), float(by - bh/2), float(bw), float(bh)],
                                 ground_pos=[round(bgx, 2), round(bgy, 2)],
                             )
@@ -277,3 +303,13 @@ class EdgeTriggerEngine:
                 if y_min <= y_fraction <= y_max:
                     return lane.get("name", lane.get("id"))
         return "Active Highway Lane"
+
+    def _resolve_lane_index(self, y_fraction: float) -> int:
+        for idx, lane in enumerate(self.camera_cfg.get("lanes", [])):
+            poly = lane.get("polygon", [])
+            if poly and len(poly) >= 3:
+                y_min = min(p[1] for p in poly)
+                y_max = max(p[1] for p in poly)
+                if y_min <= y_fraction <= y_max:
+                    return idx + 1
+        return 1

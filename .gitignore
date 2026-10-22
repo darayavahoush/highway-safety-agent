@@ -5,7 +5,10 @@ __pycache__/
 evidence/
 *.mp4
 *.MP4
+*.db
 .env
 .DS_Store
 dist/
 node_modules/
+frontend/node_modules/
+frontend/dist/

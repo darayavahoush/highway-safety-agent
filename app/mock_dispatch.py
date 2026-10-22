@@ -152,6 +152,26 @@ def mock_vms_dispatch(payload: VMSDisplayPayload):
     }
 
 
+@router.post("/owner_notice")
+def mock_owner_notice_dispatch(payload: Dict[str, Any]):
+    notice_id = f"AP-NOTICE-{uuid.uuid4().hex[:6].upper()}"
+    record = {
+        "stakeholder": "VEHICLE_OWNER_NOTICE",
+        "notice_id": notice_id,
+        "incident_id": payload.get("incident_id"),
+        "timestamp": time.time(),
+        "payload": payload,
+        "status": "NOTICE_SENT_TO_PARIVAHAN",
+    }
+    DISPATCH_AUDIT_LOG.append(record)
+    return {
+        "status": "SUCCESS",
+        "notice_id": notice_id,
+        "channel": "SMS_AND_M_PARIVAHAN",
+        "message": f"Owner safety notice & advisory queued for {payload.get('plate', 'registered owner')}.",
+    }
+
+
 @router.get("/audit_log")
 def get_dispatch_audit_log():
     return {"total_dispatches": len(DISPATCH_AUDIT_LOG), "dispatches": DISPATCH_AUDIT_LOG}

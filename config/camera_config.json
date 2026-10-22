@@ -3,6 +3,8 @@
   "highway": "NH-16 (Chennai - Kolkata Corridor)",
   "section": "Vijayawada - Guntur Highway Stretch, Andhra Pradesh",
   "km_marker": "KM 42.4",
+  "towards": "Visakhapatnam",
+  "opposite": "Vijayawada",
   "gps": {
     "latitude": 16.5412,
     "longitude": 80.6421

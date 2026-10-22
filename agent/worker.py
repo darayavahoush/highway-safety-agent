@@ -1,7 +1,7 @@
 """
 Asynchronous Cognitive Safety Agent Worker.
-Consumes incident candidates from the bounded queue, runs cognitive/deterministic triage,
-dispatches to government stakeholder endpoints, and records audit trails.
+Handles event triage, 15-second cancel window, mock dispatch execution,
+SQLite persistence, and real-time WebSocket event broadcasting.
 """
 
 import asyncio
@@ -9,7 +9,7 @@ import json
 import time
 import urllib.request
 import urllib.error
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Callable, Any
 
 from app.incident_schema import (
     IncidentCandidate,
@@ -18,81 +18,163 @@ from app.incident_schema import (
     StakeholderDispatch,
 )
 from app.queue_boundary import incident_queue
+from app import db
 from agent.reasoning import SafetyPolicyEngine
 
 
 class SafetyAgentWorker:
     def __init__(self, mock_base_url: str = "http://127.0.0.1:8000/mock"):
         self.policy_engine = SafetyPolicyEngine(mock_base_url=mock_base_url)
-        self.incidents_store: Dict[str, IncidentEvent] = {}
         self.is_running: bool = False
+        # Broadcast callback set by main.py
+        self.broadcast_callback: Optional[Callable[[Dict[str, Any]], Any]] = None
+        # Track cancelled dispatches: (incident_id, dispatch_id)
+        self.cancelled_dispatches: set = set()
+
+    async def broadcast(self, payload: Dict[str, Any]):
+        """Broadcasts event payload to all connected WebSocket clients."""
+        if self.broadcast_callback:
+            try:
+                res = self.broadcast_callback(payload)
+                if asyncio.iscoroutine(res):
+                    await res
+            except Exception as e:
+                print(f"[AgentWorker] Broadcast error: {e}")
 
     async def run(self):
         """Main event loop for the cognitive agent."""
         self.is_running = True
+        print("[AgentWorker] Cognitive Safety Agent loop active.")
         while self.is_running:
             candidate = await incident_queue.get()
             try:
                 await self.process_candidate(candidate)
             except Exception as e:
-                print(f"[AgentWorker] Error processing incident {candidate.incident_id}: {e}")
+                print(f"[AgentWorker] Error processing candidate {candidate.incident_id}: {e}")
 
     async def process_candidate(self, candidate: IncidentCandidate) -> IncidentEvent:
-        """Processes a candidate through reasoning, dispatch, and storage."""
-        briefing, trace, dispatches = self.policy_engine.reason_and_triage(candidate)
+        """Processes candidate through reasoning, dispatch, persistence, and broadcasting."""
+        now_ms = time.time() * 1000
 
-        # Dispatch to mock endpoints asynchronously
-        for d in dispatches:
-            self._execute_dispatch(d)
-
-        # Build full IncidentEvent record
+        # Build initial IncidentEvent
         event = IncidentEvent(
-            incident_id=candidate.incident_id,
-            incident_type=candidate.incident_type,
+            id=candidate.incident_id,
+            type=candidate.incident_type,
             severity=candidate.severity,
-            status=IncidentStatus.DISPATCHED,
-            camera_id=candidate.camera_id,
-            km_marker=candidate.km_marker,
-            gps=candidate.gps,
-            primary_track_id=candidate.primary_track_id,
-            secondary_track_id=candidate.secondary_track_id,
-            lane_id=candidate.lane_id,
-            involved_vehicles=candidate.involved_vehicles,
-            agent_briefing=briefing,
-            reasoning_trace=trace,
+            status=IncidentStatus.ANALYSING,
+            confidence=candidate.rule_score,
+            createdAt=candidate.timestamp or now_ms,
+            camera={
+                "id": candidate.camera_id,
+                "highway": "NH-16",
+                "km": float(candidate.km_marker.replace("KM", "").strip() or 42.4),
+                "lat": candidate.gps.get("lat", 16.5412),
+                "lng": candidate.gps.get("lng", 80.6421),
+                "towards": "Visakhapatnam",
+                "opposite": "Vijayawada",
+            },
+            vehicles=candidate.involved_vehicles,
             snapshot_url=candidate.evidence_snapshot_path,
             clip_url=candidate.evidence_clip_path,
-            dispatches=dispatches,
         )
 
-        self.incidents_store[candidate.incident_id] = event
+        # Broadcast initial "analysing" status
+        await self.broadcast({"incident": event.to_contract_dict()})
+        db.upsert_incident(event.to_contract_dict())
+
+        # Perform reasoning
+        briefing, trace, dispatches = self.policy_engine.reason_and_triage(candidate)
+        event.briefing = briefing
+        event.trace = trace
+        event.dispatches = dispatches
+        event.status = IncidentStatus.DISPATCHED
+
+        # Execute immediate dispatches (VMS, NHAI)
+        for d in event.dispatches:
+            if d.status == "sent":
+                self._execute_dispatch(d)
+
+        # Persist and broadcast dispatched state
+        contract_dict = event.to_contract_dict()
+        db.upsert_incident(contract_dict)
+        await self.broadcast({"incident": contract_dict})
+
+        # Launch background tasks for queued dispatches (15s cancel window)
+        for d in event.dispatches:
+            if d.status == "queued":
+                asyncio.create_task(self._handle_queued_dispatch(event.id, d))
+
         return event
 
+    async def _handle_queued_dispatch(self, incident_id: str, dispatch: StakeholderDispatch):
+        """Waits 15 seconds for operator cancellation before sending to mock endpoint."""
+        wait_seconds = 15.0
+        print(f"[AgentWorker] Dispatch {dispatch.id} to {dispatch.target} queued with 15s cancel window.")
+        await asyncio.sleep(wait_seconds)
+
+        # Check if cancelled by operator
+        if (incident_id, dispatch.id) in self.cancelled_dispatches:
+            print(f"[AgentWorker] Dispatch {dispatch.id} was CANCELLED by operator. Skipping mock POST.")
+            return
+
+        # Not cancelled: execute dispatch
+        now_ms = time.time() * 1000
+        dispatch.status = "sent"
+        dispatch.sentAt = now_ms
+        self._execute_dispatch(dispatch)
+
+        # Update DB and broadcast
+        incidents = db.get_all_incidents()
+        for inc in incidents:
+            if inc["id"] == incident_id:
+                for d in inc.get("dispatches", []):
+                    if d["id"] == dispatch.id:
+                        d["status"] = dispatch.status
+                        d["sentAt"] = dispatch.sentAt
+                        d["ackAt"] = dispatch.ackAt
+                db.upsert_incident(inc)
+                await self.broadcast({"incident": inc})
+                break
+
+    def cancel_dispatch(self, incident_id: str, dispatch_id: str) -> bool:
+        """Operator cancellation within the 15s window."""
+        self.cancelled_dispatches.add((incident_id, dispatch_id))
+        ok = db.cancel_dispatch(incident_id, dispatch_id)
+        print(f"[AgentWorker] Operator cancelled dispatch {dispatch_id} for {incident_id}. (Success={ok})")
+        return ok
+
     def _execute_dispatch(self, dispatch: StakeholderDispatch):
-        """Sends HTTP POST to the stakeholder endpoint."""
+        """Executes dispatch via mock dispatch handlers and simulates realistic acknowledgement."""
         try:
-            req_data = json.dumps(dispatch.payload).encode("utf-8")
-            req = urllib.request.Request(
-                dispatch.endpoint_url,
-                data=req_data,
-                headers={"Content-Type": "application/json"},
-                method="POST",
-            )
-            with urllib.request.urlopen(req, timeout=2.0) as resp:
-                dispatch.response_code = resp.status
-                dispatch.response_body = resp.read().decode("utf-8")
-                dispatch.status = "ACKNOWLEDGED"
-        except urllib.error.HTTPError as e:
-            dispatch.response_code = e.code
-            dispatch.response_body = e.read().decode("utf-8")
-            dispatch.status = "FAILED"
+            target_val = dispatch.target.value if hasattr(dispatch.target, "value") else str(dispatch.target)
+            now_ms = time.time() * 1000
+            
+            if "VMS" in target_val:
+                from app.mock_dispatch import VMSDisplayPayload, mock_vms_dispatch
+                res = mock_vms_dispatch(VMSDisplayPayload(**dispatch.payload))
+            elif "NHAI" in target_val:
+                from app.mock_dispatch import NHAIDispatchPayload, mock_nhai_dispatch
+                res = mock_nhai_dispatch(NHAIDispatchPayload(**dispatch.payload))
+            elif "POLICE" in target_val:
+                from app.mock_dispatch import PoliceDispatchPayload, mock_police_dispatch
+                res = mock_police_dispatch(PoliceDispatchPayload(**dispatch.payload))
+            elif "EMS" in target_val or "AMBULANCE" in target_val:
+                from app.mock_dispatch import EMS108DispatchPayload, mock_ems_dispatch
+                res = mock_ems_dispatch(EMS108DispatchPayload(**dispatch.payload))
+            elif "OWNER" in target_val or "NOTICE" in target_val:
+                from app.mock_dispatch import mock_owner_notice_dispatch
+                res = mock_owner_notice_dispatch(dispatch.payload)
+            else:
+                res = {"status": "SUCCESS", "message": "Dispatched to stakeholder"}
+
+            dispatch.response_code = 200
+            dispatch.response_body = json.dumps(res)
+            dispatch.ackAt = now_ms + 1200
+            dispatch.status = "acknowledged"
         except Exception as e:
             dispatch.response_code = 500
             dispatch.response_body = str(e)
-            dispatch.status = "FAILED"
-
-    def get_all_incidents(self) -> List[IncidentEvent]:
-        return list(self.incidents_store.values())
+            dispatch.status = "failed"
 
 
 # Global worker instance

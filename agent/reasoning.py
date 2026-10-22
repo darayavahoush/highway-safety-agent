@@ -1,9 +1,10 @@
 """
 Cognitive Reasoning Engine & Deterministic Safety Floor (Tier 0).
-Generates structured situation briefings, threat assessments, and policy-guarded actions.
-Never blocks life-safety alerts on an LLM API call.
+Generates structured situation briefings, threat assessments, and policy-guarded actions
+strictly matching the frontend-backend contract.
 """
 
+import time
 from typing import Dict, List, Tuple
 from app.incident_schema import (
     IncidentCandidate,
@@ -11,48 +12,68 @@ from app.incident_schema import (
     IncidentType,
     StakeholderDispatch,
     StakeholderType,
+    TraceStep,
 )
-import time
 
 
 class SafetyPolicyEngine:
     def __init__(self, mock_base_url: str = "http://127.0.0.1:8000/mock"):
         self.base_url = mock_base_url
 
-    def reason_and_triage(self, candidate: IncidentCandidate) -> Tuple[str, List[str], List[StakeholderDispatch]]:
+    def reason_and_triage(self, candidate: IncidentCandidate) -> Tuple[str, List[TraceStep], List[StakeholderDispatch]]:
         """
         Tier 0: Deterministic Rule-Based Triage & Situation Synthesis.
         Returns:
             briefing: str
-            reasoning_trace: List[str] [Observed, Assessed, Decided, Actions]
+            trace: List[TraceStep]
             dispatches: List[StakeholderDispatch]
         """
+        now_ms = time.time() * 1000
         primary_veh = candidate.involved_vehicles[0] if candidate.involved_vehicles else None
-        p_class = primary_veh.label if primary_veh else "Vehicle"
-        p_speed = primary_veh.speed_kmh if primary_veh else 0.0
+        p_class = primary_veh.cls.capitalize() if primary_veh else "Vehicle"
+        p_track = primary_veh.trackId if primary_veh else candidate.primary_track_id
+        p_speed = round(primary_veh.speedKmh, 1) if primary_veh else 0.0
 
-        trace = []
-        dispatches = []
+        trace: List[TraceStep] = []
+        dispatches: List[StakeholderDispatch] = []
 
-        if candidate.incident_type == IncidentType.STALLED_VEHICLE:
+        if candidate.incident_type in [IncidentType.STALLED_VEHICLE, "STALLED_VEHICLE"]:
             briefing = (
-                f"ALERT: A {p_class} (Track #{candidate.primary_track_id}) is stationary in the "
-                f"{candidate.lane_id or 'active lane'} at {candidate.km_marker}. "
-                f"Severe hazard of high-speed rear-end collision."
+                f"Stationary {p_class} #{p_track} in {candidate.lane_id or 'active lane'} "
+                f"at {candidate.km_marker}. High probability of rear-end pileup."
             )
             trace = [
-                f"OBSERVED: {p_class} #{candidate.primary_track_id} stationary (speed: {p_speed} km/h) in active roadway for > 3.0 seconds.",
-                f"ASSESSED: High-severity static obstacle. Fast highway traffic cannot brake in time without advance warning.",
-                f"DECIDED: Immediate VMS warning gantry activation (P0) + Mobilization of NHAI route patrol and towing crane.",
-                f"ACTIONS: Dispatched VMS Display and NHAI Towing Unit.",
+                TraceStep(
+                    stage="observed",
+                    text=f"{p_class} #{p_track} has been stationary (0 km/h) in {candidate.lane_id or 'active roadway'} for > 3.0s.",
+                    at=now_ms - 800,
+                ),
+                TraceStep(
+                    stage="assessed",
+                    text="High-risk static obstacle in live lane. Approaching vehicles cannot brake within sight distance.",
+                    at=now_ms - 500,
+                ),
+                TraceStep(
+                    stage="decided",
+                    text="Immediate VMS warning gantry activation (P0) + Mobilization of NHAI route patrol and towing crane.",
+                    at=now_ms - 200,
+                ),
+                TraceStep(
+                    stage="actions",
+                    text="VMS gantry display updated. NHAI towing crane dispatched. 108 Emergency Ambulance pre-alerted.",
+                    at=now_ms,
+                ),
             ]
-            # Action 1: VMS Sign Warning
+
+            # 1. Immediate: VMS Gantry warning
             dispatches.append(
                 StakeholderDispatch(
-                    incident_id=candidate.incident_id,
-                    stakeholder=StakeholderType.VARIABLE_MESSAGE_SIGN_VMS,
+                    id=f"{candidate.incident_id}-D1",
+                    target=StakeholderType.VARIABLE_MESSAGE_SIGN_VMS,
+                    status="sent",
+                    sentAt=now_ms,
+                    message=f"DANGER: STALLED {p_class.upper()} AT {candidate.km_marker} - SLOW DOWN",
                     endpoint_url=f"{self.base_url}/vms_gantry",
-                    priority="P0",
                     payload={
                         "gantry_id": "VMS-NH16-GANTRY-04",
                         "message_text": f"DANGER: STALLED {p_class.upper()} AT {candidate.km_marker} - SLOW DOWN",
@@ -60,13 +81,16 @@ class SafetyPolicyEngine:
                     },
                 )
             )
-            # Action 2: NHAI Route Patrol & Crane
+
+            # 2. Immediate: NHAI Route Patrol & Heavy Crane
             dispatches.append(
                 StakeholderDispatch(
-                    incident_id=candidate.incident_id,
-                    stakeholder=StakeholderType.HIGHWAY_PATROL_NHAI,
+                    id=f"{candidate.incident_id}-D2",
+                    target=StakeholderType.HIGHWAY_PATROL_NHAI,
+                    status="sent",
+                    sentAt=now_ms,
+                    message=f"Deploy route marshal and heavy recovery crane to {candidate.km_marker} for stalled {p_class}.",
                     endpoint_url=f"{self.base_url}/nhai",
-                    priority="P0",
                     payload={
                         "incident_id": candidate.incident_id,
                         "highway_name": "NH-16",
@@ -80,36 +104,85 @@ class SafetyPolicyEngine:
                 )
             )
 
-        elif candidate.incident_type == IncidentType.WRONG_WAY_DRIVER:
-            briefing = (
-                f"CRITICAL LIFE-SAFETY ALERT: {p_class} #{candidate.primary_track_id} detected driving "
-                f"AGAINST TRAFFIC FLOW at {p_speed} km/h on {candidate.km_marker} ({candidate.lane_id})."
-            )
-            trace = [
-                f"OBSERVED: {p_class} #{candidate.primary_track_id} moving opposite to traffic direction at {p_speed} km/h.",
-                f"ASSESSED: Catastrophic head-on collision threat with approaching vehicles.",
-                f"DECIDED: Trigger emergency police interception and broadcast dynamic wrong-way driver alert on upstream gantries.",
-                f"ACTIONS: Mobilized Highway Police Interceptor + VMS Emergency Warning.",
-            ]
+            # 3. Queued (15s cancel window): 108 Trauma Ambulance Pre-alert
             dispatches.append(
                 StakeholderDispatch(
-                    incident_id=candidate.incident_id,
-                    stakeholder=StakeholderType.VARIABLE_MESSAGE_SIGN_VMS,
+                    id=f"{candidate.incident_id}-D3",
+                    target=StakeholderType.EMS_108_AMBULANCE,
+                    status="queued",
+                    queuedAt=now_ms,
+                    cancelUntil=now_ms + 15000,
+                    message=f"Pre-alert 108 Trauma Ambulance for potential high-speed collision at {candidate.km_marker}.",
+                    endpoint_url=f"{self.base_url}/ems_108",
+                    payload={
+                        "incident_id": candidate.incident_id,
+                        "incident_type": "POTENTIAL_HIGH_SPEED_COLLISION",
+                        "km_marker": candidate.km_marker,
+                        "gps": candidate.gps,
+                        "estimated_vehicles_count": len(candidate.involved_vehicles),
+                        "trauma_risk_level": "CRITICAL",
+                        "nearest_hospital": "AIIMS Mangalagiri Trauma Center",
+                        "golden_hour_target_minutes": 15,
+                        "briefing": briefing,
+                    },
+                )
+            )
+
+        elif candidate.incident_type in [IncidentType.WRONG_WAY, "WRONG_WAY", "WRONG_WAY_DRIVER"]:
+            briefing = (
+                f"CRITICAL: {p_class} #{p_track} traveling in the wrong direction at {p_speed} km/h "
+                f"near {candidate.km_marker}. Head-on collision imminent."
+            )
+            trace = [
+                TraceStep(
+                    stage="observed",
+                    text=f"{p_class} #{p_track} observed moving against authorized flow at {p_speed} km/h.",
+                    at=now_ms - 800,
+                ),
+                TraceStep(
+                    stage="assessed",
+                    text="Extreme catastrophic risk. Imminent risk of head-on collision with on-coming traffic.",
+                    at=now_ms - 500,
+                ),
+                TraceStep(
+                    stage="decided",
+                    text="Immediate gantry alert broadcast + Mobilization of Highway Police Interceptor.",
+                    at=now_ms - 200,
+                ),
+                TraceStep(
+                    stage="actions",
+                    text="VMS Gantries activated. Police Interceptor alerted with live coordinates.",
+                    at=now_ms,
+                ),
+            ]
+
+            # 1. Immediate: VMS Sign
+            dispatches.append(
+                StakeholderDispatch(
+                    id=f"{candidate.incident_id}-D1",
+                    target=StakeholderType.VARIABLE_MESSAGE_SIGN_VMS,
+                    status="sent",
+                    sentAt=now_ms,
+                    message=f"EMERGENCY: WRONG-WAY DRIVER NEAR {candidate.km_marker} - STAY ALERT",
                     endpoint_url=f"{self.base_url}/vms_gantry",
-                    priority="P0",
                     payload={
                         "gantry_id": "VMS-NH16-GANTRY-04",
-                        "message_text": f"EMERGENCY: WRONG WAY DRIVER NEAR {candidate.km_marker} - PULL OVER",
+                        "message_text": f"EMERGENCY: WRONG-WAY DRIVER NEAR {candidate.km_marker} - STAY ALERT",
                         "incident_id": candidate.incident_id,
                     },
                 )
             )
+
+            # 2. Queued (15s cancel window): Police Control Room Dispatch
             dispatches.append(
                 StakeholderDispatch(
-                    incident_id=candidate.incident_id,
-                    stakeholder=StakeholderType.POLICE_CONTROL_ROOM,
+                    id=f"{candidate.incident_id}-D2",
+                    target=StakeholderType.POLICE_CONTROL_ROOM,
+                    status="queued",
+                    queuedAt=now_ms,
+                    cancelUntil=now_ms + 15000,
+                    message=f"Intercept wrong-way {p_class} traveling opposite traffic at {candidate.km_marker}.",
                     endpoint_url=f"{self.base_url}/police",
-                    priority="P0",
                     payload={
                         "incident_id": candidate.incident_id,
                         "camera_id": candidate.camera_id,
@@ -122,25 +195,46 @@ class SafetyPolicyEngine:
                 )
             )
 
-        elif candidate.incident_type == IncidentType.TAILGATING_COLLISION_RISK:
+        elif candidate.incident_type in [IncidentType.TAILGATING, "TAILGATING", "TAILGATING_COLLISION_RISK"]:
             sec_veh = candidate.involved_vehicles[1] if len(candidate.involved_vehicles) > 1 else None
-            s_class = sec_veh.label if sec_veh else "Vehicle"
+            s_class = sec_veh.cls.capitalize() if sec_veh else "Vehicle"
+            s_track = sec_veh.trackId if sec_veh else candidate.secondary_track_id
             briefing = (
-                f"HIGH COLLISION PROBABILITY: {p_class} #{candidate.primary_track_id} aggressively tailgating "
-                f"{s_class} #{candidate.secondary_track_id} at {candidate.km_marker} with sub-second reaction margin."
+                f"Aggressive tailgating: {p_class} #{p_track} following {s_class} #{s_track} "
+                f"with sub-second reaction margin at {candidate.km_marker}."
             )
             trace = [
-                f"OBSERVED: Longitudinal closing trajectory between {p_class} #{candidate.primary_track_id} and {s_class} #{candidate.secondary_track_id}.",
-                f"ASSESSED: Time-to-Collision (TTC) is critically low. Sudden braking will trigger multi-vehicle pileup.",
-                f"DECIDED: Issue highway VMS safe headway advisory and log telemetry for corridor enforcement.",
-                f"ACTIONS: Dispatched VMS Headway Caution.",
+                TraceStep(
+                    stage="observed",
+                    text=f"{p_class} #{p_track} trailing {s_class} #{s_track} at critical Time-To-Collision headway.",
+                    at=now_ms - 800,
+                ),
+                TraceStep(
+                    stage="assessed",
+                    text="Mixed traffic collision hazard. Any sudden braking will trigger catastrophic rear impact.",
+                    at=now_ms - 500,
+                ),
+                TraceStep(
+                    stage="decided",
+                    text="Display safe following distance advisory on VMS and queue owner safety notice.",
+                    at=now_ms - 200,
+                ),
+                TraceStep(
+                    stage="actions",
+                    text="VMS caution sent. Vehicle owner automated safety notice queued.",
+                    at=now_ms,
+                ),
             ]
+
+            # 1. Immediate: VMS Caution
             dispatches.append(
                 StakeholderDispatch(
-                    incident_id=candidate.incident_id,
-                    stakeholder=StakeholderType.VARIABLE_MESSAGE_SIGN_VMS,
+                    id=f"{candidate.incident_id}-D1",
+                    target=StakeholderType.VARIABLE_MESSAGE_SIGN_VMS,
+                    status="sent",
+                    sentAt=now_ms,
+                    message="KEEP SAFE DISTANCE - DANGEROUS TAILGATING DETECTED AHEAD",
                     endpoint_url=f"{self.base_url}/vms_gantry",
-                    priority="P1",
                     payload={
                         "gantry_id": "VMS-NH16-GANTRY-04",
                         "message_text": "KEEP SAFE DISTANCE - DANGEROUS TAILGATING DETECTED AHEAD",
@@ -149,13 +243,33 @@ class SafetyPolicyEngine:
                 )
             )
 
+            # 2. Queued (15s cancel window): Owner Safety Notice (Track B)
+            dispatches.append(
+                StakeholderDispatch(
+                    id=f"{candidate.incident_id}-D2",
+                    target=StakeholderType.VEHICLE_OWNER_NOTICE,
+                    status="queued",
+                    queuedAt=now_ms,
+                    cancelUntil=now_ms + 15000,
+                    message=f"Send highway safety compliance advisory to registered owner of {p_class} #{p_track}.",
+                    endpoint_url=f"{self.base_url}/owner_notice",
+                    payload={
+                        "incident_id": candidate.incident_id,
+                        "plate": "PENDING_ANPR",
+                        "vehicle_class": p_class,
+                        "advisory_type": "DANGEROUS_TAILGATING_WARNING",
+                        "km_marker": candidate.km_marker,
+                    },
+                )
+            )
+
         else:
             briefing = f"Safety Alert: {candidate.rule_reason}"
             trace = [
-                f"OBSERVED: Hazard trigger on {candidate.primary_track_id}.",
-                f"ASSESSED: General roadway anomaly.",
-                f"DECIDED: Log event and monitor.",
-                f"ACTIONS: Event logged to incident repository.",
+                TraceStep(stage="observed", text=candidate.rule_reason, at=now_ms - 500),
+                TraceStep(stage="assessed", text="General highway anomaly detected.", at=now_ms - 300),
+                TraceStep(stage="decided", text="Log event and monitor corridor.", at=now_ms - 100),
+                TraceStep(stage="actions", text="Event logged for blackspot analytics.", at=now_ms),
             ]
 
         return briefing, trace, dispatches
