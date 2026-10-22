@@ -1,0 +1,109 @@
+{
+  "DJI_0011.MP4": {
+    "metadata": {
+      "clip_name": "DJI_0011",
+      "video_path": "/Users/ananyasridhar/Downloads/highway-safety-agent/demo_videos/drone/DJI_0011.MP4",
+      "camera_config": "/Users/ananyasridhar/Downloads/highway-safety-agent/config/camera_config.json",
+      "rules_config": "/Users/ananyasridhar/Downloads/highway-safety-agent/config/safety_rules.json",
+      "cpu_model": "Apple M2",
+      "timestamp": 1792662258.61771
+    },
+    "thresholds": {
+      "stationary_s": 3.0,
+      "ttc_s": 1.2,
+      "cooldown_s": 25.0
+    },
+    "timing": {
+      "total_frames": 114,
+      "video_duration_s": 2.28,
+      "elapsed_time_s": 11.22,
+      "avg_fps": 10.16,
+      "burst_fps": 10.16,
+      "idle_fps": 11.61,
+      "burst_vs_idle_diff_pct": 12.49,
+      "p95_latency_ms": 160.58,
+      "mean_latency_ms": 86.1,
+      "min_latency_ms": 30.54,
+      "max_latency_ms": 349.49
+    },
+    "tracker_health": {
+      "unique_track_ids": 31,
+      "expected_vehicles": null,
+      "id_to_vehicle_ratio": null,
+      "median_track_lifetime_s": 1.06,
+      "percent_tracks_under_0_5s": 19.35,
+      "total_speed_samples": 1882,
+      "percent_speed_samples_above_150kmh": 0.0,
+      "max_speed_kmh": 10.4,
+      "incidents_by_type": {}
+    },
+    "incidents": []
+  },
+  "DJI_0025.MP4": {
+    "metadata": {
+      "clip_name": "DJI_0025",
+      "video_path": "/Users/ananyasridhar/Downloads/highway-safety-agent/demo_videos/drone/DJI_0025.MP4",
+      "camera_config": "/Users/ananyasridhar/Downloads/highway-safety-agent/config/camera_config.json",
+      "rules_config": "/Users/ananyasridhar/Downloads/highway-safety-agent/config/safety_rules.json",
+      "cpu_model": "Apple M2",
+      "timestamp": 1792662329.275605
+    },
+    "thresholds": {
+      "stationary_s": 3.0,
+      "ttc_s": 1.2,
+      "cooldown_s": 25.0
+    },
+    "timing": {
+      "total_frames": 194,
+      "video_duration_s": 3.88,
+      "elapsed_time_s": 8.13,
+      "avg_fps": 23.87,
+      "burst_fps": 16.84,
+      "idle_fps": 26.07,
+      "burst_vs_idle_diff_pct": 35.4,
+      "p95_latency_ms": 55.06,
+      "mean_latency_ms": 38.57,
+      "min_latency_ms": 28.07,
+      "max_latency_ms": 114.25
+    },
+    "tracker_health": {
+      "unique_track_ids": 237,
+      "expected_vehicles": null,
+      "id_to_vehicle_ratio": null,
+      "median_track_lifetime_s": 2.18,
+      "percent_tracks_under_0_5s": 0.42,
+      "total_speed_samples": 28505,
+      "percent_speed_samples_above_150kmh": 0.0,
+      "max_speed_kmh": 29.0,
+      "incidents_by_type": {
+        "TAILGATING": 1
+      }
+    },
+    "incidents": [
+      {
+        "id": "INC-325116",
+        "type": "TAILGATING",
+        "severity": "P1",
+        "timestamp_s": 2.04,
+        "frame_idx": 102,
+        "track_id": 134,
+        "rule_score": 0.92,
+        "confidence": 0.32,
+        "rule_reason": "Severe collision hazard: Car #134 tailgating Car #67 (headway: 0.8m, TTC: 0.46s, closing speed: 6.0 km/h).",
+        "evidence_details": {
+          "follower_track_age_s": 1.18,
+          "leader_track_age_s": 1.18,
+          "follower_speed_kmh": 26.0,
+          "leader_speed_kmh": 20.0,
+          "headway_m": 0.76,
+          "closing_speed_kmh": 6.0,
+          "ttc_s": 0.46,
+          "sustained_duration_s": 1.82,
+          "lane_name": "Fast / Overtaking Lane (Right)"
+        },
+        "snapshot_file": "/Users/ananyasridhar/Downloads/highway-safety-agent/replay_output/DJI_0025/evidence/snapshots/INC-325116.jpg",
+        "clip_file": "/Users/ananyasridhar/Downloads/highway-safety-agent/replay_output/DJI_0025/evidence/clips/INC-325116.mp4"
+      }
+    ]
+  }
+}

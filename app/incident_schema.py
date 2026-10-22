@@ -136,6 +136,7 @@ class IncidentCandidate(BaseModel):
     involved_vehicles: List[VehicleTelemetry] = Field(default_factory=list)
     evidence_snapshot_path: Optional[str] = None
     evidence_clip_path: Optional[str] = None
+    evidence_details: Dict[str, Any] = Field(default_factory=dict)
 
 
 class IncidentEvent(BaseModel):

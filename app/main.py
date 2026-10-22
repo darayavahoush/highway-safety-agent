@@ -39,7 +39,8 @@ from agent.worker import agent_worker
 
 
 # Environment & Paths
-RTSP_URL = os.getenv("RTSP_URL", "demo_videos/drone/DJI_0011.MP4")
+VIDEO_SOURCE = os.getenv("VIDEO_SOURCE") or os.getenv("RTSP_URL") or "demo_videos/drone/DJI_0011.MP4"
+RTSP_URL = VIDEO_SOURCE
 YOLO_MODEL_PATH = os.getenv("YOLO_MODEL_PATH", "models/yolov8n.onnx")
 PROCESS_WIDTH = int(os.getenv("PROCESS_WIDTH", "640"))
 OUTPUT_FPS = float(os.getenv("OUTPUT_FPS", "15.0"))
@@ -184,6 +185,8 @@ async def telemetry_broadcaster():
 async def lifespan(app: FastAPI):
     # Initialize SQLite schema
     db.init_db()
+    # Start background video capture thread
+    reader.start()
     # Start background perception, agent worker, and metrics broadcaster
     p_task = asyncio.create_task(perception_loop())
     a_task = asyncio.create_task(agent_worker.run())
@@ -344,9 +347,17 @@ def video_feed():
     return StreamingResponse(_mjpeg_generator(), media_type="multipart/x-mixed-replace; boundary=frame")
 
 
+ENABLE_SIMULATION = os.getenv("ENABLE_SIMULATION", "0") == "1"
+
+
 @app.post("/api/simulate_incident/{incident_type}")
 def simulate_incident(incident_type: str):
-    """Testing helper to trigger an incident and verify full pipeline."""
+    """Testing helper to trigger an incident. Gated behind ENABLE_SIMULATION=1."""
+    if not ENABLE_SIMULATION:
+        raise HTTPException(
+            status_code=403,
+            detail="Simulation endpoints are disabled. Run with ENABLE_SIMULATION=1 for testing without a video feed."
+        )
     from app.incident_schema import VehicleTelemetry, IncidentType
     cand = IncidentCandidate(
         incident_type=IncidentType.STALLED_VEHICLE if incident_type == "stalled" else (

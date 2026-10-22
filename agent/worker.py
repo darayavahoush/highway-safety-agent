@@ -122,6 +122,7 @@ class SafetyAgentWorker:
         dispatch.status = "sent"
         dispatch.sentAt = now_ms
         self._execute_dispatch(dispatch)
+        print(f"[AgentWorker] Dispatch {dispatch.id} to {dispatch.target} SENT to mock endpoint (Status: {dispatch.status}).")
 
         # Update DB and broadcast
         incidents = db.get_all_incidents()

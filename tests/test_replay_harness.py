@@ -59,13 +59,13 @@ def test_rule_triggers_and_cooldown():
     # 2. Simulate Wrong-Way Driver (Moving in negative X direction)
     print("\n[1.2] Simulating Wrong-Way Car (Track #102)...")
     base_ts = 2000.0
-    for step in range(15):
+    for step in range(25):
         ts = base_ts + step * 0.1
-        # Moving left (-X) at 50 px per second (~ 30 km/h)
-        x_pos = 500.0 - (step * 8.0)
+        # Moving left (-X) at 12 px per 0.1s (~ 20 km/h)
+        x_pos = 500.0 - (step * 12.0)
         engine.update_tracks([(x_pos, 220.0, 50.0, 30.0, "Car", 102)], now=ts)
 
-    wrong_cands = engine.evaluate_rules(640, 480, now=base_ts + 1.5)
+    wrong_cands = engine.evaluate_rules(640, 480, now=base_ts + 2.5)
     ww_cands = [c for c in wrong_cands if c.incident_type == IncidentType.WRONG_WAY_DRIVER]
     assert len(ww_cands) >= 1, "Failed: Expected Wrong-Way Driver candidate to fire!"
     print(f"  [PASS] Wrong-Way Fired: {ww_cands[0].rule_reason}")
@@ -73,18 +73,18 @@ def test_rule_triggers_and_cooldown():
     # 3. Simulate Dangerous Tailgating & Sub-second TTC
     print("\n[1.3] Simulating Tailgating Hazard (Truck #103 closing on Bike #104)...")
     base_ts = 3000.0
-    for step in range(8):
+    for step in range(20):
         ts = base_ts + step * 0.1
-        # Bike #104 moving steadily at ~ 20 km/h (12 px / 0.1s)
-        bike_x = 380.0 + (step * 10.0)  # 380 -> 450
-        # Truck #103 approaching fast from behind at ~ 45 km/h (22 px / 0.1s)
-        truck_x = 260.0 + (step * 20.0)  # 260 -> 400 (closing distance from 120px to 50px)
+        # Bike #104 moving steadily at ~ 21 km/h (13 px / 0.1s)
+        bike_x = 350.0 + (step * 13.0)
+        # Truck #103 approaching fast from behind at ~ 38 km/h (23 px / 0.1s)
+        truck_x = 100.0 + (step * 23.0)
         engine.update_tracks([
-            (truck_x, 200.0, 60.0, 35.0, "Truck", 103),
-            (bike_x, 200.0, 20.0, 15.0, "Motorbike", 104),
+            (truck_x, 250.0, 60.0, 35.0, "Truck", 103),
+            (bike_x, 250.0, 20.0, 15.0, "Motorbike", 104),
         ], now=ts)
 
-    ttc_cands = engine.evaluate_rules(640, 480, now=base_ts + 1.0)
+    ttc_cands = engine.evaluate_rules(640, 480, now=base_ts + 2.0)
     tailgate_cands = [c for c in ttc_cands if c.incident_type == IncidentType.TAILGATING_COLLISION_RISK]
     assert len(tailgate_cands) >= 1, "Failed: Expected Tailgating TTC candidate to fire!"
     print(f"  [PASS] Tailgating TTC Fired: {tailgate_cands[0].rule_reason}")

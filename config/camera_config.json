@@ -10,30 +10,31 @@
     "longitude": 80.6421
   },
   "pixels_per_meter": 22.0,
-  "flow_direction": {
-    "description": "Traffic moves primarily in the positive X / horizontal direction",
-    "primary_axis": "x",
-    "direction_sign": 1
-  },
   "lanes": [
     {
       "id": "lane_1_fast",
       "name": "Fast / Overtaking Lane (Right)",
-      "polygon": [[0, 0.15], [1.0, 0.15], [1.0, 0.45], [0, 0.45]],
+      "type": "travel",
+      "direction": [1.0, 0.0],
+      "polygon": [[0.0, 0.15], [1.0, 0.15], [1.0, 0.45], [0.0, 0.45]],
       "speed_limit_kmh": 100,
       "allowed_classes": ["Car", "Van"]
     },
     {
       "id": "lane_2_commercial",
       "name": "Heavy Vehicle & Mixed Lane (Left)",
-      "polygon": [[0, 0.45], [1.0, 0.45], [1.0, 0.85], [0, 0.85]],
+      "type": "travel",
+      "direction": [1.0, 0.0],
+      "polygon": [[0.0, 0.45], [1.0, 0.45], [1.0, 0.85], [0.0, 0.85]],
       "speed_limit_kmh": 80,
       "allowed_classes": ["Truck", "Bus", "Car", "Van", "Motorbike"]
     },
     {
       "id": "lane_3_shoulder",
       "name": "Emergency Shoulder",
-      "polygon": [[0, 0.85], [1.0, 0.85], [1.0, 1.0], [0, 1.0]],
+      "type": "shoulder",
+      "direction": [1.0, 0.0],
+      "polygon": [[0.0, 0.85], [1.0, 0.85], [1.0, 1.0], [0.0, 1.0]],
       "speed_limit_kmh": 0,
       "allowed_classes": []
     }

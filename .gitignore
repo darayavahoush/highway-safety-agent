@@ -12,3 +12,6 @@ dist/
 node_modules/
 frontend/node_modules/
 frontend/dist/
+replay_output/
+*.db*
+screenshot_*.png

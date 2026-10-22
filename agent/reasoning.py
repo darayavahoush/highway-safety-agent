@@ -38,95 +38,127 @@ class SafetyPolicyEngine:
         dispatches: List[StakeholderDispatch] = []
 
         if candidate.incident_type in [IncidentType.STALLED_VEHICLE, "STALLED_VEHICLE"]:
-            briefing = (
-                f"Stationary {p_class} #{p_track} in {candidate.lane_id or 'active lane'} "
-                f"at {candidate.km_marker}. High probability of rear-end pileup."
-            )
-            trace = [
-                TraceStep(
-                    stage="observed",
-                    text=f"{p_class} #{p_track} has been stationary (0 km/h) in {candidate.lane_id or 'active roadway'} for > 3.0s.",
-                    at=now_ms - 800,
-                ),
-                TraceStep(
-                    stage="assessed",
-                    text="High-risk static obstacle in live lane. Approaching vehicles cannot brake within sight distance.",
-                    at=now_ms - 500,
-                ),
-                TraceStep(
-                    stage="decided",
-                    text="Immediate VMS warning gantry activation (P0) + Mobilization of NHAI route patrol and towing crane.",
-                    at=now_ms - 200,
-                ),
-                TraceStep(
-                    stage="actions",
-                    text="VMS gantry display updated. NHAI towing crane dispatched. 108 Emergency Ambulance pre-alerted.",
-                    at=now_ms,
-                ),
-            ]
+            is_shoulder = (candidate.severity in [IncidentSeverity.P2, "P2"]) or ("shoulder" in (candidate.lane_id or "").lower())
+            lane_desc = candidate.lane_id or ("Emergency Shoulder" if is_shoulder else "active travel lane")
 
-            # 1. Immediate: VMS Gantry warning
-            dispatches.append(
-                StakeholderDispatch(
-                    id=f"{candidate.incident_id}-D1",
-                    target=StakeholderType.VARIABLE_MESSAGE_SIGN_VMS,
-                    status="sent",
-                    sentAt=now_ms,
-                    message=f"DANGER: STALLED {p_class.upper()} AT {candidate.km_marker} - SLOW DOWN",
-                    endpoint_url=f"{self.base_url}/vms_gantry",
-                    payload={
-                        "gantry_id": "VMS-NH16-GANTRY-04",
-                        "message_text": f"DANGER: STALLED {p_class.upper()} AT {candidate.km_marker} - SLOW DOWN",
-                        "incident_id": candidate.incident_id,
-                    },
+            if is_shoulder:
+                briefing = (
+                    f"Vehicle #{p_track} ({p_class}) parked on {lane_desc} "
+                    f"at {candidate.km_marker}. Non-critical observation."
                 )
-            )
+                trace = [
+                    TraceStep(
+                        stage="observed",
+                        text=f"{p_class} #{p_track} stationary in {lane_desc} for > 3.0s.",
+                        at=now_ms - 800,
+                    ),
+                    TraceStep(
+                        stage="assessed",
+                        text=f"Vehicle is positioned on {lane_desc} outside active travel lanes. No immediate live-lane collision hazard.",
+                        at=now_ms - 500,
+                    ),
+                    TraceStep(
+                        stage="decided",
+                        text="Logged for highway maintenance monitoring. No emergency dispatch required.",
+                        at=now_ms - 200,
+                    ),
+                    TraceStep(
+                        stage="actions",
+                        text=f"Stationary observation on {lane_desc} recorded. Zero dispatches issued.",
+                        at=now_ms,
+                    ),
+                ]
+                dispatches = []
+            else:
+                briefing = (
+                    f"Stationary {p_class} #{p_track} in {lane_desc} "
+                    f"at {candidate.km_marker}. High probability of rear-end pileup."
+                )
+                trace = [
+                    TraceStep(
+                        stage="observed",
+                        text=f"{p_class} #{p_track} has been stationary (0 km/h) in {lane_desc} for > 3.0s.",
+                        at=now_ms - 800,
+                    ),
+                    TraceStep(
+                        stage="assessed",
+                        text=f"High-risk static obstacle in live lane ({lane_desc}). Approaching vehicles cannot brake within sight distance.",
+                        at=now_ms - 500,
+                    ),
+                    TraceStep(
+                        stage="decided",
+                        text="Immediate VMS warning gantry activation (P0) + Mobilization of NHAI route patrol and towing crane.",
+                        at=now_ms - 200,
+                    ),
+                    TraceStep(
+                        stage="actions",
+                        text="VMS gantry display updated. NHAI towing crane dispatched. 108 Emergency Ambulance pre-alerted.",
+                        at=now_ms,
+                    ),
+                ]
 
-            # 2. Immediate: NHAI Route Patrol & Heavy Crane
-            dispatches.append(
-                StakeholderDispatch(
-                    id=f"{candidate.incident_id}-D2",
-                    target=StakeholderType.HIGHWAY_PATROL_NHAI,
-                    status="sent",
-                    sentAt=now_ms,
-                    message=f"Deploy route marshal and heavy recovery crane to {candidate.km_marker} for stalled {p_class}.",
-                    endpoint_url=f"{self.base_url}/nhai",
-                    payload={
-                        "incident_id": candidate.incident_id,
-                        "highway_name": "NH-16",
-                        "km_marker": candidate.km_marker,
-                        "lane_id": candidate.lane_id or "Fast Lane",
-                        "hazard_type": "STALLED_VEHICLE_OBSTACLE",
-                        "target_vehicle_class": p_class,
-                        "requires_towing_crane": True,
-                        "briefing": briefing,
-                    },
+                # 1. Immediate: VMS Gantry warning
+                dispatches.append(
+                    StakeholderDispatch(
+                        id=f"{candidate.incident_id}-D1",
+                        target=StakeholderType.VARIABLE_MESSAGE_SIGN_VMS,
+                        status="sent",
+                        sentAt=now_ms,
+                        message=f"DANGER: STALLED {p_class.upper()} AT {candidate.km_marker} - SLOW DOWN",
+                        endpoint_url=f"{self.base_url}/vms_gantry",
+                        payload={
+                            "gantry_id": "VMS-NH16-GANTRY-04",
+                            "message_text": f"DANGER: STALLED {p_class.upper()} AT {candidate.km_marker} - SLOW DOWN",
+                            "incident_id": candidate.incident_id,
+                        },
+                    )
                 )
-            )
 
-            # 3. Queued (15s cancel window): 108 Trauma Ambulance Pre-alert
-            dispatches.append(
-                StakeholderDispatch(
-                    id=f"{candidate.incident_id}-D3",
-                    target=StakeholderType.EMS_108_AMBULANCE,
-                    status="queued",
-                    queuedAt=now_ms,
-                    cancelUntil=now_ms + 15000,
-                    message=f"Pre-alert 108 Trauma Ambulance for potential high-speed collision at {candidate.km_marker}.",
-                    endpoint_url=f"{self.base_url}/ems_108",
-                    payload={
-                        "incident_id": candidate.incident_id,
-                        "incident_type": "POTENTIAL_HIGH_SPEED_COLLISION",
-                        "km_marker": candidate.km_marker,
-                        "gps": candidate.gps,
-                        "estimated_vehicles_count": len(candidate.involved_vehicles),
-                        "trauma_risk_level": "CRITICAL",
-                        "nearest_hospital": "AIIMS Mangalagiri Trauma Center",
-                        "golden_hour_target_minutes": 15,
-                        "briefing": briefing,
-                    },
+                # 2. Immediate: NHAI Route Patrol & Heavy Crane
+                dispatches.append(
+                    StakeholderDispatch(
+                        id=f"{candidate.incident_id}-D2",
+                        target=StakeholderType.HIGHWAY_PATROL_NHAI,
+                        status="sent",
+                        sentAt=now_ms,
+                        message=f"Deploy route marshal and heavy recovery crane to {candidate.km_marker} for stalled {p_class}.",
+                        endpoint_url=f"{self.base_url}/nhai",
+                        payload={
+                            "incident_id": candidate.incident_id,
+                            "highway_name": "NH-16",
+                            "km_marker": candidate.km_marker,
+                            "lane_id": candidate.lane_id or "Fast Lane",
+                            "hazard_type": "STALLED_VEHICLE_OBSTACLE",
+                            "target_vehicle_class": p_class,
+                            "requires_towing_crane": True,
+                            "briefing": briefing,
+                        },
+                    )
                 )
-            )
+
+                # 3. Queued (15s cancel window): 108 Trauma Ambulance Pre-alert
+                dispatches.append(
+                    StakeholderDispatch(
+                        id=f"{candidate.incident_id}-D3",
+                        target=StakeholderType.EMS_108_AMBULANCE,
+                        status="queued",
+                        queuedAt=now_ms,
+                        cancelUntil=now_ms + 15000,
+                        message=f"Pre-alert 108 Trauma Ambulance for potential high-speed collision at {candidate.km_marker}.",
+                        endpoint_url=f"{self.base_url}/ems_108",
+                        payload={
+                            "incident_id": candidate.incident_id,
+                            "incident_type": "POTENTIAL_HIGH_SPEED_COLLISION",
+                            "km_marker": candidate.km_marker,
+                            "gps": candidate.gps,
+                            "estimated_vehicles_count": len(candidate.involved_vehicles),
+                            "trauma_risk_level": "CRITICAL",
+                            "nearest_hospital": "AIIMS Mangalagiri Trauma Center",
+                            "golden_hour_target_minutes": 15,
+                            "briefing": briefing,
+                        },
+                    )
+                )
 
         elif candidate.incident_type in [IncidentType.WRONG_WAY, "WRONG_WAY", "WRONG_WAY_DRIVER"]:
             briefing = (

@@ -1,35 +1,52 @@
 {
+  "tracker": {
+    "min_hits": 5,
+    "max_lost_time_s": 1.0,
+    "conf_threshold_high": 0.35,
+    "conf_threshold_low": 0.15,
+    "iou_threshold": 0.2
+  },
+  "motion": {
+    "speed_window_seconds": 0.5,
+    "max_plausible_speed_kmh": 200.0,
+    "process_hz": 12.0
+  },
   "stalled_vehicle": {
     "enabled": true,
     "min_stationary_seconds": 3.0,
     "max_speed_kmh": 3.5,
-    "severity": "CRITICAL",
+    "congestion_threshold_kmh": 15.0,
+    "travel_severity": "P0",
+    "shoulder_severity": "P2",
     "description": "Stationary or broken-down vehicle in an active highway lane"
   },
   "tailgating_ttc": {
     "enabled": true,
     "critical_ttc_seconds": 1.2,
     "warning_ttc_seconds": 2.0,
-    "min_speed_kmh": 15.0,
+    "min_speed_kmh": 20.0,
+    "min_sustained_seconds": 1.0,
     "mixed_traffic_boost": 1.3,
-    "severity": "HIGH",
+    "severity": "P1",
     "description": "Hazardous Time-To-Collision headway between following vehicles"
   },
   "wrong_way": {
     "enabled": true,
-    "min_speed_kmh": 8.0,
-    "min_displacement_px": 25.0,
-    "severity": "CRITICAL",
+    "min_age_seconds": 2.0,
+    "min_displacement_m": 5.0,
+    "min_angle_deg": 135.0,
+    "min_speed_kmh": 15.0,
+    "severity": "P0",
     "description": "Vehicle traveling against authorized flow of traffic"
   },
   "sudden_braking": {
     "enabled": true,
     "min_deceleration_kmh_per_sec": 25.0,
-    "severity": "MEDIUM",
+    "severity": "P2",
     "description": "Sudden emergency braking indicating obstacle or collision danger"
   },
   "operational": {
-    "dedupe_cooldown_seconds": 30.0,
+    "dedupe_cooldown_seconds": 25.0,
     "evidence_buffer_seconds": 10.0,
     "queue_max_size": 100,
     "fps_target": 15.0
