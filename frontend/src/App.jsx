@@ -6,6 +6,7 @@ import LiveStage from './components/LiveStage.jsx'
 import ActivityLog from './components/ActivityLog.jsx'
 import IncidentDetail from './components/IncidentDetail.jsx'
 import StatsStrip from './components/StatsStrip.jsx'
+import OperatorCopilot from './components/OperatorCopilot.jsx'
 import { isActive } from './lib/format.js'
 
 export default function App() {
@@ -39,6 +40,7 @@ export default function App() {
       </main>
       <StatsStrip metrics={state.metrics} open={list.filter(isActive).length} today={today}
                   blackspots={state.blackspots} camera={camera} />
+      <OperatorCopilot incident={selected} />
     </div>
   )
 }

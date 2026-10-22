@@ -104,9 +104,6 @@ class SafetyAgentWorker:
             if d.status == "queued":
                 asyncio.create_task(self._handle_queued_dispatch(event.id, d))
 
-        # Asynchronously enrich with Parallel AI live web & corridor intelligence
-        asyncio.create_task(self._enrich_with_parallel_ai(event))
-
         return event
 
     async def _enrich_with_parallel_ai(self, event: IncidentEvent):

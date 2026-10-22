@@ -35,6 +35,7 @@ from app.detector import create_yolo_detector, BackgroundSubtractionDetector
 from app.tracker import LineCrossingCounter
 from app.dimensions_3d import draw_3d_bounding_box
 from app import db
+from app.anpr import anpr_pipeline
 from agent.worker import agent_worker
 
 
@@ -138,6 +139,17 @@ async def perception_loop():
                 involved_boxes = [(int(v.box[0]), int(v.box[1]), int(v.box[2]), int(v.box[3]), v.label) for v in cand.involved_vehicles]
                 snap_path = evidence_buffer.save_snapshot(cand.incident_id, frame_resized, involved_boxes)
                 cand.evidence_snapshot_path = f"/evidence/snapshots/{cand.incident_id}.jpg"
+
+                # Run ANPR on primary vehicle crop
+                if cand.involved_vehicles:
+                    pv = cand.involved_vehicles[0]
+                    if pv.box and len(pv.box) >= 4:
+                        crop_path, _ = evidence_buffer.extract_quality_crop(frame_resized, pv.box, pv.trackId)
+                        if crop_path and os.path.isfile(crop_path):
+                            crop_img = cv2.imread(crop_path)
+                            if crop_img is not None:
+                                pv.plate = anpr_pipeline.process_vehicle_crop(crop_img, pv.trackId)
+
                 # Push candidate to agent worker queue (zero perception latency)
                 incident_queue.put_nowait(cand)
 
@@ -327,6 +339,7 @@ async def select_active_clip(payload: ClipSelectPayload):
     # Reset tracking state for clean transition
     tracker.reset()
     trigger_engine.reset()
+    anpr_pipeline.reset()
 
     await broadcast_ws({
         "clip_changed": {
@@ -383,6 +396,57 @@ async def set_incident_feedback(incident_id: str, payload: FeedbackPayload):
             break
 
     return {"status": "SUCCESS", "verdict": payload.verdict}
+
+
+class CopilotChatPayload(BaseModel):
+    query: str
+    incident_id: Optional[str] = None
+
+
+@app.post("/api/incidents/{incident_id}/explain")
+async def explain_incident_endpoint(incident_id: str):
+    """
+    On-demand AI incident debriefing using Parallel AI.
+    Strictly called ONLY when requested by the operator.
+    """
+    from agent.parallel_client import parallel_client
+    incidents = db.get_all_incidents()
+    target_inc = next((i for i in incidents if i["id"] == incident_id), None)
+    if not target_inc:
+        raise HTTPException(status_code=404, detail="Incident not found")
+
+    loop = asyncio.get_event_loop()
+    result = await loop.run_in_executor(None, parallel_client.explain_incident, target_inc)
+
+    now_ms = time.time() * 1000
+    trace = target_inc.get("trace", [])
+    trace = [s for s in trace if s.get("stage") != "context"]
+    trace.append({"stage": "context", "text": result["explanation"], "at": now_ms})
+    target_inc["trace"] = trace
+
+    db.upsert_incident(target_inc)
+    await broadcast_ws({"incident": target_inc})
+
+    return result
+
+
+@app.post("/api/copilot/chat")
+async def copilot_chat_endpoint(payload: CopilotChatPayload):
+    """
+    Interactive Operator Copilot powered by Parallel AI.
+    On-demand natural language assistance for highway traffic operations.
+    """
+    from agent.parallel_client import parallel_client
+    target_inc = None
+    if payload.incident_id:
+        incidents = db.get_all_incidents()
+        target_inc = next((i for i in incidents if i["id"] == payload.incident_id), None)
+
+    loop = asyncio.get_event_loop()
+    result = await loop.run_in_executor(
+        None, parallel_client.answer_copilot_query, payload.query, target_inc
+    )
+    return result
 
 
 # -----------------------------------------------------------------

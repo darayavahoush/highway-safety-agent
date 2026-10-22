@@ -1,4 +1,5 @@
-import { Check, Flag, Image as ImageIcon, Film, MousePointerClick } from 'lucide-react'
+import { useState } from 'react'
+import { Check, Flag, Image as ImageIcon, Film, MousePointerClick, Sparkles } from 'lucide-react'
 import PlateChip from './PlateChip.jsx'
 import GoldenHourRing from './GoldenHourRing.jsx'
 import ReasoningTrace from './ReasoningTrace.jsx'
@@ -11,6 +12,7 @@ import {
 const CLS_LABEL = { truck: 'Truck', bus: 'Bus', car: 'Car', van: 'Van', motorbike: 'Motorbike' }
 
 export default function IncidentDetail({ incident, now, actions }) {
+  const [isExplaining, setIsExplaining] = useState(false)
   if (!incident) {
     return (
       <div className="panel">
@@ -74,7 +76,31 @@ export default function IncidentDetail({ incident, now, actions }) {
         </section>
 
         <section>
-          <h3>Agent reasoning</h3>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <h3>Agent reasoning</h3>
+            {isLive && (
+              <button
+                type="button"
+                className="btn btn--explain"
+                disabled={isExplaining}
+                onClick={async () => {
+                  if (!incident || isExplaining) return
+                  setIsExplaining(true)
+                  try {
+                    await fetch(`/api/incidents/${incident.id}/explain`, { method: 'POST' })
+                  } catch (e) {
+                    console.error('Explanation request error:', e)
+                  } finally {
+                    setIsExplaining(false)
+                  }
+                }}
+                title="Request on-demand cognitive debriefing via Parallel AI"
+              >
+                <Sparkles size={12} className={isExplaining ? 'copilot-sparkle' : ''} />
+                <span>{isExplaining ? 'Analyzing...' : 'Explain with AI'}</span>
+              </button>
+            )}
+          </div>
           <ReasoningTrace incident={incident} />
         </section>
 
