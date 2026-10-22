@@ -5,6 +5,7 @@ const STAGES = [
   ['assessed', 'Assessed'],
   ['decided', 'Decided'],
   ['actions', 'Actions taken'],
+  ['context', 'Parallel Web Intelligence'],
 ]
 
 function Typed({ text, animate }) {

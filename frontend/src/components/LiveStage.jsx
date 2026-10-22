@@ -1,20 +1,59 @@
-import { useState } from 'react'
-import { Video, Map as MapIcon, Boxes } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Video, Map as MapIcon, Boxes, Compass, Film } from 'lucide-react'
 import LaneMap from './LaneMap.jsx'
+import CorridorMap3D from './CorridorMap3D.jsx'
 import { isLive } from '../api/client.js'
 
 const VIDEO_PATH = import.meta.env.VITE_VIDEO_PATH || '/video_feed'
 const TWIN_URL = import.meta.env.VITE_TWIN_URL || ''
 
 const TABS = [
-  ['lane', 'Lane view', MapIcon],
   ['camera', 'Camera', Video],
+  ['corridor', '3D Corridor Map', Compass],
+  ['lane', 'Lane view', MapIcon],
   ['twin', 'Digital twin', Boxes],
 ]
 
-export default function LiveStage({ incident, camera, metrics }) {
-  const [tab, setTab] = useState(isLive ? 'camera' : 'lane')
+export default function LiveStage({ incident, camera, metrics, incidents = [], onSelectIncident }) {
+  const [tab, setTab] = useState(isLive ? 'camera' : 'corridor')
   const [videoFailed, setVideoFailed] = useState(false)
+  const [clips, setClips] = useState([])
+  const [activeClip, setActiveClip] = useState('')
+  const [switchingClip, setSwitchingClip] = useState(false)
+
+  // Fetch available real highway sample clips (including HuggingFace drone clips)
+  useEffect(() => {
+    if (!isLive) return
+    fetch('/api/clips')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data && data.clips) {
+          setClips(data.clips)
+          setActiveClip(data.active_clip || '')
+        }
+      })
+      .catch(() => {})
+  }, [])
+
+  const handleClipChange = async (clipId) => {
+    setSwitchingClip(true)
+    try {
+      const res = await fetch('/api/clips/select', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clip_id: clipId }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setActiveClip(data.active_clip)
+        setVideoFailed(false)
+      }
+    } catch (e) {
+      console.error('Failed to switch clip:', e)
+    } finally {
+      setSwitchingClip(false)
+    }
+  }
 
   return (
     <div className="panel stage">
@@ -26,19 +65,40 @@ export default function LiveStage({ incident, camera, metrics }) {
             </button>
           ))}
         </div>
-        <span className="stage-meta">{metrics ? `${metrics.fps} fps on CPU` : 'Waiting for tracker'}</span>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          {tab === 'camera' && clips.length > 0 && (
+            <div className="clip-selector-group" title="Select real highway sample clip (HF Drone & CCTV)">
+              <Film size={12} style={{ color: 'var(--dim)' }} />
+              <select
+                className="clip-select"
+                value={activeClip}
+                disabled={switchingClip}
+                onChange={(e) => {
+                  const selected = clips.find((c) => c.path.endsWith(e.target.value))
+                  if (selected) handleClipChange(selected.id)
+                }}
+              >
+                {clips.map((c) => (
+                  <option key={c.id} value={c.path.split('/').pop()}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+          <span className="stage-meta">{metrics ? `${metrics.fps} fps on CPU` : 'Waiting for tracker'}</span>
+        </div>
       </div>
 
       <div className="stage-body">
-        {tab === 'lane' && (
-          <>
-            <LaneMap incident={incident} camera={camera} />
-            <p className="stage-caption">Top-down view drawn from tracker telemetry. Selected incident is outlined.</p>
-          </>
-        )}
-
         {tab === 'camera' && (isLive && !videoFailed ? (
-          <img className="stage-video" src={VIDEO_PATH} alt="Live camera feed with tracked vehicles" onError={() => setVideoFailed(true)} />
+          <img
+            className="stage-video"
+            src={`${VIDEO_PATH}?t=${activeClip}`}
+            alt="Live camera feed with tracked vehicles"
+            onError={() => setVideoFailed(true)}
+          />
         ) : (
           <div className="stage-empty">
             <Video size={30} aria-hidden="true" />
@@ -48,6 +108,22 @@ export default function LiveStage({ incident, camera, metrics }) {
               : 'Set VITE_DATA_MODE=live to show the tracker’s MJPEG feed here.'}</p>
           </div>
         ))}
+
+        {tab === 'corridor' && (
+          <CorridorMap3D
+            incidents={incidents}
+            selectedIncident={incident}
+            onSelectIncident={onSelectIncident}
+            camera={camera}
+          />
+        )}
+
+        {tab === 'lane' && (
+          <>
+            <LaneMap incident={incident} camera={camera} />
+            <p className="stage-caption">Top-down view drawn from tracker telemetry. Selected incident is outlined.</p>
+          </>
+        )}
 
         {tab === 'twin' && (TWIN_URL ? (
           <iframe className="stage-video" src={TWIN_URL} title="3D digital twin" />

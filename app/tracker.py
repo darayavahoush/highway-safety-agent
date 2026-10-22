@@ -392,3 +392,12 @@ class LineCrossingCounter:
 
         self._tracks = surviving_tracks
         return list(self._tracks.values()), events
+
+    def reset(self):
+        """Clears all active tracks and counting history."""
+        self._tracks = {}
+        self._next_id = 1
+        self._prev_ts = None
+        self.count_in = 0
+        self.count_out = 0
+        self.count_by_label = {}

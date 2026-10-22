@@ -251,6 +251,93 @@ def get_incidents_snapshot():
     }
 
 
+@app.get("/api/corridors")
+def get_corridors_registry():
+    """Official Andhra Pradesh highway corridor registry, blackspots, and trauma care network."""
+    corridors_path = "config/ap_highway_corridors.json"
+    if os.path.isfile(corridors_path):
+        with open(corridors_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    raise HTTPException(status_code=404, detail="Corridor configuration not found")
+
+
+class ClipSelectPayload(BaseModel):
+    clip_id: Optional[str] = None
+    path: Optional[str] = None
+
+
+@app.get("/api/clips")
+def list_available_clips():
+    """Lists available real-world highway sample clips (including HuggingFace drone footage)."""
+    current_source = getattr(reader, "source", VIDEO_SOURCE)
+    clips = [
+        {
+            "id": "drone_0011",
+            "name": "DJI_0011.MP4 (HF Drone Overhead)",
+            "path": "demo_videos/drone/DJI_0011.MP4",
+            "description": "High-altitude top-down perspective from HuggingFace anabaena/drone-vehicle-clips. Demonstrates multi-lane tracking.",
+            "source_type": "HF Drone Sentry (AP Highway Simulation)",
+            "highway": "NH-16 Vijayawada - Guntur",
+        },
+        {
+            "id": "drone_0025",
+            "name": "DJI_0025.MP4 (HF Drone Angled)",
+            "path": "demo_videos/drone/DJI_0025.MP4",
+            "description": "Low-altitude angled perspective from HuggingFace anabaena/drone-vehicle-clips with fast lane overtaking.",
+            "source_type": "HF Drone Sentry (AP Highway Simulation)",
+            "highway": "NH-16 Kaza Toll Plaza Stretch",
+        },
+        {
+            "id": "sideview_cctv",
+            "name": "sideview.mp4 (Fixed Pole CCTV)",
+            "path": "demo_videos/sideview.mp4",
+            "description": "Fixed highway pole camera sideview showing vehicles passing across lanes with tripwire counting.",
+            "source_type": "NHAI Fixed Sentry CCTV",
+            "highway": "NH-16 KM 42.4",
+        },
+    ]
+    available = [c for c in clips if os.path.isfile(c["path"])]
+    current_filename = os.path.basename(str(current_source))
+    return {
+        "clips": available,
+        "active_clip": current_filename,
+        "active_source": str(current_source),
+    }
+
+
+@app.post("/api/clips/select")
+async def select_active_clip(payload: ClipSelectPayload):
+    """Dynamically switches the active video feed to another sample clip."""
+    clip_path = payload.path
+    if not clip_path and payload.clip_id:
+        lookup = {
+            "drone_0011": "demo_videos/drone/DJI_0011.MP4",
+            "drone_0025": "demo_videos/drone/DJI_0025.MP4",
+            "sideview_cctv": "demo_videos/sideview.mp4",
+        }
+        clip_path = lookup.get(payload.clip_id)
+
+    if not clip_path or not os.path.isfile(clip_path):
+        raise HTTPException(status_code=404, detail=f"Clip file not found: {clip_path}")
+
+    ok = reader.set_source(clip_path)
+    if not ok:
+        raise HTTPException(status_code=500, detail="Failed to initialize video capture on selected clip")
+
+    # Reset tracking state for clean transition
+    tracker.reset()
+    trigger_engine.reset()
+
+    await broadcast_ws({
+        "clip_changed": {
+            "path": clip_path,
+            "filename": os.path.basename(clip_path),
+        }
+    })
+
+    return {"status": "SUCCESS", "active_clip": os.path.basename(clip_path), "path": clip_path}
+
+
 @app.post("/api/incidents/{incident_id}/dispatches/{dispatch_id}/cancel")
 async def cancel_queued_dispatch(incident_id: str, dispatch_id: str):
     """

@@ -104,7 +104,33 @@ class SafetyAgentWorker:
             if d.status == "queued":
                 asyncio.create_task(self._handle_queued_dispatch(event.id, d))
 
+        # Asynchronously enrich with Parallel AI live web & corridor intelligence
+        asyncio.create_task(self._enrich_with_parallel_ai(event))
+
         return event
+
+    async def _enrich_with_parallel_ai(self, event: IncidentEvent):
+        """Asynchronously grounds incident with live road/corridor intelligence via Parallel AI."""
+        try:
+            from agent.parallel_client import parallel_client
+            loop = asyncio.get_event_loop()
+            intel = await loop.run_in_executor(
+                None,
+                parallel_client.get_corridor_intel,
+                "NH-16 Amaravati Corridor",
+                f"KM {event.camera.get('km', 42.4)}",
+                str(event.type),
+            )
+            if intel:
+                now_ms = time.time() * 1000
+                from app.incident_schema import TraceStep
+                step = TraceStep(stage="context", text=intel, at=now_ms)
+                event.trace.append(step)
+                contract_dict = event.to_contract_dict()
+                db.upsert_incident(contract_dict)
+                await self.broadcast({"incident": contract_dict})
+        except Exception as e:
+            print(f"[AgentWorker] Parallel AI enrichment notice: {e}")
 
     async def _handle_queued_dispatch(self, incident_id: str, dispatch: StakeholderDispatch):
         """Waits 15 seconds for operator cancellation before sending to mock endpoint."""

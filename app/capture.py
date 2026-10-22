@@ -54,6 +54,7 @@ class LatestFrameReader:
         self._running = False
         self._thread = None
         self._connected = False
+        self._pending_source = None
 
     def start(self):
         self._running = True
@@ -75,6 +76,19 @@ class LatestFrameReader:
         self._connected = self._cap.isOpened()
 
         while self._running:
+            if self._pending_source:
+                with self._lock:
+                    new_src = self._pending_source
+                    self._pending_source = None
+                    self._frame = None
+                self.source = new_src
+                self._is_local_file = isinstance(new_src, str) and os.path.isfile(new_src)
+                if self._cap:
+                    self._cap.release()
+                self._cap = self._open()
+                self._connected = self._cap.isOpened()
+                continue
+
             if not self._cap or not self._cap.isOpened():
                 self._connected = False
                 time.sleep(self.reconnect_delay)
@@ -141,6 +155,13 @@ class LatestFrameReader:
                 self._cap.release()
             self._cap = self._open()
             return True
+
+    def set_source(self, source: str) -> bool:
+        if not (isinstance(source, str) and os.path.isfile(source)):
+            return False
+        with self._lock:
+            self._pending_source = source
+        return True
 
     def next_clip(self):
         with self._lock:

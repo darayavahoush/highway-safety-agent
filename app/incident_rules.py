@@ -204,6 +204,11 @@ class EdgeTriggerEngine:
             if pair[0] in self.tracks and pair[1] in self.tracks
         }
 
+    def reset(self):
+        """Clears all track histories and active tailgate monitoring pairs."""
+        self.tracks = {}
+        self._tailgate_pairs = {}
+
     def _resolve_lane(self, cx: float, cy: float, frame_w: int, frame_h: int) -> Dict[str, Any]:
         """Resolves lane configuration for centroid (cx, cy)."""
         nx = float(cx) / max(1.0, float(frame_w))

@@ -24,7 +24,13 @@ export default function App() {
                          now={now} filter={filter} setFilter={setFilter} />
         </section>
         <section className="col col--stage">
-          <LiveStage incident={selected} camera={camera} metrics={state.metrics} />
+          <LiveStage
+            incident={selected}
+            camera={camera}
+            metrics={state.metrics}
+            incidents={list}
+            onSelectIncident={actions.select}
+          />
           <ActivityLog list={list} onSelect={actions.select} />
         </section>
         <section className="col">

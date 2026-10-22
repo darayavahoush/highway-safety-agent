@@ -585,3 +585,435 @@ button { font: inherit; color: inherit; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* ==========================================================================
+   3D CORRIDOR MAP & TRAUMA CARE ROUTING (ANDHRA PRADESH)
+   ========================================================================== */
+
+.corridor-map-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-height: 380px;
+  background: #090e15;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.corridor-hud-controls {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 50px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.corridor-hud-controls > * {
+  pointer-events: auto;
+}
+
+.hud-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(15, 23, 36, 0.85);
+  backdrop-filter: blur(8px);
+  padding: 4px 6px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.corridor-select {
+  background: var(--raised);
+  border: 1px solid var(--line);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 4px;
+  outline: none;
+  cursor: pointer;
+}
+
+.corridor-select:focus {
+  border-color: var(--blue);
+}
+
+.hud-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--dim);
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.hud-btn:hover {
+  background: var(--raised-hover);
+  color: var(--text);
+}
+
+.hud-btn.is-active {
+  background: rgba(56, 189, 248, 0.18);
+  border-color: rgba(56, 189, 248, 0.4);
+  color: var(--blue);
+}
+
+.corridor-map-canvas {
+  width: 100%;
+  height: 100%;
+  flex: 1;
+}
+
+/* MapLibre markers styling */
+.corridor-marker {
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.corridor-marker:hover {
+  transform: scale(1.15);
+  z-index: 20;
+}
+
+.cam-beacon {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.cam-pulse {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(56, 189, 248, 0.35);
+  animation: pulse-ring 2s infinite ease-out;
+}
+
+.cam-icon {
+  width: 22px;
+  height: 22px;
+  background: #0284c7;
+  border: 2px solid #38bdf8;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 10px;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.6);
+}
+
+.hosp-beacon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hosp-icon {
+  width: 24px;
+  height: 24px;
+  background: #dc2626;
+  border: 2px solid #fca5a5;
+  border-radius: 4px;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.7);
+}
+
+.incident-beacon {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.beacon-ripple {
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  animation: pulse-ring 1.6s infinite cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+
+.incident-beacon.p0 .beacon-ripple {
+  background: rgba(239, 68, 68, 0.4);
+}
+.incident-beacon.p1 .beacon-ripple {
+  background: rgba(245, 158, 11, 0.4);
+}
+.incident-beacon.p2 .beacon-ripple {
+  background: rgba(56, 189, 248, 0.4);
+}
+
+.beacon-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: bold;
+  border: 2px solid #fff;
+}
+
+.incident-beacon.p0 .beacon-dot {
+  background: #ef4444;
+  box-shadow: 0 0 14px var(--red-glow);
+}
+.incident-beacon.p1 .beacon-dot {
+  background: #f59e0b;
+  box-shadow: 0 0 14px var(--amber-glow);
+}
+.incident-beacon.p2 .beacon-dot {
+  background: #0284c7;
+  box-shadow: 0 0 14px var(--blue-glow);
+}
+
+.marker-tag, .incident-tag {
+  margin-top: 4px;
+  padding: 2px 5px;
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: rgba(12, 18, 27, 0.9);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  color: var(--text);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.6); opacity: 0.9; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+.spin-slow {
+  animation: spin 8s linear infinite;
+}
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}
+
+/* Fallback Schematic */
+.corridor-schematic-fallback {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #070b10;
+}
+
+.schematic-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  background: rgba(15, 23, 36, 0.9);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--amber);
+  z-index: 5;
+}
+
+.schematic-svg {
+  width: 100%;
+  height: 100%;
+  flex: 1;
+}
+
+/* Tactical Trauma Card */
+.corridor-tactical-card {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  right: 12px;
+  background: rgba(15, 23, 36, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tactical-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+.corridor-stat-pill {
+  font-size: 11px;
+  color: var(--dim);
+  background: var(--raised);
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1px solid var(--line-soft);
+}
+
+.tactical-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.incident-context {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+}
+
+.inc-type {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.inc-loc {
+  color: var(--dim);
+  font-size: 11.5px;
+}
+
+.trauma-routing-result {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: rgba(9, 14, 21, 0.6);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 8px 12px;
+}
+
+.routing-stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.routing-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stat-label {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--dim);
+}
+
+.stat-val {
+  font-size: 14.5px;
+  font-weight: 700;
+}
+
+.text-emerald { color: #34d399; }
+.text-amber { color: #fbbf24; }
+
+.stat-sub {
+  font-size: 11px;
+  color: var(--faint);
+}
+
+.ambulance-dispatch-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 6px;
+  border-top: 1px solid var(--line-soft);
+  font-size: 11.5px;
+}
+
+.hotline {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text);
+}
+
+.hotline b {
+  color: #38bdf8;
+}
+
+.golden-hour-target {
+  color: #34d399;
+  font-weight: 600;
+  font-size: 11px;
+}
+
+.tactical-card-empty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  font-size: 12px;
+  color: var(--dim);
+}
+
+/* Sample clip selector in LiveStage header */
+.clip-selector-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 8px;
+}
+
+.clip-select {
+  background: var(--sunken);
+  border: 1px solid var(--line);
+  color: var(--text);
+  font-size: 11.5px;
+  padding: 3px 6px;
+  border-radius: 4px;
+  outline: none;
+  cursor: pointer;
+}
+
+.clip-select:focus {
+  border-color: var(--blue);
+}
