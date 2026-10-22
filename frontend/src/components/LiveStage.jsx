@@ -55,13 +55,33 @@ export default function LiveStage({ incident, camera, metrics, incidents = [], o
     }
   }
 
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return
+      if (e.key === '1') setTab('camera')
+      if (e.key === '2') setTab('corridor')
+      if (e.key === '3') setTab('lane')
+      if (e.key === '4') setTab('twin')
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
+
   return (
     <div className="panel stage">
       <div className="panel-head">
         <div className="seg" role="tablist" aria-label="View">
-          {TABS.map(([key, label, Icon]) => (
-            <button key={key} role="tab" aria-selected={tab === key} onClick={() => setTab(key)}>
-              <Icon size={14} aria-hidden="true" />{label}
+          {TABS.map(([key, label, Icon], idx) => (
+            <button
+              key={key}
+              role="tab"
+              aria-selected={tab === key}
+              onClick={() => setTab(key)}
+              title={`Switch to ${label} [${idx + 1}]`}
+            >
+              <Icon size={14} aria-hidden="true" />
+              <span>{label}</span>
+              <kbd className="tab-kbd-hint">{idx + 1}</kbd>
             </button>
           ))}
         </div>

@@ -36,6 +36,7 @@ from app.tracker import LineCrossingCounter
 from app.dimensions_3d import draw_3d_bounding_box
 from app import db
 from app.anpr import anpr_pipeline
+from app.camera_health import camera_health_analyzer
 from agent.worker import agent_worker
 
 
@@ -128,6 +129,14 @@ async def perception_loop():
         track_inputs = [(float(t.box[0]), float(t.box[1]), float(t.box[2]), float(t.box[3]), t.label, t.id) for t in tracks]
         trigger_engine.update_tracks(track_inputs, now)
 
+        # Camera Stability & Photometric Environmental Telemetry
+        cam_health = camera_health_analyzer.analyze_frame(
+            frame_resized,
+            active_boxes=[t.box for t in tracks],
+            now=now,
+        )
+        trigger_engine.current_camera_health = cam_health
+
         # Rule Engine Evaluation
         t_rules_start = time.time()
         fired_candidates = trigger_engine.evaluate_rules(rw, rh, now)
@@ -189,7 +198,8 @@ async def telemetry_broadcaster():
                     "cpuMsPerFrame": telemetry_stats["cpuMsPerFrame"],
                     "agentLatencyMs": telemetry_stats["agentLatencyMs"],
                     "detectToDispatchS": telemetry_stats["detectToDispatchS"],
-                }
+                },
+                "camera_health": camera_health_analyzer.cached_health,
             })
 
 
@@ -536,3 +546,35 @@ def simulate_incident(incident_type: str):
     )
     incident_queue.put_nowait(cand)
     return {"status": "QUEUED", "incident_id": cand.incident_id}
+
+
+@app.get("/api/camera/health")
+def get_camera_health():
+    """Returns real-time camera motion stability (static vs drift/sway) and photometric lighting quality."""
+    return camera_health_analyzer.cached_health
+
+
+# -----------------------------------------------------------------
+# FRONTEND SPA SERVING (FOR RENDER / PRODUCTION DEPLOYMENT)
+# -----------------------------------------------------------------
+ROOT_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+FRONTEND_DIST = os.path.join(ROOT_PATH, "frontend", "dist")
+
+if os.path.isdir(FRONTEND_DIST):
+    app.mount("/assets", StaticFiles(directory=os.path.join(FRONTEND_DIST, "assets")), name="assets")
+
+    @app.api_route("/{full_path:path}", methods=["GET", "HEAD"])
+    async def serve_spa(full_path: str):
+        if (
+            full_path.startswith("api/")
+            or full_path.startswith("evidence/")
+            or full_path.startswith("mock/")
+            or full_path.startswith("ws/")
+            or full_path == "video_feed"
+        ):
+            raise HTTPException(status_code=404, detail="Not Found")
+        file_path = os.path.join(FRONTEND_DIST, full_path)
+        if os.path.isfile(file_path):
+            return FileResponse(file_path)
+        return FileResponse(os.path.join(FRONTEND_DIST, "index.html"))
+
