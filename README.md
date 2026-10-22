@@ -28,8 +28,12 @@ Built for the **Highway Road Accident Prevention Innovation Challenge (HRAP-2026
 - **ByteTrack & Kalman State Estimation**: Replaces naive centroid trackers with two-stage Hungarian association (IoU) and an 8-state Kalman Filter ($cx, cy, w, h, v_{cx}, v_{cy}, v_w, v_h$), eliminating ID switches across high-speed crossings.
 - **Kinematic Smoothing & Spike Isolation**: 0.5-second sliding window velocity estimation with instantaneous teleportation guards ($> 200\text{ km/h}$) strictly preventing tracking artifacts from reaching the rules.
 - **Sub-3ms Deterministic Rule Floor**: Zero-LLM edge trigger engine evaluating stalled vehicles (with congestion suppression), wrong-way drivers (multi-lane flow vectors), and tailgating time-to-collision (TTC).
+- **Edge ANPR & Temporal Voting**: Morphological bumper isolation (bottom 45%), Sobel rectangular aspect gating, Tesseract OCR with Indian HSRP normalization (`AP 16 TX 4921`), multi-frame consensus voting across track frames, and stolen/hit-and-run hotlist alerts.
+- **Strict On-Demand AI Intelligence & Operator Copilot**: Real-time perception and Tier-0 safety floor are 100% deterministic with zero automated background LLM calls (saving costs and edge latency). High-level reasoning is triggered on-demand via Parallel AI (`POST /api/incidents/{id}/explain` and `POST /api/copilot/chat`) for bilingual Telugu/English alerts, MoRTH blackspot analysis, and trauma care routing.
+- **3D Digital Twin & Trauma Care Corridor Map**: MapLibre GL 3D interactive terrain map with OSRM ambulance routing to designated Level-1 trauma centres (AIIMS Mangalagiri, GGH Guntur, GGH Vijayawada), pulsating incident beacons, and offline SVG fallback.
 - **Decoupled Asynchronous Evidence Buffer**: Offloads MP4 clip encoding and high-sharpness snapshot compression to background worker threads, preserving full perception FPS during incident bursts.
 - **Cognitive Agent & 15-Second Operator Guardrails**: 4-stage audit trace (*Observed → Assessed → Decided → Actions*) and automatic stakeholder dispatch generation with a 15-second cancellation window before transmission.
+- **Raspberry Pi 4 / 5 Production Ready**: Runs headlessly on low-cost ARM SBCs under 380 MB RAM with a dedicated systemd service unit. See [docs/EDGE_DEPLOYMENT_RASPBERRY_PI.md](docs/EDGE_DEPLOYMENT_RASPBERRY_PI.md).
 
 ---
 
@@ -89,9 +93,11 @@ For complete technical specifications, see [docs/ARCHITECTURE.md](docs/ARCHITECT
 ```
 .
 ├── agent/                      # Cognitive Agent layer
+│   ├── parallel_client.py      # On-demand Parallel AI Web Intelligence client
 │   ├── reasoning.py            # Tier 0 deterministic safety floor & 4-stage trace synthesis
 │   └── worker.py               # Background event queue consumer worker
 ├── app/                        # Edge Perception & FastAPI backend
+│   ├── anpr.py                 # Edge license plate OCR & multi-frame temporal consensus
 │   ├── detector.py             # YOLOv8 ONNX CPU object detector
 │   ├── tracker.py              # ByteTrack two-stage IoU association + Kalman Filter
 │   ├── incident_rules.py       # Pure NumPy/Python edge trigger rules (Stalled, Wrong-way, TTC)
@@ -99,13 +105,15 @@ For complete technical specifications, see [docs/ARCHITECTURE.md](docs/ARCHITECT
 │   ├── incident_schema.py      # Incident contracts and Pydantic data models
 │   └── main.py                 # FastAPI REST and SSE live stream endpoints
 ├── config/                     # Configuration definitions
+│   ├── ap_highway_corridors.json # AP highway corridors & Level-1 trauma centers
 │   ├── camera_config.json      # Camera GPS, lane polygons, flow vectors, and contacts
 │   └── safety_rules.json       # Tracker, motion, and rule threshold parameters
 ├── docs/                       # Architecture & design documentation
 │   ├── ARCHITECTURE.md         # Comprehensive system design document
+│   ├── EDGE_DEPLOYMENT_RASPBERRY_PI.md # Raspberry Pi 4/5 SBC deployment guide
 │   └── assets/                 # Preview screenshots and UI mockups
 ├── frontend/                   # React + Vite Operator Control Room UI
-│   ├── src/                    # Components (LaneMap, IncidentDetail, TopBar, etc.)
+│   ├── src/                    # Components (CorridorMap3D, OperatorCopilot, LaneMap, etc.)
 │   └── package.json            # Node dependencies
 ├── models/                     # Pre-trained ONNX models
 │   └── yolov8n.onnx            # YOLOv8 nano quantized for edge CPU inference
@@ -114,6 +122,7 @@ For complete technical specifications, see [docs/ARCHITECTURE.md](docs/ARCHITECT
 │   └── test_replay_harness.py  # Phase 1 acceptance benchmark harness
 └── tools/                      # Engineering utilities
     ├── calibrate_camera.py     # Interactive lane calibration and polygon configuration tool
+    ├── highway-safety.service  # Production systemd service unit for edge SBCs
     └── replay_video.py         # Headless video replay benchmark & contact sheet generator
 ```
 
