@@ -31,7 +31,7 @@ const capabilities = [
   },
 ]
 
-export default function Home({ onEnter, conn, incidents = [] }) {
+export default function Home({ onEnter, conn, incidents = [], theme = 'dark', onToggleTheme }) {
   const connectionLabel = conn === 'live'
     ? 'LIVE CONNECTION'
     : conn === 'demo'
@@ -44,25 +44,6 @@ export default function Home({ onEnter, conn, incidents = [] }) {
 
   return (
     <main className="nova-home">
-      <nav className="nova-nav" aria-label="Main navigation">
-        <a href="#" className="nova-brand" aria-label="Highway Safety Agent home">
-          <span className="nova-brand-mark"><Radar size={20} /></span>
-          <span className="nova-brand-type">
-            <strong>HRAP<span>.</span></strong>
-            <small>HIGHWAY RESPONSE &amp; AWARENESS</small>
-          </span>
-        </a>
-        <div className="nova-nav-right">
-          <span className={`nova-connection nova-connection-${conn || 'pending'}`}>
-            <i />
-            {connectionLabel}
-          </span>
-          <button className="nova-nav-cta" onClick={onEnter}>
-            Open command <ArrowUpRightIcon />
-          </button>
-        </div>
-      </nav>
-
       <section className="nova-hero">
         <div className="nova-hero-copy">
           <div className="nova-overline">

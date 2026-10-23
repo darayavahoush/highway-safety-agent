@@ -62,23 +62,7 @@ export default function App() {
 
   return (
     <div className={`app app--${page}`}>
-      {page === 'home' ? (
-        <header className="landing-nav">
-          <button className="landing-wordmark" onClick={() => setPage('home')} aria-label="Highway Safety Agent home">
-            <span className="landing-mark"><ShieldMark /></span>
-            <span><strong>HIGHWAY SAFETY</strong><small>INTELLIGENCE PLATFORM</small></span>
-          </button>
-          <div className="landing-nav-right">
-            <span className="landing-nav-label">HRAP / 2026</span>
-            <button className="theme-toggle" onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')} aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`} title="Toggle colour theme">
-              {theme === 'dark' ? 'LIGHT ↗' : 'DARK ↗'}
-            </button>
-            <button className="landing-nav-enter" onClick={() => setPage('control')}>
-              Control room <ArrowIcon />
-            </button>
-          </div>
-        </header>
-      ) : (
+      {page !== 'home' && (
         <TopBar
           conn={state.conn}
           camera={camera}
@@ -92,7 +76,7 @@ export default function App() {
       )}
 
       {page === 'home' ? (
-        <Home onEnter={() => setPage('control')} conn={state.conn} incidents={list} />
+        <Home onEnter={() => setPage('control')} conn={state.conn} incidents={list} theme={theme} onToggleTheme={() => setTheme(t => t === 'dark' ? 'light' : 'dark')} />
       ) : (
         <>
           <nav className="ops-nav" aria-label="Operations pages">
@@ -140,7 +124,7 @@ export default function App() {
 
             {page === 'control' && (
               <>
-                <main className="main">
+                <div className="main">
                   <section className="col">
                     <IncidentQueue list={list} selectedId={state.selectedId} onSelect={actions.select}
                       now={now} filter={filter} setFilter={setFilter} />
@@ -153,7 +137,7 @@ export default function App() {
                   <section className="col">
                     <IncidentDetail incident={selected} now={now} actions={actions} />
                   </section>
-                </main>
+                </div>
                 <StatsStrip metrics={state.metrics} open={list.filter(isActive).length}
                   today={today} blackspots={state.blackspots} camera={camera} />
               </>

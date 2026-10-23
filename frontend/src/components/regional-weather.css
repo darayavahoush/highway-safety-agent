@@ -1146,3 +1146,79 @@
     overflow: visible !important;
   }
 }
+
+/* HRAP_UI_REPAIR_V1 */
+/* Road Art header: one absolute HUD strip, not a second stacked top bar. */
+.nova-hero .nova-visual {
+  position: relative !important;
+  background:
+    radial-gradient(ellipse at 50% 56%, rgba(119,77,225,.18), transparent 52%),
+    linear-gradient(145deg, rgba(15,22,31,.96), rgba(8,13,20,.93) 62%, rgba(21,24,31,.96)) !important;
+  isolation: isolate !important;
+}
+.nova-hero .nova-visual::after { content: none !important; display: none !important; }
+.nova-hero .nova-visual-top {
+  position: absolute !important;
+  top: 19px !important; left: 20px !important; right: 20px !important;
+  z-index: 3 !important; display: flex !important; margin: 0 !important;
+  border: 0 !important; box-shadow: none !important; transform: none !important;
+}
+.nova-hero .nova-road-scene { display: block !important; opacity: 1 !important; }
+
+/* One canonical map/sidebar grid overrides the older duplicated layout blocks. */
+.corridor-map-wrapper {
+  position: relative !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(270px, 320px) !important;
+  grid-template-areas: "controls controls" "map sidebar" "tactical tactical" !important;
+  grid-auto-rows: auto !important; align-items: stretch !important;
+  gap: 14px !important; width: 100% !important; min-width: 0 !important;
+  height: auto !important; min-height: 0 !important; overflow: visible !important;
+}
+.corridor-map-wrapper > .corridor-hud-controls {
+  grid-area: controls !important; grid-row: 1 !important; grid-column: 1 / -1 !important;
+  position: relative !important; min-width: 0 !important; width: 100% !important;
+}
+.corridor-map-wrapper > .corridor-map-stage {
+  grid-area: map !important; grid-row: 2 !important; grid-column: 1 !important;
+  position: relative !important; width: 100% !important; min-width: 0 !important;
+  height: clamp(420px, 62vh, 660px) !important; min-height: 420px !important;
+  max-height: 660px !important; overflow: hidden !important; isolation: isolate !important;
+}
+.corridor-map-wrapper > .corridor-map-stage .corridor-map-canvas,
+.corridor-map-wrapper > .corridor-map-stage .corridor-schematic-fallback {
+  position: absolute !important; inset: 0 !important; display: block !important;
+  width: 100% !important; max-width: 100% !important; height: 100% !important;
+  min-width: 0 !important; min-height: 0 !important;
+}
+.corridor-map-wrapper > .corridor-intel-sidebar {
+  grid-area: sidebar !important; grid-row: 2 !important; grid-column: 2 !important;
+  display: flex !important; flex-direction: column !important; gap: 10px !important;
+  position: relative !important; inset: auto !important; z-index: 3 !important;
+  visibility: visible !important; opacity: 1 !important; align-self: stretch !important;
+  width: 100% !important; max-width: none !important; min-width: 0 !important;
+  max-height: 660px !important; overflow-y: auto !important; overscroll-behavior: contain;
+  box-sizing: border-box !important; margin: 0 !important; padding: 12px !important;
+  border: 1px solid rgba(167,139,250,.25) !important; border-radius: 14px !important;
+  background: radial-gradient(ellipse at 100% 0%,rgba(139,92,246,.17),transparent 48%),linear-gradient(155deg,rgba(15,21,34,.98),rgba(7,12,21,.98)) !important;
+}
+.corridor-map-wrapper > .corridor-intel-sidebar .regional-weather-dock {
+  position: static !important; inset: auto !important; float: none !important;
+  width: 100% !important; max-width: 100% !important; height: auto !important;
+  max-height: none !important; overflow: visible !important; margin: 0 !important; z-index: auto !important;
+}
+.corridor-map-wrapper > .corridor-intel-sidebar .regional-weather {
+  width: 100% !important; max-width: 100% !important; box-sizing: border-box !important;
+}
+.corridor-map-wrapper > .corridor-tactical-card {
+  grid-area: tactical !important; grid-row: 3 !important; grid-column: 1 / -1 !important;
+  width: 100% !important; min-width: 0 !important;
+}
+@media (max-width: 900px) {
+  .corridor-map-wrapper { grid-template-columns: minmax(0,1fr) !important; grid-template-areas: "controls" "map" "sidebar" "tactical" !important; }
+  .corridor-map-wrapper > .corridor-hud-controls { grid-row:1 !important; grid-column:1 !important; }
+  .corridor-map-wrapper > .corridor-map-stage { grid-row:2 !important; grid-column:1 !important; height:55vh !important; min-height:340px !important; max-height:none !important; }
+  .corridor-map-wrapper > .corridor-intel-sidebar { grid-row:3 !important; grid-column:1 !important; max-height:none !important; overflow:visible !important; }
+  .corridor-map-wrapper > .corridor-tactical-card { grid-row:4 !important; grid-column:1 !important; }
+}
+

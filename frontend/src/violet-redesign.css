@@ -982,7 +982,7 @@ body {
       rgba(9, 10, 16, .18) 55%,
       rgba(9, 10, 16, .48) 100%
     ),
-    url("https://commons.wikimedia.org/wiki/Special:FilePath/Scenic_view_of_Eastern_ghats_during_monsoon_at_Srungavarapukota.jpg?width=1920");
+    url("/highway-hero.png");
   background-size: cover;
   background-position: center 48%;
   opacity: .48;
@@ -1285,12 +1285,12 @@ main.nova-home::before {
   content: "";
   position: absolute;
   inset: 0;
-  z-index: -1;
+  z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(ellipse at 78% 28%, rgba(92,72,190,.18), transparent 38%),
-    linear-gradient(90deg, rgba(9,10,16,.96), rgba(9,10,16,.82)),
-    linear-gradient(0deg, rgba(9,10,16,.95), transparent 75%);
+    radial-gradient(ellipse at 78% 28%, rgba(92,72,190,.10), transparent 42%),
+    linear-gradient(90deg, rgba(9,10,16,.24), rgba(9,10,16,.04)),
+    linear-gradient(0deg, rgba(9,10,16,.35), transparent 55%);
 }
 
 main.nova-home .nova-nav,
@@ -1301,3 +1301,161 @@ main.nova-home .nova-footer {
 main.nova-home .nova-hero {
   background: transparent !important;
 }
+
+
+/* UI REPAIR: preserve the homepage's own background artwork */
+main.nova-home {
+  position: relative;
+  isolation: isolate;
+  background-color: #090a10 !important;
+  background-image:
+    linear-gradient(rgba(9,10,16,.12), rgba(9,10,16,.20)),
+    url("/highway-hero.png") !important;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+main.nova-home > * {
+  position: relative;
+  z-index: 1;
+}
+main.nova-home::before { z-index: 0; }
+
+/* One top HUD only; prevent decorative pseudo-bars on the road visual. */
+.nova-hero .nova-visual {
+  position: relative;
+  overflow: hidden;
+}
+.nova-hero .nova-visual::before,
+.nova-hero .nova-visual::after {
+  content: none !important;
+  display: none !important;
+}
+.nova-hero .nova-visual-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 5;
+  margin: 0;
+}
+
+/* UI REPAIR: real desktop sidebar, with weather contained inside it. */
+.corridor-map-wrapper {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 320px !important;
+  grid-template-areas:
+    "controls controls"
+    "map sidebar"
+    "tactical tactical" !important;
+  gap: 14px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  height: auto !important;
+  overflow: visible !important;
+  align-items: stretch !important;
+}
+.corridor-map-wrapper > .corridor-hud-controls {
+  grid-area: controls !important;
+  min-width: 0 !important;
+}
+.corridor-map-wrapper > .corridor-map-stage {
+  grid-area: map !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  height: clamp(420px, 60vh, 650px) !important;
+  min-height: 420px !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+.corridor-map-wrapper > .corridor-intel-sidebar {
+  grid-area: sidebar !important;
+  display: block !important;
+  position: relative !important;
+  inset: auto !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  height: auto !important;
+  max-height: 650px !important;
+  overflow-y: auto !important;
+  box-sizing: border-box !important;
+  z-index: 2 !important;
+}
+.corridor-map-wrapper > .corridor-intel-sidebar .regional-weather-dock {
+  position: static !important;
+  inset: auto !important;
+  float: none !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  height: auto !important;
+  max-height: none !important;
+  margin: 0 !important;
+  overflow: visible !important;
+}
+.corridor-map-wrapper > .corridor-intel-sidebar .regional-weather {
+  position: relative !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+.corridor-map-wrapper > .corridor-tactical-card {
+  grid-area: tactical !important;
+  min-width: 0 !important;
+}
+
+@media (max-width: 900px) {
+  .corridor-map-wrapper {
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-areas:
+      "controls"
+      "map"
+      "sidebar"
+      "tactical" !important;
+  }
+  .corridor-map-wrapper > .corridor-map-stage {
+    height: 52vh !important;
+    min-height: 340px !important;
+  }
+  .corridor-map-wrapper > .corridor-intel-sidebar {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+}
+
+/* HRAP_UI_REPAIR_V1 */
+/* Restore the scenic homepage backdrop without burying it under opaque gradients. */
+main.nova-home {
+  background-color: #090a10 !important;
+  background-image:
+    linear-gradient(rgba(9,10,16,.20),rgba(9,10,16,.28)),
+    url("/highway-hero.png") !important;
+  background-position: center center !important; background-size: cover !important;
+  background-repeat: no-repeat !important; background-attachment: fixed;
+}
+main.nova-home::before {
+  z-index: 0 !important;
+  background:
+    radial-gradient(ellipse at 78% 28%,rgba(92,72,190,.12),transparent 38%),
+    linear-gradient(90deg,rgba(9,10,16,.22),rgba(9,10,16,.04) 62%,rgba(9,10,16,.16)),
+    linear-gradient(0deg,rgba(9,10,16,.48),transparent 72%) !important;
+}
+main.nova-home > * { position: relative; z-index: 1; }
+main.nova-home .nova-nav, main.nova-home .nova-footer {
+  background: rgba(9,10,16,.62) !important; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+}
+main.nova-home .nova-hero { background: transparent !important; }
+.nova-theme-toggle {
+  display:inline-flex; align-items:center; justify-content:center; min-height:38px;
+  padding:0 12px; border:1px solid rgba(210,220,230,.25); border-radius:6px;
+  background:rgba(9,10,16,.48); color:#edf0f3; font-size:10px;
+  font-weight:800; letter-spacing:.08em; cursor:pointer;
+}
+.nova-theme-toggle:hover { border-color:rgba(210,220,230,.55); background:rgba(30,35,44,.8); }
+@media (max-width:760px) {
+  main.nova-home { background-attachment:scroll; }
+  .nova-theme-toggle { min-height:34px; padding:0 8px; font-size:9px; }
+}
+
