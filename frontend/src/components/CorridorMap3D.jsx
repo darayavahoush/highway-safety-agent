@@ -14,6 +14,7 @@ import {
   Maximize2
 } from 'lucide-react'
 import 'maplibre-gl/dist/maplibre-gl.css'
+import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
 
 // Default Andhra Pradesh Highway Corridors & Designated Trauma Network
 const DEFAULT_CORRIDORS = [
@@ -137,12 +138,54 @@ function haversineKm([lon1, lat1], [lon2, lat2]) {
   return R * c
 }
 
+// Return only explicit incident coordinates. Coordinate arrays use GeoJSON order:
+// [longitude, latitude]. Camera coordinates are intentionally not a fallback.
+function getIncidentCoordinates(incident) {
+  if (!incident || typeof incident !== 'object') return null
+
+  const candidates = [
+    [incident.lng, incident.lat],
+    [incident.longitude, incident.latitude],
+    [incident.gps?.longitude, incident.gps?.latitude],
+    [incident.gps?.lng, incident.gps?.lat],
+    [incident.location?.longitude, incident.location?.latitude],
+    [incident.location?.lng, incident.location?.lat],
+  ]
+
+  // Accept an explicit incident-level GeoJSON coordinate pair.
+  if (Array.isArray(incident.coordinates) && incident.coordinates.length >= 2) {
+    candidates.unshift([incident.coordinates[0], incident.coordinates[1]])
+  }
+
+  for (const pair of candidates) {
+    if (pair[0] == null || pair[1] == null || pair[0] === '' || pair[1] === '') {
+      continue
+    }
+
+    const lng = Number(pair[0])
+    const lat = Number(pair[1])
+
+    if (
+      Number.isFinite(lng) &&
+      Number.isFinite(lat) &&
+      lng >= 76.5 && lng <= 85.5 &&
+      lat >= 12 && lat <= 20
+    ) {
+      return [lng, lat]
+    }
+  }
+
+  return null
+}
+
 export default function CorridorMap3D({
+
   incidents = [],
   selectedIncident = null,
   onSelectIncident,
   camera = null,
 }) {
+  const maplibreglShared = useRef(null)
   const mapContainerRef = useRef(null)
   const mapRef = useRef(null)
   const markersRef = useRef([])
@@ -150,7 +193,7 @@ export default function CorridorMap3D({
 
   const [activeCorridorId, setActiveCorridorId] = useState('AP-NH16-CENTRAL')
   const [styleMode, setStyleMode] = useState('dark') // 'dark' | 'bright'
-  const [terrainEnabled, setTerrainEnabled] = useState(true)
+  const [terrainEnabled, setTerrainEnabled] = useState(false)
   const [isOrbiting, setIsOrbiting] = useState(false)
   const [mapLoaded, setMapLoaded] = useState(false)
   const [webGlFailed, setWebGlFailed] = useState(false)
@@ -179,7 +222,7 @@ export default function CorridorMap3D({
   // Style URLs
   const currentStyleUrl = useMemo(() => {
     return styleMode === 'dark'
-      ? 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'
+      ? 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json'
       : 'https://tiles.openfreemap.org/styles/bright'
   }, [styleMode])
 
@@ -251,30 +294,33 @@ export default function CorridorMap3D({
   // Initialize MapLibre GL
   useEffect(() => {
     let mapInstance = null
-    let maplibregl = null
 
     async function initMap() {
       try {
         const module = await import('maplibre-gl')
-        maplibregl = module.default || module
+        maplibreglShared.current = module.default ?? module
+        maplibreglShared.current.setWorkerUrl(maplibreWorkerUrl)
 
-        if (!maplibregl.supported()) {
+        if (
+          typeof maplibreglShared.current.supported === 'function' &&
+          !maplibreglShared.current.supported()
+        ) {
           setWebGlFailed(true)
           return
         }
 
-        mapInstance = new maplibregl.Map({
+        mapInstance = new maplibreglShared.current.Map({
           container: mapContainerRef.current,
           style: currentStyleUrl,
           center: activeCorridor.center,
           zoom: activeCorridor.zoom,
-          pitch: 52,
-          bearing: -15,
+          pitch: 0,
+          bearing: 0,
           maxPitch: 75,
           antialias: true,
         })
 
-        mapInstance.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right')
+        mapInstance.addControl(new maplibreglShared.current.NavigationControl({ visualizePitch: true }), 'top-right')
 
         mapInstance.on('load', () => {
           setMapLoaded(true)
@@ -448,8 +494,7 @@ export default function CorridorMap3D({
     markersRef.current.forEach((m) => m.remove())
     markersRef.current = []
 
-    import('maplibre-gl').then((module) => {
-      const maplibregl = module.default || module
+    Promise.resolve().then(() => {
 
       // 1. Sentry Camera Marker
       const camEl = document.createElement('div')
@@ -462,9 +507,9 @@ export default function CorridorMap3D({
         </div>
       `
       camEl.onclick = () => {
-        map.flyTo({ center: sentryCamera.coordinates, zoom: 14, pitch: 60 })
+        map.flyTo({ center: sentryCamera.coordinates, zoom: 14, pitch: 0 })
       }
-      const camMarker = new maplibregl.Marker({ element: camEl })
+      const camMarker = new maplibreglShared.current.Marker({ element: camEl })
         .setLngLat(sentryCamera.coordinates)
         .addTo(map)
       markersRef.current.push(camMarker)
@@ -482,21 +527,20 @@ export default function CorridorMap3D({
         hospEl.onclick = () => {
           map.flyTo({ center: hosp.coordinates, zoom: 14, pitch: 50 })
         }
-        const hospMarker = new maplibregl.Marker({ element: hospEl })
+        const hospMarker = new maplibreglShared.current.Marker({ element: hospEl })
           .setLngLat(hosp.coordinates)
           .addTo(map)
         markersRef.current.push(hospMarker)
       })
 
-      // 3. Active Incident Markers
+      // 3. Active Incident Markers.
+      // Never infer incident GPS from a camera position or tracking ID.
       incidents.forEach((inc) => {
-        // Compute incident coordinates (near sentry camera or offset based on track)
-        const latOffset = ((inc.trackId || 1) % 5) * 0.0018 - 0.0036
-        const lonOffset = (((inc.trackId || 1) * 3) % 7) * 0.0022 - 0.0066
-        const incCoords = [
-          sentryCamera.coordinates[0] + lonOffset,
-          sentryCamera.coordinates[1] + latOffset,
-        ]
+        const incCoords = getIncidentCoordinates(inc)
+
+        // Without verified incident coordinates, keep the incident in the
+        // queue but do not place a misleading map marker or route to a hospital.
+        if (!incCoords) return
 
         const isSelected = selectedIncident && selectedIncident.id === inc.id
         const pClass = inc.severity === 'P0' ? 'p0' : inc.severity === 'P1' ? 'p1' : 'p2'
@@ -514,12 +558,12 @@ export default function CorridorMap3D({
         `
         incEl.onclick = () => {
           if (onSelectIncident) onSelectIncident(inc.id)
-          map.flyTo({ center: incCoords, zoom: 14.5, pitch: 62 })
+          map.flyTo({ center: incCoords, zoom: 14.5, pitch: 0 })
           const nearest = findNearestHospital(incCoords)
           calculateTraumaRoute(incCoords, nearest.hospital)
         }
 
-        const incMarker = new maplibregl.Marker({ element: incEl })
+        const incMarker = new maplibreglShared.current.Marker({ element: incEl })
           .setLngLat(incCoords)
           .addTo(map)
         markersRef.current.push(incMarker)
@@ -536,17 +580,21 @@ export default function CorridorMap3D({
     calculateTraumaRoute,
   ])
 
-  // Fly to selected incident when selection changes from outside
+  // Fly to a selected incident only when its own GPS is available.
   useEffect(() => {
     if (!selectedIncident || !mapRef.current) return
-    const incCoords = [
-      sentryCamera.coordinates[0] + 0.001,
-      sentryCamera.coordinates[1] + 0.001,
-    ]
-    mapRef.current.flyTo({ center: incCoords, zoom: 14, pitch: 60 })
+
+    const incCoords = getIncidentCoordinates(selectedIncident)
+    if (!incCoords) {
+      setTraumaRoute(null)
+      setRouteLoading(false)
+      return
+    }
+
+    mapRef.current.flyTo({ center: incCoords, zoom: 14, pitch: 0 })
     const nearest = findNearestHospital(incCoords)
     calculateTraumaRoute(incCoords, nearest.hospital)
-  }, [selectedIncident, sentryCamera, findNearestHospital, calculateTraumaRoute])
+  }, [selectedIncident, findNearestHospital, calculateTraumaRoute])
 
   // Orbit rotation loop
   useEffect(() => {
@@ -570,8 +618,8 @@ export default function CorridorMap3D({
     mapRef.current.flyTo({
       center: activeCorridor.center,
       zoom: activeCorridor.zoom,
-      pitch: 52,
-      bearing: -15,
+      pitch: 0,
+      bearing: 0,
     })
   }
 
@@ -583,8 +631,8 @@ export default function CorridorMap3D({
       mapRef.current.flyTo({
         center: target.center,
         zoom: target.zoom,
-        pitch: 52,
-        bearing: -15,
+        pitch: 0,
+        bearing: 0,
       })
     }
   }
@@ -746,7 +794,18 @@ export default function CorridorMap3D({
                 {selectedIncident.severity}
               </span>
               <span className="inc-type">{selectedIncident.type.replace(/_/g, ' ')}</span>
-              <span className="inc-loc">KM {selectedIncident.km || '42.4'} · {selectedIncident.lane || 'Live Lane'}</span>
+              <span className="inc-loc">
+                {selectedIncident.lat != null && selectedIncident.lng != null
+                  ? `GPS ${Number(selectedIncident.lat).toFixed(5)}, ${Number(selectedIncident.lng).toFixed(5)}`
+                  : selectedIncident.latitude != null && selectedIncident.longitude != null
+                    ? `GPS ${Number(selectedIncident.latitude).toFixed(5)}, ${Number(selectedIncident.longitude).toFixed(5)}`
+                    : selectedIncident.km != null
+                      ? `KM ${selectedIncident.km}`
+                      : selectedIncident.camera?.km != null
+                        ? `Camera KM ${selectedIncident.camera.km} · incident GPS unavailable`
+                        : 'Incident GPS unavailable'}
+                {' · '}{selectedIncident.lane || 'Lane unverified'}
+              </span>
             </div>
 
             {traumaRoute && (

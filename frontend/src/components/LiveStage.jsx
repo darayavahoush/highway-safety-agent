@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react'
 import { Video, Map as MapIcon, Boxes, Compass, Film } from 'lucide-react'
 import LaneMap from './LaneMap.jsx'
 import CorridorMap3D from './CorridorMap3D.jsx'
+import DigitalTwin from './DigitalTwin.jsx'
 import { isLive } from '../api/client.js'
 
 const VIDEO_PATH = import.meta.env.VITE_VIDEO_PATH || '/video_feed'
-const TWIN_URL = import.meta.env.VITE_TWIN_URL || ''
 
 const TABS = [
   ['camera', 'Camera', Video],
@@ -145,15 +145,14 @@ export default function LiveStage({ incident, camera, metrics, incidents = [], o
           </>
         )}
 
-        {tab === 'twin' && (TWIN_URL ? (
-          <iframe className="stage-video" src={TWIN_URL} title="3D digital twin" />
-        ) : (
-          <div className="stage-empty">
-            <Boxes size={30} aria-hidden="true" />
-            <p><b>Digital twin not connected</b></p>
-            <p>Set VITE_TWIN_URL to the page that serves the Three.js twin and it will load here.</p>
-          </div>
-        ))}
+        {tab === 'twin' && (
+          <DigitalTwin
+            incidents={incidents}
+            incident={incident}
+            camera={camera}
+            onSelectIncident={onSelectIncident}
+          />
+        )}
       </div>
     </div>
   )

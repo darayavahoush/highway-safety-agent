@@ -1,75 +1,61 @@
-import { Camera, ShieldAlert, Radio, BookOpen } from 'lucide-react'
+import { Camera, Radio, BookOpen, House, Sun, Moon } from 'lucide-react'
 import { fmtClock } from '../lib/format.js'
 import CameraHealthBadge from './CameraHealthBadge.jsx'
 
 const PILL = {
-  demo: ['Demo Simulation', 'pill--amber'],
-  live: ['AP Gov Live Sentry', 'pill--green'],
-  connecting: ['Connecting to Gantry', 'pill--dim'],
-  offline: ['Sentry Offline, Retrying', 'pill--red'],
+  demo: ['Demo simulation', 'pill--amber'],
+  live: ['Live connection', 'pill--green'],
+  connecting: ['Connecting', 'pill--dim'],
+  offline: ['Offline · retrying', 'pill--red'],
 }
 
-export default function TopBar({ conn, camera, now, cameraHealth, onOpenAbout }) {
+export default function TopBar({
+  conn, camera, now, cameraHealth, onOpenAbout,
+  onHome, theme = 'dark', onToggleTheme,
+}) {
   const [text, cls] = PILL[conn] || PILL.connecting
+
   return (
     <header className="topbar">
       <div className="brand">
-        <div className="brand-crest">
-          <svg width="38" height="38" viewBox="0 0 38 38" fill="none" aria-hidden="true">
-            <rect width="38" height="38" rx="9" fill="url(#crestGrad)" />
-            <path d="M19 8L28 13V21C28 26 24 30 19 31C14 30 10 26 10 21V13L19 8Z" stroke="#F4B63F" strokeWidth="2" strokeLinejoin="round" fill="rgba(0,0,0,0.3)" />
-            <path d="M15 19L18 22L24 16" stroke="#2DB67D" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-            <defs>
-              <linearGradient id="crestGrad" x1="0" y1="0" x2="38" y2="38" gradientUnits="userSpaceOnUse">
-                <stop stopColor="#1E3A8A" />
-                <stop offset="1" stopColor="#0B192C" />
-              </linearGradient>
-            </defs>
+        <button className="control-home-button" onClick={onHome} title="Return to homepage" aria-label="Return home">
+          <House size={16} />
+        </button>
+        <div className="brand-crest" aria-hidden="true">
+          <svg width="36" height="36" viewBox="0 0 38 38" fill="none">
+            <rect width="38" height="38" rx="8" fill="#202d3b" />
+            <path d="M19 7 29 12v9c0 5-4 9-10 11-6-2-10-6-10-11v-9Z" stroke="#e4ad59" strokeWidth="1.5" />
+            <path d="m14 19 4 4 7-8" stroke="#79b6a0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </div>
         <div className="brand-text">
           <div className="brand-title-wrap">
-            <h1>HIGHWAY ROAD ACCIDENT PREVENTION</h1>
-            <span className="brand-badge">HRAP-2026</span>
+            <h1>HIGHWAY SAFETY AGENT</h1>
+            <span className="brand-badge">HRAP / 2026</span>
           </div>
-          <p>
-            <span className="gov-tag">Govt of Andhra Pradesh</span> · <span className="rtih-tag">Ratan Tata Innovation Hub</span> · Autonomous Incident Command
-          </p>
+          <p>Autonomous incident command <span className="brand-divider">/</span> Andhra Pradesh</p>
         </div>
       </div>
 
       {camera && (
         <div className="camera-id">
-          <div className="camera-beacon">
-            <Radio size={14} className="radar-icon" aria-hidden="true" />
-            <span className="beacon-pulse" />
-          </div>
+          <div className="camera-beacon"><Radio size={14} /><span className="beacon-pulse" /></div>
           <div className="camera-meta">
             <b>{camera.highway} · {camera.km ? `KM ${camera.km}` : 'CORRIDOR 42'}</b>
-            <span>{camera.id} {camera.towards ? `(towards ${camera.towards})` : ''}</span>
+            <span>{camera.id}{camera.towards ? ` · Towards ${camera.towards}` : ''}</span>
           </div>
         </div>
       )}
 
       <div className="topbar-right">
-        {/* Real-time Camera Stability & Photometric Lighting Diagnostics */}
         <CameraHealthBadge health={cameraHealth} onClick={onOpenAbout} />
-
-        {/* Informative About System & Architecture Docs */}
-        <button
-          className="topbar-about-btn"
-          onClick={onOpenAbout}
-          title="About Highway Safety Agent & HRAP-2026 Documentation (? / A)"
-        >
-          <BookOpen size={13} />
-          <span>About System</span>
-          <kbd className="about-kbd-hint">?</kbd>
+        <button className="topbar-icon-button" onClick={onToggleTheme} title="Toggle colour theme" aria-label="Toggle colour theme">
+          {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
         </button>
-
-        <span className={`pill ${cls}`}>
-          <i className="dot" />
-          {text}
-        </span>
+        <button className="topbar-about-btn" onClick={onOpenAbout} title="About the system">
+          <BookOpen size={14} /><span>System info</span><kbd>?</kbd>
+        </button>
+        <span className={`pill ${cls}`}><i className="dot" />{text}</span>
         <time className="clock">{fmtClock(now)} IST</time>
       </div>
     </header>
