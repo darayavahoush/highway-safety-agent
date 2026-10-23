@@ -1,0 +1,474 @@
+
+/* HRAP — compact, restrained operational design */
+
+/* Neutralize the purple-heavy global palette. */
+:root {
+  --premium-bg: #0b1018;
+  --premium-surface: #111923;
+  --premium-raised: #17212d;
+  --premium-line: #293541;
+  --premium-text: #edf2f6;
+  --premium-muted: #a3b0bc;
+  --premium-faint: #778693;
+  --premium-accent: #a7b9c8;
+  --premium-green: #65d6a4;
+  --premium-red: #ff7777;
+}
+
+:root[data-theme="light"] {
+  --premium-bg: #f2f4f5;
+  --premium-surface: #ffffff;
+  --premium-raised: #e8edf0;
+  --premium-line: #d3dce1;
+  --premium-text: #17232d;
+  --premium-muted: #596875;
+  --premium-faint: #778590;
+  --premium-accent: #516e83;
+}
+
+/* HOME: understated header, less visual noise and wasted height. */
+.nova-home {
+  background: #0b1018 !important;
+  color: #edf2f6;
+}
+
+.nova-nav {
+  min-height: 62px !important;
+  height: auto;
+  padding: 10px clamp(18px, 3vw, 42px) !important;
+  background: #0d141d !important;
+  border-bottom: 1px solid #293541 !important;
+  box-shadow: none !important;
+}
+
+.nova-brand-mark {
+  color: #d0dae2 !important;
+  background: #202b36 !important;
+  border-color: #34424e !important;
+  box-shadow: none !important;
+}
+
+.nova-brand-type strong,
+.nova-brand-type small {
+  color: #edf2f6 !important;
+}
+
+.nova-connection {
+  color: #b9c5ce !important;
+}
+
+.nova-nav-cta {
+  color: #f4f7f9 !important;
+  background: #263746 !important;
+  border: 1px solid #405361 !important;
+  box-shadow: none !important;
+}
+
+.nova-nav-cta:hover {
+  background: #314656 !important;
+}
+
+/* Hero: keep the highway illustration, remove the purple wash. */
+.nova-hero {
+  min-height: 0 !important;
+  padding: clamp(34px, 5vh, 58px) clamp(20px, 5vw, 68px) 38px !important;
+  background: #0b1018 !important;
+}
+
+.nova-hero::before,
+.nova-hero::after {
+  opacity: .15 !important;
+}
+
+.nova-overline,
+.nova-section-kicker {
+  color: #a8bac7 !important;
+}
+
+.nova-overline-dot {
+  background: #65d6a4 !important;
+  box-shadow: none !important;
+}
+
+.nova-hero h1 {
+  color: #f0f4f7 !important;
+  line-height: .98 !important;
+  letter-spacing: -.055em !important;
+}
+
+.nova-headline-outline {
+  color: #d3dce3 !important;
+  -webkit-text-stroke: 0 !important;
+  text-shadow: none !important;
+}
+
+.nova-headline-accent {
+  color: #9eb6c7 !important;
+  background: none !important;
+  -webkit-text-fill-color: #9eb6c7 !important;
+  text-shadow: none !important;
+}
+
+.nova-hero-description {
+  max-width: 490px;
+  color: #aab7c2 !important;
+  line-height: 1.65 !important;
+}
+
+.nova-button-primary {
+  color: #0d151b !important;
+  background: #c2d0d9 !important;
+  border: 1px solid #c2d0d9 !important;
+  box-shadow: none !important;
+}
+
+.nova-button-primary:hover {
+  background: #e0e8ed !important;
+}
+
+.nova-button-text {
+  color: #c2ccd4 !important;
+}
+
+.nova-proof {
+  border-color: #293541 !important;
+  background: rgba(255,255,255,.025) !important;
+}
+
+.nova-proof-icon {
+  color: #b5c8d4 !important;
+  background: #202e39 !important;
+}
+
+.nova-proof strong {
+  color: #e4ebf0 !important;
+}
+
+.nova-proof span {
+  color: #9caab5 !important;
+}
+
+/* Illustration: preserve its structure, make accents more subtle. */
+.nova-visual {
+  border-color: #33424e !important;
+  background-color: #101a24 !important;
+  box-shadow: 0 16px 40px rgba(0,0,0,.2) !important;
+}
+
+.nova-visual-top,
+.nova-visual-caption {
+  color: #a9b9c4 !important;
+}
+
+.nova-orbit {
+  border-color: rgba(161,184,199,.12) !important;
+}
+
+.nova-road-glow {
+  opacity: .35 !important;
+  filter: grayscale(.65) !important;
+}
+
+.nova-road-pin span {
+  background: #253744 !important;
+  color: #e5edf2 !important;
+  border-color: #536a79 !important;
+}
+
+.nova-float-card {
+  background: #131e29 !important;
+  border-color: #344653 !important;
+  box-shadow: 0 8px 25px rgba(0,0,0,.2) !important;
+}
+
+.nova-card-icon {
+  background: #253541 !important;
+  color: #c5d4dd !important;
+}
+
+.nova-float-card strong,
+.nova-float-card > div > span,
+.nova-incident-symbol {
+  color: #d7e1e8 !important;
+}
+
+.nova-card-live {
+  color: #65d6a4 !important;
+}
+
+.nova-incident-bars i {
+  background: #9bb3c2 !important;
+}
+
+.nova-hero-index,
+.nova-hero-vertical {
+  color: #748693 !important;
+}
+
+/* The landing page should not feel like one long marketing scroll. */
+.nova-ribbon {
+  display: grid;
+  grid-template-columns: 1.15fr repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  padding: 17px clamp(20px, 5vw, 68px) !important;
+  background: #101821 !important;
+  border-block: 1px solid #293541 !important;
+}
+
+.nova-ribbon-label,
+.nova-ribbon-stat small {
+  color: #8fa0ad !important;
+}
+
+.nova-ribbon-stat strong {
+  color: #e1e8ed !important;
+}
+
+.nova-stat-symbol {
+  color: #afc0cc !important;
+  background: #202d38 !important;
+}
+
+.nova-capabilities {
+  padding: 55px clamp(20px, 5vw, 68px) !important;
+  background: #0d141d !important;
+}
+
+.nova-section-intro {
+  margin-bottom: 25px !important;
+}
+
+.nova-section-intro h2,
+.nova-manifesto h2 {
+  color: #e8eef2 !important;
+}
+
+.nova-section-intro h2 span,
+.nova-manifesto h2 span {
+  color: #a8bdcb !important;
+}
+
+.nova-section-intro p {
+  color: #a4b2bd !important;
+}
+
+.nova-capability {
+  background: #121c26 !important;
+  border-color: #2b3945 !important;
+  box-shadow: none !important;
+}
+
+.nova-capability-top,
+.nova-capability-tag,
+.nova-capability-bottom {
+  color: #aebdc7 !important;
+}
+
+.nova-capability h3 {
+  color: #e6edf1 !important;
+}
+
+.nova-capability p {
+  color: #a5b2bc !important;
+}
+
+.nova-capability-lime,
+.nova-capability-violet,
+.nova-capability-pink {
+  --capability-accent: #a8bac6 !important;
+}
+
+.nova-manifesto {
+  padding: 34px clamp(20px, 5vw, 68px) !important;
+  background: #111a23 !important;
+  border-block: 1px solid #293541 !important;
+}
+
+.nova-manifesto-mark,
+.nova-manifesto-decoration {
+  color: rgba(177,196,208,.12) !important;
+}
+
+.nova-manifesto-cta {
+  background: #273946 !important;
+  color: #edf3f6 !important;
+  border-color: #405462 !important;
+  box-shadow: none !important;
+}
+
+.nova-footer {
+  padding: 18px clamp(20px, 5vw, 68px) !important;
+  background: #0b1018 !important;
+  color: #8e9eaa !important;
+  border-top: 1px solid #293541 !important;
+}
+
+/* CONTROL ROOM: reclaim horizontal space and reduce card padding. */
+.app--control {
+  background: #0b1018 !important;
+  color: #edf2f6;
+}
+
+.app--control > .topbar {
+  min-height: 56px !important;
+  padding: 8px 16px !important;
+  background: #0d141d !important;
+  border-bottom: 1px solid #293541 !important;
+}
+
+.app--control .main {
+  grid-template-columns:
+    minmax(210px, .78fr)
+    minmax(0, 1.32fr)
+    minmax(250px, .88fr) !important;
+  gap: 10px !important;
+  padding: 10px !important;
+  min-height: 0 !important;
+  height: auto !important;
+  overflow: visible !important;
+}
+
+.app--control .col {
+  gap: 10px !important;
+}
+
+.app--control .panel,
+.app--control .activity {
+  border-color: #293541 !important;
+  border-radius: 9px !important;
+  box-shadow: none !important;
+}
+
+.app--control .panel-head {
+  padding: 10px 12px !important;
+  background: #121b25 !important;
+  border-bottom-color: #293541 !important;
+}
+
+.app--control .panel-head h2 {
+  font-size: 10px !important;
+  letter-spacing: .055em !important;
+}
+
+.app--control .col--stage > .panel.stage {
+  border-color: #344651 !important;
+}
+
+.app--control .panel.stage .stage-body {
+  padding: 7px !important;
+}
+
+.app--control .inc {
+  padding: 9px 10px !important;
+}
+
+.app--control .detail-head {
+  padding: 12px !important;
+}
+
+.app--control .detail-head h2 {
+  font-size: clamp(16px, 1.2vw, 20px) !important;
+}
+
+.app--control .detail-body {
+  padding-inline: 12px !important;
+}
+
+.app--control .detail-body > section {
+  padding-block: 10px !important;
+}
+
+.app--control .detail-foot {
+  gap: 6px !important;
+  padding: 10px 12px !important;
+}
+
+.app--control .stats {
+  padding: 8px 10px !important;
+  background: #0d141d !important;
+}
+
+.app--control .stats-grid {
+  gap: 8px !important;
+}
+
+.app--control .stats-grid > * {
+  padding: 8px 10px !important;
+  background: #111a24 !important;
+  border-color: #293541 !important;
+}
+
+/* Reserve purple for intentional selected states, not every surface. */
+.app--control .inc.active,
+.app--control .inc.is-selected,
+.app--control .inc[aria-selected="true"] {
+  border-left-color: #a6b9c7 !important;
+  background: rgba(166,185,199,.09) !important;
+}
+
+.app--control button:focus-visible,
+.app--control a:focus-visible,
+.nova-home button:focus-visible,
+.nova-home a:focus-visible {
+  outline-color: #c0d0da !important;
+}
+
+/* Laptop height: compact controls without clipping content. */
+@media (min-width: 1181px) and (max-height: 850px) {
+  .app--control .main {
+    padding: 8px !important;
+  }
+
+  .app--control .col--stage > .panel.stage {
+    min-height: 0 !important;
+  }
+
+  .app--control .col--stage > .activity {
+    max-height: 145px !important;
+    min-height: 0 !important;
+  }
+
+  .app--control .detail-body {
+    max-height: 43vh;
+    overflow-y: auto !important;
+  }
+}
+
+@media (max-width: 1180px) {
+  .nova-ribbon {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .nova-nav {
+    padding-inline: 15px !important;
+  }
+
+  .nova-hero {
+    padding: 30px 18px !important;
+  }
+
+  .nova-ribbon {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 16px 18px !important;
+  }
+
+  .nova-capabilities {
+    padding: 36px 18px !important;
+  }
+
+  .nova-manifesto {
+    padding: 28px 18px !important;
+  }
+
+  .app--control .main {
+    display: flex !important;
+    flex-direction: column !important;
+    padding: 8px !important;
+  }
+
+  .app--control .main > .col {
+    width: 100%;
+  }
+}

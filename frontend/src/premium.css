@@ -1029,3 +1029,481 @@ select:focus-visible, textarea:focus-visible {
     min-height: 280px;
   }
 }
+
+/* =========================================================
+   HRAP — incident queue visual hierarchy
+   Existing React behavior and event handlers stay untouched.
+   ========================================================= */
+
+.app .inc {
+  --sev: #a78bfa;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  width: 100%;
+  margin: 0 0 9px;
+  padding: 15px 14px 15px 17px;
+  border: 1px solid rgba(190, 174, 226, .13);
+  border-radius: 13px;
+  background:
+    linear-gradient(112deg, rgba(167,139,250,.075), transparent 62%),
+    rgba(19, 17, 29, .94);
+  color: #f4efff;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .22s ease, background .22s ease,
+    transform .22s ease, box-shadow .22s ease;
+}
+
+.app .inc::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--sev);
+  opacity: .72;
+  transition: width .22s ease, opacity .22s ease;
+}
+
+.app .inc:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--sev) 55%, transparent);
+  background:
+    linear-gradient(112deg, color-mix(in srgb, var(--sev) 13%, transparent), transparent 72%),
+    #1b1729;
+  box-shadow: 0 9px 26px rgba(0, 0, 0, .19);
+}
+
+.app .inc:focus-visible {
+  outline: 2px solid #d9ff58;
+  outline-offset: 3px;
+}
+
+.app .inc[aria-current="true"],
+.app .inc.inc--active[aria-current="true"] {
+  border-color: color-mix(in srgb, var(--sev) 72%, #bba6ff);
+  background:
+    linear-gradient(110deg, color-mix(in srgb, var(--sev) 17%, transparent), transparent 76%),
+    #211a32;
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.035),
+    0 0 25px color-mix(in srgb, var(--sev) 11%, transparent);
+}
+
+.app .inc[aria-current="true"]::before {
+  width: 5px;
+  opacity: 1;
+}
+
+.app .inc--p0 {
+  --sev: #ff6378;
+  background:
+    linear-gradient(112deg, rgba(255, 73, 99, .13), transparent 67%),
+    rgba(30, 17, 28, .97);
+}
+
+.app .inc--p0 .inc-icon {
+  background: rgba(255, 81, 108, .12);
+  border-color: rgba(255, 99, 120, .32);
+  color: #ff7889;
+  box-shadow: 0 0 20px rgba(255, 70, 100, .09);
+}
+
+.app .inc--p0 .inc-sev {
+  background: rgba(255, 81, 108, .12);
+  border: 1px solid rgba(255, 99, 120, .28);
+  border-radius: 5px;
+  padding: 4px 7px;
+}
+
+.app .inc-icon {
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--sev) 27%, transparent);
+  background: color-mix(in srgb, var(--sev) 10%, transparent);
+  color: var(--sev);
+}
+
+.app .inc-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.app .inc-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+
+.app .inc-title {
+  min-width: 0;
+  color: #f7f2ff;
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.5;
+  letter-spacing: -.015em;
+  overflow-wrap: anywhere;
+}
+
+.app .inc-sev {
+  flex: 0 0 auto;
+  color: var(--sev);
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: .095em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.app .inc-sub {
+  color: #a59bb8;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.app .inc-sub > span:first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.app .inc-sub > span:last-child {
+  flex: 0 0 auto;
+  color: #8e829f;
+  font-variant-numeric: tabular-nums;
+}
+
+.app .inc-plate {
+  max-width: 48%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #d9ff58;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10px;
+  letter-spacing: .06em;
+}
+
+.app .inc .chip {
+  max-width: 70%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 9px;
+  letter-spacing: .045em;
+}
+
+.app .inc--new {
+  animation: hrap-incident-arrival .65s ease-out both;
+}
+
+@keyframes hrap-incident-arrival {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--sev) 40%, transparent);
+  }
+  55% {
+    box-shadow: 0 0 0 5px color-mix(in srgb, var(--sev) 8%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+.app .panel:has(.inc) > .panel-head {
+  padding-bottom: 13px;
+  border-bottom: 1px solid rgba(190, 174, 226, .11);
+}
+
+.app .panel:has(.inc) > .panel-head h2 {
+  color: #f8f3ff;
+  letter-spacing: -.035em;
+}
+
+.app .panel:has(.inc) > .panel-head .seg {
+  padding: 3px;
+  border: 1px solid rgba(190, 174, 226, .13);
+  border-radius: 9px;
+  background: rgba(10, 9, 17, .62);
+}
+
+.app .panel:has(.inc) > .panel-head .seg button[aria-selected="true"] {
+  border-radius: 6px;
+  background: #d9ff58;
+  color: #17180f;
+  box-shadow: 0 2px 12px rgba(217, 255, 88, .12);
+}
+
+@media (max-width: 540px) {
+  .app .inc {
+    gap: 10px;
+    padding: 12px 10px 12px 13px;
+  }
+
+  .app .inc-icon {
+    flex-basis: 33px;
+    width: 33px;
+    height: 33px;
+  }
+
+  .app .inc-title {
+    font-size: 11px;
+  }
+
+  .app .inc-sub {
+    font-size: 9px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app .inc,
+  .app .inc::before {
+    transition: none;
+  }
+
+  .app .inc--new {
+    animation: none;
+  }
+}
+
+
+/* HRAP CONTROL ROOM — responsive command-centre layout */
+
+.app--control {
+  --control-line: rgba(190, 174, 226, .14);
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 100dvh;
+  height: auto;
+  overflow-x: clip;
+  overflow-y: visible;
+}
+
+.app--control > .topbar {
+  flex: 0 0 auto;
+  position: relative;
+  z-index: 5;
+}
+
+.app--control .main {
+  display: grid;
+  grid-template-columns:
+    minmax(235px, .82fr)
+    minmax(360px, 1.55fr)
+    minmax(270px, .98fr);
+  align-items: stretch;
+  gap: 14px;
+  width: 100%;
+  min-width: 0;
+  min-height: calc(100dvh - 155px);
+  height: auto;
+  padding: 14px;
+  overflow: visible;
+}
+
+.app--control .col {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+  min-height: 0;
+}
+
+.app--control .col > .panel {
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  border: 1px solid var(--control-line);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .15);
+}
+
+.app--control .panel-head {
+  padding: 14px 15px;
+  gap: 12px;
+}
+
+.app--control .panel-head h2 {
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: .035em;
+}
+
+.app--control .col--stage {
+  min-width: 0;
+}
+
+.app--control .col--stage > .panel.stage {
+  flex: 1 1 auto;
+  min-height: 390px;
+  border-color: rgba(167, 139, 250, .26);
+  border-radius: 14px;
+  box-shadow:
+    0 14px 38px rgba(0, 0, 0, .2),
+    inset 0 1px rgba(255, 255, 255, .025);
+}
+
+.app--control .panel.stage .stage-body,
+.app--control .panel.stage .stage-video {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.app--control .col--stage > .activity {
+  flex: 0 0 auto;
+  min-height: 155px;
+  max-height: none;
+  overflow: hidden;
+}
+
+.app--control .panel.detail {
+  min-width: 0;
+}
+
+.app--control .detail-head {
+  gap: 12px;
+  padding: 17px 15px;
+}
+
+.app--control .detail-head h2 {
+  font-size: clamp(18px, 1.4vw, 24px);
+  line-height: 1.2;
+  letter-spacing: -.025em;
+  overflow-wrap: anywhere;
+}
+
+.app--control .detail-body {
+  min-width: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.app--control .detail-body section {
+  padding-block: 14px;
+}
+
+.app--control .detail-body h3 {
+  font-size: 11px;
+  letter-spacing: .075em;
+}
+
+.app--control .detail-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
+.app--control .stats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 18px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--control-line);
+  background: var(--premium-surface);
+}
+
+.app--control .stats-grid {
+  display: grid;
+  flex: 1 1 auto;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(12px, 2vw, 28px);
+  min-width: 0;
+}
+
+.app--control .copilot-container {
+  z-index: 20;
+}
+
+/* Tablet: queue and monitoring remain side by side; details follow below. */
+@media (min-width: 701px) and (max-width: 1180px) {
+  .app--control .main {
+    grid-template-columns: minmax(220px, .78fr) minmax(0, 1.5fr);
+    min-height: 0;
+  }
+
+  .app--control .main > .col:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .app--control .col--stage > .panel.stage {
+    min-height: 390px;
+  }
+}
+
+/* Mobile: one readable column with the live view first. */
+@media (max-width: 700px) {
+  .app--control .main {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    min-height: 0;
+    padding: 10px;
+  }
+
+  .app--control .col {
+    gap: 12px;
+  }
+
+  .app--control .col--stage {
+    grid-row: 1;
+  }
+
+  .app--control .col--stage > .panel.stage {
+    min-height: 330px;
+  }
+
+  .app--control .col--stage > .activity {
+    min-height: 140px;
+  }
+
+  .app--control .panel {
+    border-radius: 11px;
+  }
+
+  .app--control .panel.stage .panel-head {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .app--control .panel.stage .seg {
+    flex-wrap: wrap;
+  }
+
+  .app--control .stats {
+    align-items: stretch;
+    padding: 14px;
+  }
+
+  .app--control .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .app--control .detail-foot > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+}
+
+/* Short desktop viewports scroll instead of crushing the workspace. */
+@media (min-width: 1181px) and (max-height: 800px) {
+  .app--control .main {
+    min-height: 0;
+  }
+
+  .app--control .col--stage > .panel.stage {
+    min-height: 350px;
+  }
+}

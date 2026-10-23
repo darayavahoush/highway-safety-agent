@@ -60,8 +60,7 @@ export default function IncidentDetail({ incident, now, actions }) {
             : <p className="muted">The agent is still writing the briefing.</p>}
         </section>
 
-        <section>
-          <h3>Vehicles and plates</h3>
+        <details className="detail-fold"><summary>Vehicles and plates</summary><div className="detail-fold-content">
           <ul className="veh-list">
             {incident.vehicles.map((v) => (
               <li key={v.trackId} className="veh">
@@ -73,10 +72,9 @@ export default function IncidentDetail({ incident, now, actions }) {
               </li>
             ))}
           </ul>
-        </section>
+        </div></details>
 
-        <section>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+        <details className="detail-fold"><summary>Agent reasoning</summary><div className="detail-fold-content"><div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
             <h3>Agent reasoning</h3>
             {isLive && (
               <button
@@ -100,17 +98,13 @@ export default function IncidentDetail({ incident, now, actions }) {
                 <span>{isExplaining ? 'Analyzing...' : 'Explain with AI'}</span>
               </button>
             )}
-          </div>
-          <ReasoningTrace incident={incident} />
-        </section>
+          </div><ReasoningTrace incident={incident} /></div></details>
 
-        <section>
-          <h3>Dispatches</h3>
+        <details className="detail-fold"><summary>Dispatch history</summary><div className="detail-fold-content">
           <DispatchTimeline incident={incident} now={now} onCancel={actions.cancelDispatch} />
-        </section>
+        </div></details>
 
-        <section>
-          <h3>Evidence</h3>
+        <details className="detail-fold"><summary>Evidence and recordings</summary><div className="detail-fold-content">
           <div className="evidence">
             <a className={`btn${isLive ? '' : ' btn--off'}`} href={isLive ? `${base}/snapshots/${incident.id}.jpg` : undefined}
                target="_blank" rel="noreferrer" aria-disabled={!isLive} title={isLive ? '' : 'Available with the live backend'}>
@@ -121,7 +115,7 @@ export default function IncidentDetail({ incident, now, actions }) {
               <Film size={14} aria-hidden="true" />10 s clip
             </a>
           </div>
-        </section>
+        </div></details>
       </div>
 
       <div className="detail-foot">
