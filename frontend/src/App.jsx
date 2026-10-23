@@ -26,6 +26,14 @@ export default function App() {
   const [page, setPage] = useState('home')
   const [theme, setTheme] = useState(readTheme)
 
+  const navigation = [
+    ['control', 'Overview', '01'],
+    ['corridor', 'Corridor', '02'],
+    ['incidents', 'Incidents', '03'],
+    ['activity', 'Activity', '04'],
+    ['system', 'System status', '05'],
+  ]
+
   const camera = state.camera ?? selected?.camera ?? list[0]?.camera ?? null
   const startOfDay = new Date()
   startOfDay.setHours(0, 0, 0, 0)
@@ -87,22 +95,128 @@ export default function App() {
         <Home onEnter={() => setPage('control')} conn={state.conn} incidents={list} />
       ) : (
         <>
-          <main className="main">
-            <section className="col">
-              <IncidentQueue list={list} selectedId={state.selectedId} onSelect={actions.select}
-                now={now} filter={filter} setFilter={setFilter} />
-            </section>
-            <section className="col col--stage">
-              <LiveStage incident={selected} camera={camera} metrics={state.metrics}
-                incidents={list} onSelectIncident={actions.select} />
-              <ActivityLog list={list} onSelect={actions.select} />
-            </section>
-            <section className="col">
-              <IncidentDetail incident={selected} now={now} actions={actions} />
-            </section>
+          <nav className="ops-nav" aria-label="Operations pages">
+            <div className="ops-nav-intro">
+              <span className="ops-eyebrow">HIGHWAY OPERATIONS / AP</span>
+              <span className="ops-nav-caption">Command interface</span>
+            </div>
+            <div className="ops-nav-links">
+              {navigation.map(([key, label, number]) => (
+                <button
+                  key={key}
+                  type="button"
+                  className={`ops-nav-link${page === key ? ' is-current' : ''}`}
+                  aria-current={page === key ? 'page' : undefined}
+                  onClick={() => setPage(key)}
+                >
+                  <span className="ops-nav-number">{number}</span>
+                  <span>{label}</span>
+                </button>
+              ))}
+            </div>
+          </nav>
+
+          <main className={`ops-page ops-page--${page}`}>
+            <header className="ops-page-heading">
+              <div>
+                <span className="ops-eyebrow">FIELD INTELLIGENCE / LIVE WORKSPACE</span>
+                <h1>{({
+                  control: 'Operations overview',
+                  corridor: 'Corridor intelligence',
+                  incidents: 'Incident register',
+                  activity: 'Dispatch activity',
+                  system: 'System status',
+                })[page] || 'Operations overview'}</h1>
+                <p>{({
+                  control: 'A live view of incidents, road telemetry and operator decisions.',
+                  corridor: 'Explore corridor geometry and the incident locations available to the tracker.',
+                  incidents: 'Review incoming events and inspect their evidence, status and response history.',
+                  activity: 'Follow dispatch records and open the incident behind each action.',
+                  system: 'Inspect the connection, camera health and telemetry currently reported by the application.',
+                })[page]}</p>
+              </div>
+              <span className="ops-page-index">{navigation.findIndex(([key]) => key === page) + 1} / 05</span>
+            </header>
+
+            {page === 'control' && (
+              <>
+                <main className="main">
+                  <section className="col">
+                    <IncidentQueue list={list} selectedId={state.selectedId} onSelect={actions.select}
+                      now={now} filter={filter} setFilter={setFilter} />
+                  </section>
+                  <section className="col col--stage">
+                    <LiveStage incident={selected} camera={camera} metrics={state.metrics}
+                      incidents={list} onSelectIncident={actions.select} />
+                    <ActivityLog list={list} onSelect={actions.select} />
+                  </section>
+                  <section className="col">
+                    <IncidentDetail incident={selected} now={now} actions={actions} />
+                  </section>
+                </main>
+                <StatsStrip metrics={state.metrics} open={list.filter(isActive).length}
+                  today={today} blackspots={state.blackspots} camera={camera} />
+              </>
+            )}
+
+            {page === 'corridor' && (
+              <div className="ops-single-stage">
+                <LiveStage incident={selected} camera={camera} metrics={state.metrics}
+                  incidents={list} onSelectIncident={actions.select} />
+              </div>
+            )}
+
+            {page === 'incidents' && (
+              <div className="ops-two-column">
+                <section className="ops-section">
+                  <IncidentQueue list={list} selectedId={state.selectedId} onSelect={actions.select}
+                    now={now} filter={filter} setFilter={setFilter} />
+                </section>
+                <section className="ops-section">
+                  <IncidentDetail incident={selected} now={now} actions={actions} />
+                </section>
+              </div>
+            )}
+
+            {page === 'activity' && (
+              <div className="ops-single-stage">
+                <ActivityLog list={list} onSelect={actions.select} />
+              </div>
+            )}
+
+            {page === 'system' && (
+              <div className="ops-system-grid">
+                <article className="ops-system-card">
+                  <span className="ops-eyebrow">01 / BACKEND</span>
+                  <h2>Service connection</h2>
+                  <p className="ops-system-value">{String(state.conn ?? 'Unknown')}</p>
+                  <p className="ops-muted">Connection state reported by the existing control-room hook.</p>
+                </article>
+                <article className="ops-system-card">
+                  <span className="ops-eyebrow">02 / VIDEO</span>
+                  <h2>Camera health</h2>
+                  <p className="ops-system-value">{state.cameraHealth == null ? 'Not reported' : String(state.cameraHealth)}</p>
+                  <p className="ops-muted">{camera ? `${camera.highway || 'Highway'} · ${camera.section || `KM ${camera.km ?? '—'}`}` : 'No camera selected'}</p>
+                </article>
+                <article className="ops-system-card">
+                  <span className="ops-eyebrow">03 / TELEMETRY</span>
+                  <h2>Tracker metrics</h2>
+                  <p className="ops-system-value">{state.metrics?.fps == null ? 'Not reported' : `${state.metrics.fps} fps`}</p>
+                  <p className="ops-muted">{state.metrics?.ruleMs == null ? 'Rule timing unavailable' : `Rule engine · ${state.metrics.ruleMs} ms`}</p>
+                </article>
+                <article className="ops-system-card">
+                  <span className="ops-eyebrow">04 / EVENT STREAM</span>
+                  <h2>Incident records</h2>
+                  <p className="ops-system-value">{list.length}</p>
+                  <p className="ops-muted">{list.filter(isActive).length} currently classified as active by the application.</p>
+                </article>
+                <div className="ops-system-metrics">
+                  <StatsStrip metrics={state.metrics} open={list.filter(isActive).length}
+                    today={today} blackspots={state.blackspots} camera={camera} />
+                </div>
+              </div>
+            )}
           </main>
-          <StatsStrip metrics={state.metrics} open={list.filter(isActive).length}
-            today={today} blackspots={state.blackspots} camera={camera} />
           <OperatorCopilot incident={selected} />
         </>
       )}

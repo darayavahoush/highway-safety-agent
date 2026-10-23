@@ -445,3 +445,231 @@ textarea:focus-visible, select:focus-visible {
     scroll-behavior: auto !important;
   }
 }
+
+/* Multi-page operations shell */
+.ops-nav {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 0 clamp(18px, 3vw, 48px);
+  border-bottom: 1px solid var(--line, rgba(180, 190, 200, .16));
+  background: var(--panel, #11171d);
+}
+
+.ops-nav-intro {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  min-width: 145px;
+  padding: 15px 0;
+}
+
+.ops-eyebrow {
+  color: var(--dim, #8d99a5);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .16em;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
+
+.ops-nav-caption,
+.ops-muted {
+  color: var(--dim, #8d99a5);
+  font-size: 12px;
+}
+
+.ops-nav-links {
+  display: flex;
+  align-items: stretch;
+  gap: 5px;
+  overflow-x: auto;
+}
+
+.ops-nav-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 60px;
+  padding: 0 15px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--muted, #a6b0ba);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  white-space: nowrap;
+  transition: color .18s ease, background .18s ease;
+}
+
+.ops-nav-link:hover,
+.ops-nav-link.is-current {
+  color: var(--text, #f1f0e9);
+  background: rgba(255, 255, 255, .025);
+}
+
+.ops-nav-link.is-current {
+  border-bottom-color: var(--amber, #e7ae57);
+}
+
+.ops-nav-number {
+  color: var(--dim, #7d8994);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ops-nav-link.is-current .ops-nav-number {
+  color: var(--amber, #e7ae57);
+}
+
+.ops-page {
+  min-width: 0;
+  padding: clamp(20px, 3vw, 42px) clamp(16px, 3vw, 48px) 40px;
+}
+
+.ops-page-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin: 0 0 28px;
+}
+
+.ops-page-heading h1 {
+  margin: 8px 0 9px;
+  color: var(--text, #f1f0e9);
+  font-size: clamp(25px, 3vw, 42px);
+  font-weight: 550;
+  letter-spacing: -.045em;
+  line-height: 1.1;
+}
+
+.ops-page-heading p {
+  max-width: 640px;
+  margin: 0;
+  color: var(--muted, #a6b0ba);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.ops-page-index {
+  padding-bottom: 3px;
+  color: var(--dim, #8d99a5);
+  font-size: 11px;
+  letter-spacing: .13em;
+  white-space: nowrap;
+}
+
+.ops-single-stage {
+  min-width: 0;
+}
+
+.ops-two-column {
+  display: grid;
+  grid-template-columns: minmax(280px, .9fr) minmax(0, 1.1fr);
+  align-items: start;
+  gap: 18px;
+}
+
+.ops-section {
+  min-width: 0;
+}
+
+.ops-system-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.ops-system-card {
+  min-width: 0;
+  padding: clamp(18px, 2.5vw, 28px);
+  border: 1px solid var(--line, rgba(180, 190, 200, .16));
+  background: var(--panel, #11171d);
+}
+
+.ops-system-card h2 {
+  margin: 20px 0 10px;
+  color: var(--text, #f1f0e9);
+  font-size: 17px;
+  font-weight: 550;
+  letter-spacing: -.02em;
+}
+
+.ops-system-value {
+  margin: 0 0 8px;
+  color: var(--amber, #e7ae57);
+  font-size: clamp(21px, 3vw, 32px);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.ops-system-card p:last-child {
+  line-height: 1.65;
+}
+
+.ops-system-metrics {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+.ops-system-metrics .stats {
+  margin-top: 0;
+}
+
+@media (max-width: 900px) {
+  .ops-nav {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .ops-nav-intro {
+    padding-bottom: 8px;
+  }
+
+  .ops-nav-links {
+    margin: 0 -4px;
+  }
+
+  .ops-nav-link {
+    min-height: 48px;
+    padding: 0 11px;
+  }
+
+  .ops-two-column {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 560px) {
+  .ops-page-heading {
+    align-items: flex-start;
+  }
+
+  .ops-page-index {
+    padding-top: 6px;
+  }
+
+  .ops-system-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ops-system-metrics {
+    grid-column: auto;
+    overflow-x: auto;
+  }
+
+  .ops-nav-link {
+    gap: 6px;
+    padding: 0 9px;
+    font-size: 11px;
+  }
+
+  .ops-nav-number {
+    display: none;
+  }
+}
