@@ -67,6 +67,6 @@ export function normalizeEvent(e) {
     return { kind: 'snapshot', incidents: e.incidents.map(normalizeIncident), blackspots: e.blackspots, camera: e.camera }
   }
   if (e.incident) return { kind: 'incident.upsert', incident: normalizeIncident(e.incident) }
-  if (e.metrics) return { kind: 'metrics', metrics: e.metrics }
+  if (e.metrics) return { kind: 'metrics', metrics: e.metrics, camera_health: e.camera_health }
   return null
 }

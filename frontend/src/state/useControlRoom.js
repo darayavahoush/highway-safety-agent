@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'r
 import { connect } from '../api/client.js'
 import { isActive } from '../lib/format.js'
 
-const initial = { incidents: {}, metrics: null, blackspots: [], camera: null, conn: 'connecting', selectedId: null }
+const initial = { incidents: {}, metrics: null, cameraHealth: null, blackspots: [], camera: null, conn: 'connecting', selectedId: null }
 
 function reducer(s, a) {
   switch (a.type) {
@@ -33,7 +33,7 @@ function reducer(s, a) {
           selectedId: takeFocus ? e.incident.id : s.selectedId ?? e.incident.id,
         }
       }
-      if (e.kind === 'metrics') return { ...s, metrics: e.metrics }
+      if (e.kind === 'metrics') return { ...s, metrics: e.metrics, cameraHealth: e.camera_health || s.cameraHealth }
       return s
     }
     default: return s

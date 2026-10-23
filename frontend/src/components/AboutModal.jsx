@@ -1,0 +1,255 @@
+import React, { useEffect } from 'react'
+import {
+  X,
+  Shield,
+  Cpu,
+  Eye,
+  Camera,
+  Activity,
+  Zap,
+  MapPin,
+  Clock,
+  Sparkles,
+  Award,
+  BookOpen,
+  Keyboard,
+  CheckCircle2,
+  AlertTriangle,
+  Building2,
+  Hospital
+} from 'lucide-react'
+
+export default function AboutModal({ isOpen, onClose }) {
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if (e.key === 'Escape' && isOpen) {
+        onClose()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen, onClose])
+
+  if (!isOpen) return null
+
+  return (
+    <div className="modal-backdrop" onClick={onClose} role="dialog" aria-modal="true">
+      <div className="about-modal" onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
+        <div className="about-modal-head">
+          <div className="about-modal-title">
+            <div className="about-shield-icon">
+              <Shield size={24} className="text-cyan" />
+            </div>
+            <div>
+              <h3>Highway Safety & Accident Prevention Autonomous Agent</h3>
+              <p className="about-modal-sub">
+                AP Road Accident Prevention Challenge (HRAP-2026) · Govt of Andhra Pradesh & Ratan Tata Innovation Hub
+              </p>
+            </div>
+          </div>
+          <button className="about-close-btn" onClick={onClose} title="Close (Esc)">
+            <X size={20} />
+          </button>
+        </div>
+
+        {/* Content Body */}
+        <div className="about-modal-body">
+          {/* Mission Banner */}
+          <div className="about-banner">
+            <div className="about-banner-badge">
+              <Award size={14} />
+              <span>HRAP-2026 Flagship Innovation</span>
+            </div>
+            <h4>Autonomous Edge Perception & Cognitive Incident Command for High-Speed Corridors</h4>
+            <p>
+              An edge-first highway intelligence system deployed on low-cost compute (Raspberry Pi 4/5 & edge SBCs) to eliminate the
+              fatal response gap along the <strong>NH-16 (Chennai–Kolkata)</strong> and <strong>NH-44 (Rayalaseema)</strong> corridors.
+              It operates on a strict <strong>Two-Tier Architecture</strong> that marries deterministic, zero-latency edge physics with
+              on-demand cognitive AI debriefing.
+            </p>
+          </div>
+
+          {/* Core Pillars */}
+          <div className="about-grid">
+            {/* Pillar 1: Deterministic Safety Floor */}
+            <div className="about-card">
+              <div className="about-card-icon about-card-icon--cyan">
+                <Cpu size={20} />
+              </div>
+              <h5>Tier 0: Sub-3ms Deterministic Safety Floor</h5>
+              <p className="about-card-desc">
+                Runs 100% locally in pure Python/NumPy on CPU. Zero LLM calls in the perception loop ensures deterministic 15–30 FPS
+                throughput with zero cloud latency and zero API credit burn:
+              </p>
+              <ul className="about-card-list">
+                <li><strong>ByteTrack & 8-State Kalman Filter:</strong> Replaces centroid tracking with two-stage IoU association, eliminating ID switches on vehicle crossovers.</li>
+                <li><strong>Kinematic Smoothing & Spike Isolation:</strong> 0.5s sliding window speed calculation with hard physical spike rejection (&gt;200 km/h) rejecting tracking jumps.</li>
+                <li><strong>Multi-Lane Flow Vectors:</strong> Evaluates opposing angle (&gt;135°) and displacement (&ge;5m) to catch genuine wrong-way drivers.</li>
+                <li><strong>Congestion Suppression:</strong> Automatically suppresses false stalled alerts when surrounding lane median speed is &lt;15 km/h.</li>
+                <li><strong>Feeder-Road Merge Intrusion (P1):</strong> Flags reckless slip-road vehicles cutting across boundary into live travel lanes with lateral velocity &gt;8 km/h.</li>
+                <li><strong>Dusk/Night Stationary Protocol:</strong> Elevates unlit shoulder stops from P2 monitoring to P1 emergency hazard after dusk.</li>
+              </ul>
+            </div>
+
+            {/* Pillar 2: Cognitive Agent & On-Demand Copilot */}
+            <div className="about-card">
+              <div className="about-card-icon about-card-icon--green">
+                <Sparkles size={20} />
+              </div>
+              <h5>Tier 1: Cognitive Safety Agent & AI Copilot</h5>
+              <p className="about-card-desc">
+                High-level cognitive synthesis powered by <strong>Parallel AI Web Intelligence</strong>, invoked strictly on-demand when operators request debriefing:
+              </p>
+              <ul className="about-card-list">
+                <li><strong>4-Stage Audit Trail:</strong> Every incident synthesizes an unalterable forensic trace: <em>Observed &rarr; Assessed &rarr; Decided &rarr; Actions</em>.</li>
+                <li><strong>15-Second Human-in-the-Loop Window:</strong> Automated dispatches enter a 15s queued cancellation countdown before outward transmission.</li>
+                <li><strong>On-Demand "Explain with AI":</strong> Operators click for real-time debriefing grounded in MoRTH safety guidelines and live trauma routing.</li>
+                <li><strong>Operator Copilot Drawer:</strong> Interactive conversational assistant with prompt chips for bilingual Telugu VMS alerts and corridor blackspot risks.</li>
+                <li><strong>Strict Credit Preservation:</strong> Zero automated background calls; 100% of background perception is deterministic and cost-free.</li>
+              </ul>
+            </div>
+
+            {/* Pillar 3: Edge ANPR */}
+            <div className="about-card">
+              <div className="about-card-icon about-card-icon--purple">
+                <Eye size={20} />
+              </div>
+              <h5>Edge ANPR & Temporal Voting</h5>
+              <p className="about-card-desc">
+                Automated license plate recognition designed specifically for Indian High Security Registration Plates (HSRP):
+              </p>
+              <ul className="about-card-list">
+                <li><strong>Bumper Localization:</strong> Slices the bottom 45% bumper zone with Sobel rectangular morphological gating (aspect 2.0–5.5).</li>
+                <li><strong>HSRP Normalization:</strong> Regex engine standardizing state prefix, district RTO, series, and 4-digit registration (e.g. <code>AP 16 TX 4921</code>).</li>
+                <li><strong>Temporal Consensus Voting:</strong> Aggregates plate reads across multi-frame tracking history to eliminate single-frame OCR jitter.</li>
+                <li><strong>Hotlist Cross-Referencing:</strong> Alerts operators instantly for wanted hit-and-run vehicles, stolen freight, and repeat speed offenders.</li>
+              </ul>
+            </div>
+
+            {/* Pillar 4: Camera Health & Photometrics */}
+            <div className="about-card">
+              <div className="about-card-icon about-card-icon--amber">
+                <Camera size={20} />
+              </div>
+              <h5>Camera Stability & Photometric Telemetry</h5>
+              <p className="about-card-desc">
+                Real-time edge diagnostics evaluating physical mounting health and environmental viewing conditions:
+              </p>
+              <ul className="about-card-list">
+                <li><strong>Static vs Moving Classifier:</strong> Sparse background optical flow distinguishes <em>Static Locked</em> poles from <em>Wind Sway / Vibration</em> and <em>Drone Drift</em>.</li>
+                <li><strong>Photometric Lighting Analyzer:</strong> Calculates mean luminance and RMS contrast to categorize Daylight, Dusk, Night Vision, Glare, or Fog.</li>
+                <li><strong>Dynamic Night Protocol:</strong> Automatically engages unlit obstacle safety rules when luminance falls below 75 units, even without clock sync.</li>
+                <li><strong>Visibility Scoring:</strong> Computes real-time 0–100% atmospheric visibility index for automated highway advisory gantries.</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* AP Corridor & Trauma Network */}
+          <div className="about-section">
+            <div className="about-section-head">
+              <MapPin size={18} className="text-cyan" />
+              <h4>Andhra Pradesh Corridor & Golden-Hour Trauma Care Network</h4>
+            </div>
+            <div className="about-corridor-grid">
+              <div className="about-corridor-card">
+                <h6>MoRTH / AP Police Blackspot Data</h6>
+                <div className="corridor-stat-row">
+                  <span>NTR / Vijayawada District</span>
+                  <strong>197 blackspots</strong>
+                </div>
+                <div className="corridor-stat-row">
+                  <span>Guntur Capital Region</span>
+                  <strong>58 blackspots</strong>
+                </div>
+                <div className="corridor-stat-row">
+                  <span>Visakhapatnam Corridor</span>
+                  <strong>131 blackspots</strong>
+                </div>
+                <div className="corridor-stat-row">
+                  <span>NH-44 Anantapur Stretch</span>
+                  <strong>87 blackspots</strong>
+                </div>
+              </div>
+
+              <div className="about-corridor-card">
+                <h6>Designated Level-1 Trauma Care Network</h6>
+                <div className="hospital-row">
+                  <Hospital size={14} className="text-green" />
+                  <div>
+                    <strong>AIIMS Mangalagiri</strong>
+                    <p>Apex Level-1 Trauma Centre (Target transit &lt; 10 mins · Ph: 08645-280021)</p>
+                  </div>
+                </div>
+                <div className="hospital-row">
+                  <Hospital size={14} className="text-cyan" />
+                  <div>
+                    <strong>GGH Guntur</strong>
+                    <p>Tertiary Trauma Care Centre (108 Emergency Ambulance network)</p>
+                  </div>
+                </div>
+                <div className="hospital-row">
+                  <Hospital size={14} className="text-cyan" />
+                  <div>
+                    <strong>GGH Vijayawada (SMC)</strong>
+                    <p>Acute Emergency Trauma Campus (Hanumanpet / Siddhartha Medical)</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Keyboard Shortcuts & Accessibility */}
+          <div className="about-section">
+            <div className="about-section-head">
+              <Keyboard size={18} className="text-cyan" />
+              <h4>Simultaneous View Access & Keyboard Shortcuts</h4>
+            </div>
+            <div className="shortcuts-grid">
+              <div className="shortcut-item">
+                <kbd>1</kbd>
+                <span>Live Camera View (MJPEG Video Feed)</span>
+              </div>
+              <div className="shortcut-item">
+                <kbd>2</kbd>
+                <span>3D Corridor & Trauma Network Map</span>
+              </div>
+              <div className="shortcut-item">
+                <kbd>3</kbd>
+                <span>Top-Down Lane Topology Map</span>
+              </div>
+              <div className="shortcut-item">
+                <kbd>4</kbd>
+                <span>Three.js 3D Digital Twin Simulation</span>
+              </div>
+              <div className="shortcut-item">
+                <kbd>C</kbd>
+                <span>Toggle AI Operator Copilot Drawer</span>
+              </div>
+              <div className="shortcut-item">
+                <kbd>?</kbd> or <kbd>A</kbd>
+                <span>Open About & Architecture Documentation</span>
+              </div>
+              <div className="shortcut-item">
+                <kbd>Esc</kbd>
+                <span>Close Active Modal or Drawer</span>
+              </div>
+              <div className="shortcut-item">
+                <kbd>Space</kbd>
+                <span>Pause / Resume Replay Stream</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="about-modal-foot">
+          <span className="about-version">Highway Safety Agent v2.4.0 · AP-HRAP Build · MIT Licensed</span>
+          <button className="btn btn--primary" onClick={onClose}>
+            Return to Control Room
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}

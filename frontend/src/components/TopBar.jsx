@@ -1,5 +1,6 @@
-import { Camera, ShieldAlert, Radio } from 'lucide-react'
+import { Camera, ShieldAlert, Radio, BookOpen } from 'lucide-react'
 import { fmtClock } from '../lib/format.js'
+import CameraHealthBadge from './CameraHealthBadge.jsx'
 
 const PILL = {
   demo: ['Demo Simulation', 'pill--amber'],
@@ -8,7 +9,7 @@ const PILL = {
   offline: ['Sentry Offline, Retrying', 'pill--red'],
 }
 
-export default function TopBar({ conn, camera, now }) {
+export default function TopBar({ conn, camera, now, cameraHealth, onOpenAbout }) {
   const [text, cls] = PILL[conn] || PILL.connecting
   return (
     <header className="topbar">
@@ -51,6 +52,20 @@ export default function TopBar({ conn, camera, now }) {
       )}
 
       <div className="topbar-right">
+        {/* Real-time Camera Stability & Photometric Lighting Diagnostics */}
+        <CameraHealthBadge health={cameraHealth} onClick={onOpenAbout} />
+
+        {/* Informative About System & Architecture Docs */}
+        <button
+          className="topbar-about-btn"
+          onClick={onOpenAbout}
+          title="About Highway Safety Agent & HRAP-2026 Documentation (? / A)"
+        >
+          <BookOpen size={13} />
+          <span>About System</span>
+          <kbd className="about-kbd-hint">?</kbd>
+        </button>
+
         <span className={`pill ${cls}`}>
           <i className="dot" />
           {text}

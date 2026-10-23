@@ -349,7 +349,10 @@ class EdgeTriggerEngine:
                         night_cfg = self.rules_cfg.get("night_protocol", {})
                         is_night = False
                         if night_cfg.get("enabled", True):
-                            if current_time > 1700000000:
+                            cam_h = getattr(self, "current_camera_health", {}) or {}
+                            if cam_h.get("is_night_or_dusk", False):
+                                is_night = True
+                            elif current_time > 1700000000:
                                 import datetime
                                 dt = datetime.datetime.fromtimestamp(current_time)
                                 start_hr, end_hr = night_cfg.get("night_hours", [18, 6])
