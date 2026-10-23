@@ -13,5 +13,3 @@ services:
         value: /tmp/highway-demo-video-missing.mp4
       - key: ENABLE_SIMULATION
         value: "0"
-      - key: PARALLEL_API_KEY
-        sync: false
