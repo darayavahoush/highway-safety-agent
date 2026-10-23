@@ -431,3 +431,86 @@
     padding: 14px;
   }
 }
+
+
+/* Verified layout overrides: keep map and intelligence rail side by side */
+.corridor-map-wrapper {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(290px, 340px) !important;
+  grid-template-areas:
+    "controls controls"
+    "map sidebar"
+    "tactical tactical" !important;
+  align-items: stretch;
+}
+
+.corridor-map-wrapper > .corridor-map-stage {
+  grid-area: map !important;
+  min-width: 0;
+  min-height: 520px;
+}
+
+.corridor-map-wrapper > .corridor-intel-sidebar {
+  grid-area: sidebar !important;
+  display: block !important;
+  position: relative !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  min-width: 0;
+}
+
+.corridor-map-wrapper > .corridor-tactical-card {
+  grid-area: tactical !important;
+}
+
+.corridor-intel-sidebar .regional-weather-dock {
+  position: static !important;
+  width: 100% !important;
+  max-height: none !important;
+  margin: 0 !important;
+}
+
+@media (max-width: 760px) {
+  .corridor-map-wrapper {
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-areas:
+      "controls"
+      "map"
+      "sidebar"
+      "tactical" !important;
+  }
+}
+
+/* Andhra Pradesh identity on the actual landing-page hero */
+.nova-hero {
+  position: relative;
+  isolation: isolate;
+}
+
+.nova-hero .nova-visual {
+  background:
+    linear-gradient(180deg, rgba(8, 12, 18, .10), rgba(8, 12, 18, .72)),
+    url("https://upload.wikimedia.org/wikipedia/commons/2/2d/A_Road_near_lambasinghi.jpg")
+    center / cover no-repeat !important;
+  border: 1px solid rgba(210, 220, 230, .24);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.nova-hero .nova-road-scene {
+  background: transparent !important;
+  opacity: .30;
+}
+
+.nova-hero .nova-visual-top,
+.nova-hero .nova-visual-caption,
+.nova-hero .nova-float-card {
+  position: relative;
+  z-index: 2;
+}
+
+@media (max-width: 760px) {
+  .corridor-map-wrapper > .corridor-map-stage {
+    min-height: 380px;
+  }
+}

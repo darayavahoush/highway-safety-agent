@@ -7,6 +7,7 @@ import './compact-console.css'
 import './decision-first.css'
 import './redesign.css'
 import './violet-redesign.css'
+import './components/regional-weather.css'
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
