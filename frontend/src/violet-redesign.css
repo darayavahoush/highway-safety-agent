@@ -1267,3 +1267,23 @@ body {
     to { opacity: 1; transform: translateY(0); }
   }
 }
+
+/* Andhra Pradesh landscape background — homepage only */
+.nova-home {
+  position: relative;
+  isolation: isolate;
+  background: #090a10;
+}
+
+.nova-home::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(9,10,16,.92), rgba(9,10,16,.48)),
+    linear-gradient(0deg, rgba(9,10,16,.9), transparent 75%),
+    url("https://upload.wikimedia.org/wikipedia/commons/2/2d/A_Road_near_lambasinghi.jpg")
+    center / cover no-repeat;
+}
