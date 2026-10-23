@@ -1,20 +1,16 @@
-﻿services:
+services:
   - type: web
-    name: highway-safety-agent
-    runtime: python
+    name: highway-safety-agent-docker
+    runtime: docker
     plan: free
     region: oregon
-    buildCommand: "apt-get update && apt-get install -y tesseract-ocr && pip install -r requirements.txt && npm install --prefix frontend && npm run build --prefix frontend"
-    startCommand: "python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     healthCheckPath: /api/incidents
     autoDeploy: true
     envVars:
-      - key: PYTHON_VERSION
-        value: 3.11.9
-      - key: NODE_VERSION
-        value: 20.11.0
       - key: VIDEO_SOURCE
-        value: demo_videos/drone/DJI_0011.MP4
+        value: /tmp/highway-demo-video-missing.mp4
       - key: ENABLE_SIMULATION
         value: "0"
       - key: PARALLEL_API_KEY
