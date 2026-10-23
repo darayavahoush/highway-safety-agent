@@ -1,36 +1,45 @@
-
-/* =========================================================
-   VIOLET / MIDNIGHT — cohesive visual system
-   Loaded last to override legacy overlapping styles.
-   ========================================================= */
+/* HIGHWAY SAFETY AGENT — TRANSPORT OPERATIONS DESIGN SYSTEM */
 
 :root {
-  color-scheme: dark;
-  --v-bg: #100b1c;
-  --v-bg-raised: #171025;
-  --v-panel: #1c1530;
-  --v-panel-raised: #251b3b;
-  --v-border: rgba(190, 157, 255, .17);
-  --v-border-hot: rgba(184, 133, 255, .42);
-  --v-purple: #a875ff;
-  --v-violet: #8052ed;
-  --v-lilac: #d6c0ff;
-  --v-white: #f6f0ff;
-  --v-muted: #aa9dbd;
-  --v-faint: #776987;
-  --v-glow: 0 0 36px rgba(135, 75, 255, .13);
+  --v-bg: #101419;
+  --v-bg-raised: #151a20;
+  --v-panel: #191f26;
+  --v-panel-raised: #202832;
+  --v-border: #303943;
+  --v-border-hot: #69788a;
+  --v-purple: #b7a4f4;
+  --v-violet: #9881df;
+  --v-lilac: #ded5ff;
+  --v-white: #edf0f3;
+  --v-muted: #a0aab5;
+  --v-faint: #707d89;
+  --v-glow: none;
+}
+
+:root[data-theme="light"] {
+  --v-bg: #eef1f3;
+  --v-bg-raised: #f6f7f8;
+  --v-panel: #ffffff;
+  --v-panel-raised: #f0f2f5;
+  --v-border: #d8dee4;
+  --v-border-hot: #9ba8b5;
+  --v-purple: #6550a9;
+  --v-violet: #7661bd;
+  --v-lilac: #493779;
+  --v-white: #202833;
+  --v-muted: #5e6a77;
+  --v-faint: #788490;
+  --v-glow: none;
 }
 
 html {
   background: var(--v-bg);
-  scrollbar-color: #59417b var(--v-bg);
+  scrollbar-color: var(--v-border-hot) var(--v-bg);
 }
 
 body {
   color: var(--v-white);
-  background:
-    radial-gradient(ellipse at 12% 0%, rgba(113, 62, 186, .17), transparent 35rem),
-    var(--v-bg);
+  background: var(--v-bg);
 }
 
 button, input, textarea, select {
@@ -38,8 +47,8 @@ button, input, textarea, select {
 }
 
 button {
-  transition: background .18s ease, border-color .18s ease,
-              transform .18s ease, box-shadow .18s ease;
+  transition: background-color .15s ease, border-color .15s ease,
+    color .15s ease;
 }
 
 button:focus-visible, a:focus-visible, input:focus-visible,
@@ -48,357 +57,391 @@ textarea:focus-visible, select:focus-visible {
   outline-offset: 3px;
 }
 
-/* ---------- HOME: bold, intentional purple ---------- */
-
+/* Landing page: editorial, not neon */
 .nova-home {
-  min-height: 100vh;
   color: var(--v-white) !important;
-  background:
-    radial-gradient(ellipse at 78% 17%, rgba(139, 74, 255, .23), transparent 31rem),
-    radial-gradient(ellipse at 12% 75%, rgba(94, 45, 158, .15), transparent 32rem),
-    linear-gradient(145deg, #10091e 0%, #171027 48%, #100b1c 100%) !important;
-  overflow: hidden;
+  background: var(--v-bg) !important;
 }
 
-.nova-nav {
-  background: rgba(16, 9, 30, .78) !important;
-  border-bottom: 1px solid var(--v-border) !important;
-  backdrop-filter: blur(18px);
+.nova-nav, .nova-footer {
+  background: var(--v-bg) !important;
+  border-color: var(--v-border) !important;
+  backdrop-filter: none !important;
 }
 
 .nova-brand-mark {
-  color: #fff !important;
-  background: linear-gradient(140deg, #b88aff, #7540df) !important;
-  border: 1px solid rgba(226, 205, 255, .5) !important;
-  box-shadow: 0 0 26px rgba(146, 82, 255, .32);
-}
-
-.nova-brand-type,
-.nova-nav a,
-.nova-nav button {
-  color: var(--v-white);
-}
-
-.nova-connection {
-  color: #d3c2ed !important;
-}
-
-.nova-hero {
-  position: relative;
-  isolation: isolate;
+  background: var(--v-panel-raised) !important;
+  border: 1px solid var(--v-border) !important;
+  box-shadow: none !important;
 }
 
 .nova-hero::before {
-  opacity: .65 !important;
-  background: radial-gradient(ellipse, rgba(139, 82, 255, .20), transparent 68%) !important;
-  pointer-events: none;
+  display: none !important;
 }
 
-.nova-overline {
-  color: #c3a2ff !important;
-  letter-spacing: .19em !important;
+.nova-overline, .nova-capability-icon {
+  color: var(--v-purple) !important;
 }
 
-.nova-hero h1,
-.nova-hero-title,
-.nova-headline {
-  color: #faf6ff !important;
-  letter-spacing: -.055em;
-  text-wrap: balance;
-}
-
-.nova-headline-accent,
-.nova-hero h1 span {
-  color: transparent !important;
-  background: linear-gradient(105deg, #e6d7ff 4%, #b58aff 44%, #8a5bfa 90%);
-  -webkit-background-clip: text;
-  background-clip: text;
-}
-
-.nova-hero-description {
-  color: #b9accb !important;
-  max-width: 39rem;
-  line-height: 1.8 !important;
-}
-
-.nova-button-primary,
-.nova-nav-cta {
-  color: #fff !important;
-  background: linear-gradient(115deg, #965cf3, #7041d5) !important;
-  border: 1px solid rgba(224, 204, 255, .38) !important;
-  box-shadow: 0 8px 28px rgba(116, 61, 218, .25);
-}
-
-.nova-button-primary:hover,
-.nova-nav-cta:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 34px rgba(139, 78, 255, .38);
-  background: linear-gradient(115deg, #aa75ff, #8050ec) !important;
-}
-
-.nova-button-text {
-  color: #d6c1f4 !important;
-}
-
-.nova-proof {
-  color: #b3a3c8 !important;
-}
-
-.nova-visual {
-  filter: saturate(1.15);
-}
-
-.nova-ribbon,
-.nova-capabilities,
-.nova-manifesto,
-.nova-footer {
+.nova-hero h1, .nova-hero-title, .nova-headline {
   color: var(--v-white) !important;
-  border-color: var(--v-border) !important;
+  letter-spacing: -.045em;
 }
 
-.nova-ribbon {
-  background: rgba(35, 23, 54, .72) !important;
-  border-top: 1px solid var(--v-border) !important;
-  border-bottom: 1px solid var(--v-border) !important;
-  backdrop-filter: blur(12px);
+.nova-headline-accent, .nova-hero h1 span {
+  color: var(--v-purple) !important;
+  background: none !important;
+  -webkit-text-fill-color: currentColor !important;
 }
 
-.nova-ribbon strong,
-.nova-ribbon [class*="value"] {
-  color: #e4d2ff !important;
+.nova-hero-description, .nova-proof {
+  color: var(--v-muted) !important;
 }
 
-.nova-capabilities {
-  background: linear-gradient(180deg, rgba(29, 20, 47, .62), rgba(16, 11, 28, .2)) !important;
+.nova-button-primary, .nova-nav-cta {
+  color: #17151f !important;
+  background: var(--v-purple) !important;
+  border: 1px solid var(--v-purple) !important;
+  border-radius: 5px !important;
+  box-shadow: none !important;
 }
 
-.nova-capabilities h2,
-.nova-manifesto h2 {
-  color: #f7f0ff !important;
-  letter-spacing: -.035em;
+.nova-button-primary:hover, .nova-nav-cta:hover {
+  background: var(--v-lilac) !important;
+  transform: translateY(-1px);
+  box-shadow: none !important;
 }
 
-.nova-capability,
-.nova-capability-card,
-.nova-feature-card {
-  background: linear-gradient(145deg, rgba(39, 27, 61, .86), rgba(24, 17, 39, .88)) !important;
+.nova-capability, .nova-capability-card, .nova-feature-card {
+  background: var(--v-panel) !important;
   border: 1px solid var(--v-border) !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.025);
-  transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+  border-radius: 7px !important;
+  box-shadow: none !important;
 }
 
-.nova-capability:hover,
-.nova-capability-card:hover,
+.nova-capability:hover, .nova-capability-card:hover,
 .nova-feature-card:hover {
-  transform: translateY(-3px);
+  transform: translateY(-2px);
   border-color: var(--v-border-hot) !important;
-  box-shadow: var(--v-glow);
+  box-shadow: none !important;
 }
 
-.nova-capability-violet,
-.nova-capability-icon {
-  color: #c9a8ff !important;
-  background-color: rgba(133, 79, 220, .16) !important;
-}
-
-.nova-manifesto {
-  background:
-    radial-gradient(ellipse at 50% 0%, rgba(129, 70, 221, .17), transparent 70%),
-    #130d21 !important;
-}
-
-.nova-footer {
-  background: rgba(12, 8, 21, .7) !important;
-}
-
-/* ---------- CONTROL ROOM: compact, purposeful, readable ---------- */
-
+/* Control room shell */
 .app--control {
-  color: var(--v-white) !important;
-  background:
-    radial-gradient(ellipse at 50% 0%, rgba(108, 65, 166, .10), transparent 45rem),
-    var(--v-bg) !important;
   min-height: 100vh;
+  height: auto;
+  overflow: visible;
+  color: var(--v-white);
+  background: var(--v-bg);
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 .app--control .topbar {
-  background: rgba(20, 14, 33, .96) !important;
-  border-bottom: 1px solid var(--v-border) !important;
-  box-shadow: 0 5px 24px rgba(0,0,0,.14);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  min-height: 62px;
+  padding: 10px 22px;
+  background: var(--v-bg-raised);
+  border-bottom: 1px solid var(--v-border);
+  box-shadow: none;
 }
 
 .app--control .main {
-  gap: 12px !important;
-  padding: 12px !important;
-  align-items: start;
+  display: grid;
+  grid-template-columns:
+    minmax(230px, .78fr)
+    minmax(400px, 1.55fr)
+    minmax(300px, .98fr);
+  align-items: stretch;
+  gap: 12px;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  padding: 14px;
+  overflow: visible;
 }
 
 .app--control .col {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
   min-width: 0;
-  gap: 12px !important;
-}
-
-.app--control .panel,
-.app--control .detail,
-.app--control .activity,
-.app--control .stats,
-.app--control .copilot-container {
-  color: var(--v-white) !important;
-  background: linear-gradient(155deg, #201730, #181124) !important;
-  border: 1px solid var(--v-border) !important;
-  border-radius: 13px !important;
-  box-shadow: 0 8px 26px rgba(0,0,0,.13);
-}
-
-.app--control .panel-head,
-.app--control .detail-head,
-.app--control .detail-foot {
-  background: rgba(40, 28, 59, .62) !important;
-  border-color: var(--v-border) !important;
-}
-
-.app--control .panel-head {
-  padding: 11px 13px !important;
-}
-
-.app--control .panel-head h2,
-.app--control .panel-head h3,
-.app--control .detail h2,
-.app--control .detail h3 {
-  color: #eee3ff !important;
-}
-
-.app--control .stage {
-  background: #0d0915 !important;
-  border-color: var(--v-border) !important;
-  border-radius: 10px !important;
-  overflow: hidden;
-}
-
-.app--control .stage-body {
   min-height: 0;
 }
 
-.app--control .stage-caption {
-  background: rgba(20, 12, 32, .94) !important;
-  border-color: var(--v-border) !important;
+.app--control .panel,
+.app--control .panel.stage,
+.app--control .panel.detail,
+.app--control .activity {
+  color: var(--v-white);
+  background: var(--v-panel);
+  border: 1px solid var(--v-border);
+  border-radius: 7px;
+  box-shadow: none;
+  backdrop-filter: none;
+  overflow: hidden;
 }
 
+.app--control .panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 13px 15px;
+  background: var(--v-bg-raised);
+  border-bottom: 1px solid var(--v-border);
+}
+
+.app--control .panel-head h2,
+.app--control .panel-head h3 {
+  color: var(--v-white);
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+
+/* Incident queue */
 .app--control .inc {
-  margin: 5px 7px !important;
-  padding: 9px 10px !important;
-  border: 1px solid transparent !important;
-  border-radius: 9px !important;
-  background: rgba(255,255,255,.018) !important;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  padding: 13px 14px;
+  background: transparent;
+  border-bottom: 1px solid var(--v-border);
+  border-left: 2px solid transparent;
+  transition: background-color .15s ease, border-color .15s ease;
 }
 
 .app--control .inc:hover {
-  background: rgba(157, 106, 255, .08) !important;
-  border-color: var(--v-border) !important;
+  background: var(--v-panel-raised);
 }
 
 .app--control .inc[aria-selected="true"],
-.app--control .inc.active,
-.app--control .inc.is-selected {
-  background: rgba(135, 78, 224, .15) !important;
-  border-color: rgba(177, 131, 255, .43) !important;
+.app--control .inc.is-selected,
+.app--control .inc.active {
+  background: var(--v-panel-raised);
+  border-left-color: var(--v-purple);
 }
 
 .app--control .inc-title {
-  color: #f3ebff !important;
+  color: var(--v-white);
+  font-size: 13px;
+  font-weight: 680;
+  line-height: 1.4;
 }
 
 .app--control .inc-sub,
-.app--control .inc-plate,
-.app--control .detail-body,
-.app--control .activity {
-  color: #b9accb !important;
+.app--control .inc-row,
+.app--control .inc-plate {
+  color: var(--v-muted);
+  font-size: 11px;
+  line-height: 1.55;
 }
 
-.app--control .chip {
-  border-color: var(--v-border) !important;
-  background: rgba(157, 110, 239, .10) !important;
-  color: #ddcaff !important;
+/* Live monitoring gets the visual priority */
+.app--control .col--stage > .panel.stage {
+  flex: 3 1 390px;
+  min-height: 380px;
+  background: #0d1116;
+  border-color: #3b4652;
+}
+
+.app--control .panel.stage .panel-head {
+  flex-wrap: wrap;
+}
+
+.app--control .panel.stage .stage-body {
+  min-height: 290px;
+  padding: 12px;
+}
+
+.app--control .panel.stage .stage-video,
+.app--control .panel.stage video,
+.app--control .panel.stage canvas {
+  max-width: 100%;
+  border-radius: 3px;
+}
+
+.app--control .panel.stage .stage-caption {
+  color: var(--v-muted);
+  font-size: 11px;
+}
+
+.app--control .col--stage > .activity {
+  flex: 1 1 145px;
+  min-height: 140px;
+  max-height: none;
+}
+
+.app--control .activity {
+  padding-bottom: 6px;
+}
+
+/* Incident investigation */
+.app--control .panel.detail {
+  background: var(--v-panel);
+}
+
+.app--control .detail-head {
+  padding: 17px 16px;
+  background: var(--v-bg-raised);
+  border-bottom: 1px solid var(--v-border);
+}
+
+.app--control .detail-head h2 {
+  color: var(--v-white);
+  font-size: clamp(18px, 1.35vw, 24px);
+  font-weight: 720;
+  line-height: 1.25;
+  letter-spacing: -.025em;
+  overflow-wrap: anywhere;
 }
 
 .app--control .detail-body {
-  padding: 12px !important;
+  padding: 0 16px;
+  min-height: 0;
+  overflow: visible;
 }
 
-.app--control .detail-fold {
-  border-top: 1px solid var(--v-border) !important;
+.app--control .detail-body section {
+  padding: 15px 0;
+  border-bottom: 1px solid var(--v-border);
 }
 
-.app--control .detail-fold > summary {
-  padding: 10px 2px !important;
-  color: #d8c5f6 !important;
-  cursor: pointer;
+.app--control .detail-body h3 {
+  margin-bottom: 8px;
+  color: var(--v-muted);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: .09em;
+  text-transform: uppercase;
 }
 
-.app--control .detail-fold[open] > summary {
-  color: #f2eaff !important;
+.app--control .detail-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 13px 15px;
+  border-top: 1px solid var(--v-border);
+}
+
+.app--control .detail-foot button {
+  min-height: 38px;
+  border-radius: 5px;
+}
+
+/* Metrics and supporting information */
+.app--control .stats {
+  display: block;
+  padding: 14px;
+  background: var(--v-bg-raised);
+  border-top: 1px solid var(--v-border);
 }
 
 .app--control .stats-grid {
-  gap: 9px !important;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
 }
 
-.app--control .copilot-drawer {
-  background: #1a1228 !important;
-  border: 1px solid var(--v-border) !important;
-  box-shadow: 0 18px 60px rgba(0,0,0,.38);
+.app--control .stats-grid > * {
+  padding: 12px;
+  background: var(--v-panel);
+  border: 1px solid var(--v-border);
+  border-radius: 6px;
+  box-shadow: none;
 }
 
-.app--control button:not(:disabled) {
-  cursor: pointer;
+.app--control .chip {
+  border-radius: 4px;
+  box-shadow: none;
 }
 
-.app--control button:focus-visible {
-  outline: 2px solid var(--v-purple);
-  outline-offset: 2px;
+.app--control button:hover {
+  box-shadow: none;
 }
 
-/* Preserve severity meaning: purple is the product identity, not every alert. */
-.app--control .inc-sev {
-  font-weight: 700;
-}
-
-/* Tight laptop layout: use the viewport instead of padding everything out. */
-@media (min-width: 1100px) and (max-height: 900px) {
+/* Small desktop and tablet */
+@media (min-width: 1101px) and (max-width: 1279px) {
   .app--control .main {
-    padding: 9px !important;
-    gap: 9px !important;
-  }
-
-  .app--control .col {
-    gap: 9px !important;
+    grid-template-columns:
+      minmax(205px, .75fr)
+      minmax(340px, 1.3fr)
+      minmax(270px, .95fr);
+    gap: 9px;
+    padding: 10px;
   }
 
   .app--control .detail-body {
-    max-height: calc(100vh - 240px);
+    max-height: calc(100vh - 220px);
     overflow-y: auto;
   }
 }
 
+@media (min-width: 1101px) and (max-height: 780px) {
+  .app--control .col--stage > .panel.stage {
+    min-height: 310px;
+  }
+
+  .app--control .panel.stage .stage-body {
+    min-height: 240px;
+  }
+}
+
+/* Mobile: keep every action reachable */
 @media (max-width: 1100px) {
   .app--control .main {
-    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-columns: minmax(0, 1fr);
+    padding: 10px;
   }
 
-  .app--control .col {
-    width: 100%;
+  .app--control .col--stage {
+    order: -1;
   }
 
-  .nova-hero {
-    gap: 2rem;
+  .app--control .col--stage > .panel.stage {
+    min-height: 320px;
+  }
+
+  .app--control .detail-body {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .app--control .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .app--control .topbar {
+    padding: 10px 12px;
+  }
+
+  .app--control .main {
+    gap: 10px;
+    padding: 8px;
+  }
+
+  .app--control .panel-head {
+    padding: 11px 12px;
+  }
+
+  .app--control .stats-grid {
+    gap: 7px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    scroll-behavior: auto !important;
+  .app--control *,
+  .nova-home * {
     animation-duration: .01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
   }
 }

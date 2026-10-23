@@ -734,7 +734,7 @@ select:focus-visible, textarea:focus-visible {
   background-image:
     linear-gradient(180deg, rgba(10,9,16,.56), rgba(10,9,16,.12) 45%, rgba(10,9,16,.72)),
     linear-gradient(90deg, rgba(10,9,16,.5), rgba(10,9,16,.05) 55%, rgba(10,9,16,.35)),
-    url('/highway-dusk.jpg');
+    linear-gradient(135deg, #18232d 0%, #111820 45%, #29251f 100%);
   background-size: cover;
   background-position: center 54%;
 }
