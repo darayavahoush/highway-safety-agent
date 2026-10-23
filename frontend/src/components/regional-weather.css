@@ -261,6 +261,19 @@
 
 .corridor-hud-controls { grid-area: controls; min-width: 0; }
 
+.corridor-map-stage {
+  grid-area: map;
+  min-width: 0;
+  min-height: 520px;
+  height: 100%;
+  position: relative;
+}
+
+.corridor-map-stage .corridor-map-canvas,
+.corridor-map-stage .corridor-schematic-fallback {
+  height: 100%;
+}
+
 .corridor-map-canvas,
 .corridor-schematic-fallback {
   grid-area: map;

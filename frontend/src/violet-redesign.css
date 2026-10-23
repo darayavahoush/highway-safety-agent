@@ -673,3 +673,597 @@ textarea:focus-visible, select:focus-visible {
     display: none;
   }
 }
+
+/* Persistent operations workspace: top navigation jumps to sections instead of
+   unmounting the other live panels. Keep targets clear of sticky headers. */
+.ops-overview-section,
+.ops-scroll-target,
+#ops-section-incidents,
+#ops-section-system {
+  scroll-margin-top: 145px;
+}
+
+.ops-scroll-target {
+  min-width: 0;
+}
+
+@media (max-width: 700px) {
+  .ops-overview-section,
+  .ops-scroll-target,
+  #ops-section-incidents,
+  #ops-section-system {
+    scroll-margin-top: 120px;
+  }
+}
+
+/* =========================================================
+   HIGHWAY CONTROL ROOM — CINEMATIC FINISH
+   Additive visual layer; preserves existing component logic.
+   ========================================================= */
+
+:root {
+  --cinema-bg: #090a10;
+  --cinema-panel: rgba(18, 19, 29, 0.88);
+  --cinema-line: rgba(184, 177, 255, 0.13);
+  --cinema-violet: #a99aff;
+  --cinema-red: #ff6179;
+  --cinema-muted: #9293a8;
+}
+
+/* Deeper atmosphere without adding assets or blocking controls */
+html {
+  scroll-behavior: smooth;
+  color-scheme: dark;
+}
+
+body {
+  background:
+    radial-gradient(ellipse at 12% 0%, rgba(105, 76, 190, 0.13), transparent 36rem),
+    radial-gradient(ellipse at 95% 24%, rgba(165, 46, 78, 0.075), transparent 32rem),
+    var(--cinema-bg);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.app--control {
+  isolation: isolate;
+  background: transparent;
+}
+
+.app--control .main {
+  position: relative;
+  align-items: start;
+}
+
+/* Restrained glass surfaces */
+.app--control :is(
+  .col,
+  .panel,
+  .incident-queue,
+  .incident-detail,
+  .live-stage,
+  .activity-log,
+  .stats-strip,
+  .ops-system-card
+) {
+  border-color: var(--cinema-line);
+}
+
+.app--control :is(
+  .col,
+  .panel,
+  .incident-queue,
+  .incident-detail,
+  .live-stage,
+  .activity-log,
+  .ops-system-card
+) {
+  background-color: var(--cinema-panel);
+  box-shadow:
+    0 16px 42px rgba(0, 0, 0, 0.17),
+    inset 0 1px 0 rgba(255, 255, 255, 0.025);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition:
+    border-color 220ms ease,
+    box-shadow 220ms ease,
+    background-color 220ms ease;
+}
+
+/* Elegant hover, not a glowing gaming dashboard */
+.app--control :is(
+  .col,
+  .panel,
+  .incident-queue,
+  .incident-detail,
+  .live-stage,
+  .activity-log,
+  .ops-system-card
+):hover {
+  border-color: rgba(169, 154, 255, 0.27);
+  box-shadow:
+    0 18px 48px rgba(0, 0, 0, 0.23),
+    inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+/* Typography: sharper hierarchy, quieter supporting labels */
+.app--control :is(h1, h2, h3) {
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.app--control :is(p, .muted, .subtitle) {
+  color: var(--cinema-muted);
+}
+
+.app--control :is(.ops-page h1, .landing-title) {
+  text-shadow: 0 0 34px rgba(169, 154, 255, 0.11);
+}
+
+/* Navigation gets a deliberate, tactile active state */
+.app--control .ops-nav {
+  position: sticky;
+  top: 10px;
+  z-index: 30;
+  border: 1px solid var(--cinema-line);
+  background: rgba(10, 10, 17, 0.82);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.app--control .ops-nav button {
+  transition:
+    color 180ms ease,
+    background 180ms ease,
+    border-color 180ms ease;
+}
+
+.app--control .ops-nav button:hover {
+  color: #f4f1ff;
+  background: rgba(169, 154, 255, 0.08);
+}
+
+.app--control .ops-nav button[aria-current="location"],
+.app--control .ops-nav button.active {
+  color: #f6f2ff;
+  border-color: rgba(169, 154, 255, 0.3);
+  background: linear-gradient(
+    135deg,
+    rgba(139, 113, 239, 0.2),
+    rgba(139, 113, 239, 0.055)
+  );
+}
+
+/* Buttons feel intentional; keep danger actions recognisably distinct */
+.app--control button {
+  transition:
+    transform 160ms ease,
+    border-color 180ms ease,
+    background-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.app--control button:active {
+  transform: translateY(1px);
+}
+
+.app--control button:focus-visible,
+.app--control a:focus-visible {
+  outline: 2px solid var(--cinema-violet);
+  outline-offset: 3px;
+}
+
+/* Subtle incident urgency — no blinking alerts */
+.app--control :is(.critical, [data-severity="critical"]) {
+  --incident-accent: var(--cinema-red);
+}
+
+.app--control :is(.critical, [data-severity="critical"]) {
+  border-color: rgba(255, 97, 121, 0.28);
+}
+
+/* Cleaner section transitions without hiding persistent panels */
+.app--control .ops-page,
+.app--control .ops-overview-section,
+.app--control .ops-scroll-target {
+  min-width: 0;
+}
+
+.app--control :is(
+  .ops-overview-section,
+  .ops-scroll-target,
+  #ops-section-incidents,
+  #ops-section-system
+) {
+  scroll-margin-top: 112px;
+}
+
+/* Scrollbars: quiet, thin, consistent */
+.app--control * {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(169, 154, 255, 0.3) transparent;
+}
+
+.app--control *::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+.app--control *::-webkit-scrollbar-thumb {
+  border-radius: 20px;
+  background: rgba(169, 154, 255, 0.27);
+}
+
+.app--control *::-webkit-scrollbar-thumb:hover {
+  background: rgba(169, 154, 255, 0.48);
+}
+
+/* Respect motion preferences */
+@media (prefers-reduced-motion: no-preference) {
+  .app--control .ops-page {
+    animation: cinema-enter 360ms ease-out both;
+  }
+
+  @keyframes cinema-enter {
+    from {
+      opacity: 0.72;
+      transform: translateY(5px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+@media (max-width: 700px) {
+  .app--control .ops-nav {
+    top: 5px;
+  }
+
+  .app--control :is(
+    .col,
+    .panel,
+    .incident-queue,
+    .incident-detail,
+    .live-stage,
+    .activity-log
+  ) {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .app--control *,
+  .app--control *::before,
+  .app--control *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ANDHRA ATMOSPHERE — monsoon forest, red earth, moving light */
+
+.app--control {
+  --earth: #b66a43;
+  --forest: #477b65;
+  --storm: #343d60;
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+}
+
+/* Actual Andhra landscape, softened behind the interface */
+.app--control::before {
+  content: "";
+  position: fixed;
+  inset: -5%;
+  z-index: -2;
+  pointer-events: none;
+  background-image:
+    linear-gradient(
+      115deg,
+      rgba(8, 10, 17, .72) 0%,
+      rgba(8, 10, 17, .40) 48%,
+      rgba(10, 8, 17, .70) 100%
+    ),
+    linear-gradient(
+      0deg,
+      rgba(9, 10, 16, .94) 0%,
+      rgba(9, 10, 16, .18) 55%,
+      rgba(9, 10, 16, .48) 100%
+    ),
+    url("https://upload.wikimedia.org/wikipedia/commons/2/2d/A_Road_near_lambasinghi.jpg");
+  background-size: cover;
+  background-position: center 48%;
+  opacity: .48;
+  transform: scale(1.04);
+  animation: andhra-landscape-drift 38s ease-in-out infinite alternate;
+  will-change: background-position, transform;
+}
+
+/* Slow, living light: violet storm clouds + warm road reflections */
+.app--control::after {
+  content: "";
+  position: fixed;
+  inset: -18%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse at 15% 25%,
+      rgba(123, 103, 210, .22),
+      transparent 35%
+    ),
+    radial-gradient(
+      ellipse at 82% 34%,
+      rgba(190, 87, 74, .17),
+      transparent 30%
+    ),
+    radial-gradient(
+      ellipse at 52% 90%,
+      rgba(60, 129, 100, .16),
+      transparent 38%
+    );
+  filter: blur(24px);
+  animation: monsoon-light-flow 24s ease-in-out infinite alternate;
+}
+
+@keyframes andhra-landscape-drift {
+  0% {
+    background-position: center 42%;
+    transform: scale(1.04) translate3d(-.4%, 0, 0);
+  }
+  50% {
+    background-position: 53% 50%;
+  }
+  100% {
+    background-position: 48% 58%;
+    transform: scale(1.10) translate3d(.4%, -0.5%, 0);
+  }
+}
+
+@keyframes monsoon-light-flow {
+  0% {
+    transform: translate3d(-2%, -1%, 0) rotate(-2deg);
+    opacity: .65;
+  }
+  50% {
+    transform: translate3d(1%, 2%, 0) rotate(1deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(2%, -1%, 0) rotate(3deg);
+    opacity: .78;
+  }
+}
+
+/* Let the background read through the negative space */
+.app--control .main,
+.app--control .ops-page {
+  background: transparent;
+}
+
+/* A warmer, more natural glass treatment */
+.app--control :is(
+  .col,
+  .panel,
+  .incident-queue,
+  .incident-detail,
+  .live-stage,
+  .activity-log,
+  .ops-system-card
+) {
+  background-image:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, .035),
+      transparent 48%,
+      rgba(139, 103, 192, .025)
+    );
+  border-color: rgba(198, 190, 225, .15);
+}
+
+/* Warm light at the edge, rather than uniform purple outlines */
+.app--control :is(
+  .live-stage,
+  .incident-detail,
+  .incident-queue
+) {
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, .24),
+    inset 0 1px 0 rgba(255, 255, 255, .045),
+    inset 0 -1px 0 rgba(182, 106, 67, .07);
+}
+
+/* Atmospheric headings */
+.app--control .ops-page h1 {
+  background: linear-gradient(
+    105deg,
+    #f4f0ff 0%,
+    #c8c0ff 42%,
+    #f0c3ad 88%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Make the top navigation float like a piece of equipment */
+.app--control .ops-nav {
+  background:
+    linear-gradient(
+      110deg,
+      rgba(25, 23, 36, .92),
+      rgba(13, 17, 23, .88)
+    );
+  border-color: rgba(199, 183, 239, .17);
+}
+
+/* Tiny, slow highlight sweep on hover only */
+.app--control .ops-nav button {
+  position: relative;
+  overflow: hidden;
+}
+
+.app--control .ops-nav button::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    110deg,
+    transparent 15%,
+    rgba(255, 255, 255, .075) 50%,
+    transparent 85%
+  );
+  transform: translateX(-120%);
+  transition: transform 500ms ease;
+}
+
+.app--control .ops-nav button:hover::after {
+  transform: translateX(120%);
+}
+
+/* Organic, warm status accents */
+.app--control :is(
+  [data-severity="high"],
+  [data-severity="critical"],
+  .critical
+) {
+  box-shadow:
+    inset 2px 0 0 rgba(255, 105, 120, .68),
+    0 8px 25px rgba(110, 35, 55, .08);
+}
+
+/* Keep small text legible against photographic detail */
+.app--control :is(
+  .col,
+  .panel,
+  .incident-queue,
+  .incident-detail,
+  .live-stage,
+  .activity-log,
+  .ops-system-card
+) {
+  backdrop-filter: blur(16px) saturate(115%);
+  -webkit-backdrop-filter: blur(16px) saturate(115%);
+}
+
+@media (max-width: 700px) {
+  .app--control::before {
+    background-position: 46% center;
+    opacity: .28;
+  }
+
+  .app--control::after {
+    filter: blur(32px);
+  }
+
+  .app--control :is(
+    .col,
+    .panel,
+    .incident-queue,
+    .incident-detail,
+    .live-stage,
+    .activity-log,
+    .ops-system-card
+  ) {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app--control::before,
+  .app--control::after {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
+/* Cinematic operations room — preserve existing component structure */
+.app--control {
+  background:
+    radial-gradient(ellipse at 48% -18%, rgba(124, 58, 237, .13), transparent 43%),
+    radial-gradient(ellipse at 100% 38%, rgba(14, 165, 233, .06), transparent 36%),
+    var(--v-bg, #090d13);
+}
+
+.app--control .ops-nav {
+  background: rgba(10, 15, 23, .92);
+  border-bottom-color: rgba(167, 139, 250, .20);
+  backdrop-filter: blur(14px);
+}
+
+.app--control .ops-nav-link {
+  transition: color .2s ease, background .2s ease, border-color .2s ease;
+}
+
+.app--control .ops-nav-link.is-current {
+  color: #e9ddff;
+  border-bottom-color: #a78bfa;
+  background: linear-gradient(0deg, rgba(139,92,246,.12), transparent);
+}
+
+.app--control .panel,
+.app--control .ops-system-card {
+  border-color: rgba(148, 163, 184, .17);
+  box-shadow: 0 12px 35px rgba(0,0,0,.12);
+  transition: border-color .2s ease, transform .2s ease;
+}
+
+.app--control .panel:hover,
+.app--control .ops-system-card:hover {
+  border-color: rgba(167,139,250,.30);
+}
+
+.app--control .ops-page-heading h1 {
+  background: linear-gradient(100deg, #f4f2ff 15%, #c4b5fd 65%, #7dd3fc);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.app--control .ops-eyebrow {
+  color: #a78bfa;
+}
+
+.app--control .ops-system-value {
+  color: #c4b5fd;
+}
+
+.app--control .panel-head {
+  border-bottom-color: rgba(148,163,184,.13);
+}
+
+.app--control button:focus-visible,
+.app--control select:focus-visible {
+  outline: 2px solid #a78bfa;
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .app--control .ops-system-card {
+    animation: ops-enter .45s ease both;
+  }
+
+  .app--control .ops-system-card:nth-child(2) { animation-delay: .04s; }
+  .app--control .ops-system-card:nth-child(3) { animation-delay: .08s; }
+  .app--control .ops-system-card:nth-child(4) { animation-delay: .12s; }
+
+  @keyframes ops-enter {
+    from { opacity: .65; transform: translateY(7px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}

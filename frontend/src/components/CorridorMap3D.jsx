@@ -721,16 +721,10 @@ export default function CorridorMap3D({
         </div>
       </div>
 
-      {/* Selected-point weather and seasonal road-risk briefing */}
-      <div className="regional-weather-dock">
-        <RegionalWeather
-          coordinates={weatherPoint.coordinates}
-          locationName={weatherPoint.name}
-        />
-      </div>
-
-      {/* Main Map Canvas or WebGL Fallback */}
-      {!webGlFailed ? (
+      {/* Map and persistent intelligence sidebar */}
+      <div className="corridor-map-stage">
+        {/* Main Map Canvas or WebGL Fallback */}
+        {!webGlFailed ? (
         <div ref={mapContainerRef} className="corridor-map-canvas" />
       ) : (
         /* SVG Offline Schematic Fallback */
@@ -805,6 +799,31 @@ export default function CorridorMap3D({
           </svg>
         </div>
       )}
+      </div>
+
+      {/* Persistent weather and road-risk intelligence sidebar */}
+      <aside className="corridor-intel-sidebar">
+        <div className="corridor-intel-heading">
+          <span className="corridor-intel-eyebrow">REGIONAL INTELLIGENCE</span>
+          <h2>Weather &amp; Road Risk</h2>
+          <p>Live conditions and seasonal risk for the selected map location.</p>
+        </div>
+
+        <div className="regional-weather-dock">
+          <RegionalWeather
+            coordinates={weatherPoint.coordinates}
+            locationName={weatherPoint.name}
+          />
+        </div>
+
+        <div className="corridor-intel-note">
+          <span className="corridor-intel-live-dot" />
+          <div>
+            <strong>Location-aware briefing</strong>
+            <p>Select a point on the map to update the local weather and risk assessment.</p>
+          </div>
+        </div>
+      </aside>
 
       {/* Trauma Route & Blackspot Tactical Banner */}
       <div className="corridor-tactical-card">
