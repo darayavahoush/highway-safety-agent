@@ -13,6 +13,7 @@ import {
   Info,
   Maximize2
 } from 'lucide-react'
+import RegionalWeather from './RegionalWeather.jsx'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
 
@@ -200,6 +201,10 @@ export default function CorridorMap3D({
   const [hospitals] = useState(DEFAULT_HOSPITALS)
   const [traumaRoute, setTraumaRoute] = useState(null)
   const [routeLoading, setRouteLoading] = useState(false)
+  const [weatherPoint, setWeatherPoint] = useState({
+    coordinates: DEFAULT_CORRIDORS[0].center,
+    name: 'Amaravati · Vijayawada · Guntur',
+  })
 
   const activeCorridor = useMemo(
     () => DEFAULT_CORRIDORS.find((c) => c.id === activeCorridorId) || DEFAULT_CORRIDORS[0],
@@ -367,6 +372,24 @@ export default function CorridorMap3D({
       }
     }
   }, [currentStyleUrl])
+
+  // Click any open map area to inspect weather at that coordinate.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !mapLoaded) return
+
+    const handleWeatherPoint = (event) => {
+      const lng = Number(event.lngLat.lng.toFixed(4))
+      const lat = Number(event.lngLat.lat.toFixed(4))
+      setWeatherPoint({
+        coordinates: [lng, lat],
+        name: `Selected map point · ${activeCorridor.highway}`,
+      })
+    }
+
+    map.on('click', handleWeatherPoint)
+    return () => map.off('click', handleWeatherPoint)
+  }, [mapLoaded, activeCorridor])
 
   // Update Terrain state
   useEffect(() => {
@@ -696,6 +719,14 @@ export default function CorridorMap3D({
             <RotateCcw size={13} />
           </button>
         </div>
+      </div>
+
+      {/* Selected-point weather and seasonal road-risk briefing */}
+      <div className="regional-weather-dock">
+        <RegionalWeather
+          coordinates={weatherPoint.coordinates}
+          locationName={weatherPoint.name}
+        />
       </div>
 
       {/* Main Map Canvas or WebGL Fallback */}
