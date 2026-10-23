@@ -490,7 +490,7 @@
 .nova-hero .nova-visual {
   background:
     linear-gradient(180deg, rgba(8, 12, 18, .10), rgba(8, 12, 18, .72)),
-    url("https://upload.wikimedia.org/wikipedia/commons/2/2d/A_Road_near_lambasinghi.jpg")
+    url("https://commons.wikimedia.org/wiki/Special:FilePath/Scenic_view_of_Eastern_ghats_during_monsoon_at_Srungavarapukota.jpg?width=1920")
     center / cover no-repeat !important;
   border: 1px solid rgba(210, 220, 230, .24);
   border-radius: 12px;
@@ -512,5 +512,637 @@
 @media (max-width: 760px) {
   .corridor-map-wrapper > .corridor-map-stage {
     min-height: 380px;
+  }
+}
+
+/* Keep the map and intelligence sidebar in separate grid columns */
+.corridor-map-wrapper {
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) minmax(290px, 340px) !important;
+}
+
+.corridor-map-wrapper > .corridor-map-stage {
+  min-width: 0 !important;
+  width: 100%;
+  overflow: hidden;
+}
+
+.corridor-map-wrapper > .corridor-map-stage,
+.corridor-map-wrapper > .corridor-intel-sidebar {
+  grid-row: 2;
+}
+
+.corridor-map-wrapper > .corridor-intel-sidebar {
+  min-width: 0 !important;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.corridor-map-wrapper .corridor-map-canvas {
+  width: 100%;
+  max-width: 100%;
+}
+
+@media (max-width: 760px) {
+  .corridor-map-wrapper {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .corridor-map-wrapper > .corridor-map-stage,
+  .corridor-map-wrapper > .corridor-intel-sidebar {
+    grid-row: auto;
+  }
+}
+
+/* Desktop sidebar repair — keep map and intelligence rail separate */
+@media (min-width: 761px) {
+  .corridor-map-wrapper {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 320px !important;
+    grid-template-areas:
+      "controls controls"
+      "map sidebar"
+      "tactical tactical" !important;
+    align-items: stretch !important;
+    gap: 14px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    overflow: visible !important;
+  }
+
+  .corridor-map-wrapper > .corridor-hud-controls {
+    grid-area: controls !important;
+    min-width: 0 !important;
+  }
+
+  .corridor-map-wrapper > .corridor-map-stage {
+    grid-area: map !important;
+    position: relative !important;
+    z-index: 1 !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    overflow: hidden !important;
+  }
+
+  .corridor-map-wrapper > .corridor-intel-sidebar {
+    grid-area: sidebar !important;
+    display: block !important;
+    position: relative !important;
+    inset: auto !important;
+    z-index: 10 !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    align-self: stretch !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    max-height: 720px;
+    box-sizing: border-box !important;
+    overflow-y: auto !important;
+  }
+
+  .corridor-map-wrapper > .corridor-tactical-card {
+    grid-area: tactical !important;
+    min-width: 0 !important;
+  }
+
+  .corridor-intel-sidebar .regional-weather-dock {
+    position: static !important;
+    inset: auto !important;
+    width: 100% !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+}
+
+/* FINAL LAYOUT FIX: map and intelligence sidebar are separate columns */
+.corridor-map-wrapper {
+  display: grid !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  grid-template-columns: minmax(0, 1fr) 320px !important;
+  grid-template-areas:
+    "controls controls"
+    "map sidebar"
+    "tactical tactical" !important;
+  align-items: stretch !important;
+  gap: 16px !important;
+  overflow: visible !important;
+}
+
+.corridor-map-wrapper > .corridor-hud-controls {
+  grid-area: controls !important;
+  min-width: 0 !important;
+}
+
+.corridor-map-wrapper > .corridor-map-stage {
+  grid-area: map !important;
+  display: block !important;
+  position: relative !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 540px !important;
+  grid-row: auto !important;
+  overflow: hidden !important;
+}
+
+.corridor-map-wrapper > .corridor-intel-sidebar {
+  grid-area: sidebar !important;
+  display: block !important;
+  position: relative !important;
+  inset: auto !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  max-height: 720px !important;
+  box-sizing: border-box !important;
+  grid-row: auto !important;
+  z-index: 2 !important;
+}
+
+.corridor-map-wrapper > .corridor-tactical-card {
+  grid-area: tactical !important;
+}
+
+.corridor-map-wrapper .regional-weather-dock {
+  position: relative !important;
+  inset: auto !important;
+  top: auto !important;
+  right: auto !important;
+  width: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+  margin: 0 !important;
+  overflow: visible !important;
+  z-index: auto !important;
+}
+
+.corridor-map-wrapper .corridor-map-canvas,
+.corridor-map-wrapper .corridor-schematic-fallback {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+@media (max-width: 760px) {
+  .corridor-map-wrapper {
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-areas:
+      "controls"
+      "map"
+      "sidebar"
+      "tactical" !important;
+  }
+
+  .corridor-map-wrapper > .corridor-map-stage {
+    min-height: 380px !important;
+  }
+
+  .corridor-map-wrapper > .corridor-intel-sidebar {
+    max-height: none !important;
+  }
+}
+
+
+/* Consolidated corridor layout fix v2 */
+.corridor-map-wrapper {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(290px, 340px) !important;
+  grid-template-areas:
+    "controls controls"
+    "map sidebar"
+    "tactical tactical" !important;
+  align-items: stretch;
+  width: 100%;
+  min-width: 0;
+  height: auto !important;
+  min-height: 0;
+  overflow: visible !important;
+}
+
+.corridor-map-wrapper > .corridor-hud-controls {
+  grid-area: controls !important;
+  min-width: 0;
+}
+
+.corridor-map-wrapper > .corridor-map-stage {
+  grid-area: map !important;
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  height: clamp(440px, 62vh, 760px) !important;
+  min-height: 440px !important;
+  overflow: hidden;
+}
+
+.corridor-map-wrapper > .corridor-intel-sidebar {
+  grid-area: sidebar !important;
+  display: flex !important;
+  flex-direction: column;
+  gap: 12px;
+  position: relative !important;
+  inset: auto !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  min-width: 0;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+.corridor-map-wrapper > .corridor-intel-sidebar .regional-weather-dock {
+  position: static !important;
+  inset: auto !important;
+  width: 100% !important;
+  max-height: none !important;
+  overflow: visible !important;
+  margin: 0 !important;
+}
+
+.corridor-map-wrapper .corridor-map-canvas,
+.corridor-map-wrapper .corridor-schematic-fallback {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 0 !important;
+}
+
+.corridor-map-wrapper > .corridor-tactical-card {
+  grid-area: tactical !important;
+  min-width: 0;
+}
+
+/* Let the document scroll; constrain only the map canvas. */
+.app--corridor,
+.app--corridor .ops-page,
+.app--corridor .ops-single-stage {
+  min-width: 0;
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+/* Animated icon styles map to the current weather code in RegionalWeather.jsx. */
+.rw-weather-symbol {
+  position: relative;
+  font-size: 42px;
+  animation: rw-weather-float 3.4s ease-in-out infinite;
+  filter: drop-shadow(0 5px 14px rgba(125, 211, 252, .18));
+}
+
+.rw-weather-symbol--sun {
+  color: #fbbf24;
+  background: radial-gradient(circle, rgba(251, 191, 36, .24), transparent 70%);
+}
+.rw-weather-symbol--cloud {
+  color: #bae6fd;
+  background: radial-gradient(circle, rgba(125, 211, 252, .22), transparent 70%);
+}
+.rw-weather-symbol--rain {
+  color: #7dd3fc;
+  background: radial-gradient(circle, rgba(56, 189, 248, .23), transparent 70%);
+  animation: rw-rain-bob 1.5s ease-in-out infinite;
+}
+.rw-weather-symbol--fog {
+  color: #cbd5e1;
+  background: radial-gradient(circle, rgba(203, 213, 225, .18), transparent 70%);
+}
+.rw-weather-symbol--storm {
+  color: #c4b5fd;
+  background: radial-gradient(circle, rgba(167, 139, 250, .28), transparent 70%);
+  animation: rw-storm-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes rw-weather-float {
+  0%, 100% { transform: translateY(0) rotate(-3deg); }
+  50% { transform: translateY(-5px) rotate(3deg); }
+}
+@keyframes rw-rain-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(3px); }
+}
+@keyframes rw-storm-pulse {
+  0%, 100% { filter: drop-shadow(0 0 2px rgba(167, 139, 250, .15)); }
+  50% { filter: drop-shadow(0 0 12px rgba(167, 139, 250, .55)); }
+}
+
+@media (max-width: 900px) {
+  .corridor-map-wrapper {
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-areas: "controls" "map" "sidebar" "tactical" !important;
+  }
+  .corridor-map-wrapper > .corridor-map-stage {
+    height: 58vh !important;
+    min-height: 380px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rw-weather-symbol { animation: none !important; }
+}
+
+/* ===== Compact corridor and weather layout ===== */
+
+/* Reduce unused page and panel spacing */
+.ops-page {
+  padding: 14px 18px 20px !important;
+}
+
+.ops-page-heading {
+  margin-bottom: 10px !important;
+  gap: 10px !important;
+}
+
+.ops-page-heading h1 {
+  margin: 3px 0 !important;
+  font-size: clamp(22px, 2vw, 29px) !important;
+}
+
+.ops-page-heading p {
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+}
+
+.app--corridor .ops-single-stage,
+.app--control .ops-single-stage,
+.app--corridor .panel.stage,
+.app--control .panel.stage {
+  min-width: 0 !important;
+  margin: 0 !important;
+}
+
+.app--corridor .stage-body,
+.app--control .stage-body {
+  min-width: 0 !important;
+  padding: 8px !important;
+}
+
+/* Desktop: map gets the space; intelligence stays in its own column */
+.corridor-map-wrapper {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 300px) !important;
+  gap: 10px !important;
+  align-items: start !important;
+}
+
+.corridor-map-wrapper > .corridor-map-stage {
+  position: relative !important;
+  min-width: 0 !important;
+  height: min(64vh, 620px) !important;
+  min-height: 390px !important;
+}
+
+/* Prevent the weather panel from floating over the map */
+.corridor-map-wrapper .corridor-intel-sidebar {
+  position: relative !important;
+  min-width: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
+  padding: 10px !important;
+  gap: 8px !important;
+  align-self: start !important;
+}
+
+.corridor-map-wrapper .regional-weather-dock {
+  position: static !important;
+  inset: auto !important;
+  z-index: auto !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  max-height: none !important;
+  margin: 0 !important;
+  overflow: visible !important;
+}
+
+.corridor-intel-heading {
+  margin-bottom: 8px !important;
+  padding-bottom: 8px !important;
+}
+
+.corridor-intel-heading h2 {
+  margin: 4px 0 !important;
+  font-size: 17px !important;
+}
+
+.corridor-intel-heading p,
+.corridor-intel-note p {
+  font-size: 10px !important;
+  line-height: 1.4 !important;
+}
+
+.corridor-intel-note {
+  margin-top: 6px !important;
+  padding: 8px !important;
+}
+
+.corridor-intel-sidebar .regional-weather {
+  padding: 10px !important;
+  border-radius: 9px !important;
+  box-shadow: none !important;
+}
+
+.corridor-intel-sidebar .rw-location {
+  margin-top: 6px !important;
+  font-size: 15px !important;
+}
+
+.corridor-intel-sidebar .rw-current {
+  padding: 8px 0 !important;
+  gap: 6px !important;
+}
+
+.corridor-intel-sidebar .rw-temp {
+  font-size: 36px !important;
+}
+
+.corridor-intel-sidebar .rw-weather-symbol {
+  font-size: 28px !important;
+}
+
+.corridor-intel-sidebar .rw-foot {
+  margin-top: 6px !important;
+}
+
+/* Small screens: stack controls, map, sidebar, and tactical panel */
+@media (max-width: 900px) {
+  .ops-page {
+    padding: 12px !important;
+  }
+
+  .corridor-map-wrapper {
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-areas:
+      "controls"
+      "map"
+      "sidebar"
+      "tactical" !important;
+  }
+
+  .corridor-map-wrapper > .corridor-map-stage {
+    height: 55vh !important;
+    min-height: 340px !important;
+  }
+}
+
+
+/* FINAL FIX: compact corridor workspace */
+.corridor-map-wrapper {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(270px, 310px) !important;
+  grid-template-areas:
+    "controls controls"
+    "map sidebar"
+    "tactical tactical" !important;
+  gap: 12px !important;
+  align-items: start !important;
+  overflow: visible !important;
+}
+
+.corridor-map-wrapper > .corridor-hud-controls {
+  grid-area: controls !important;
+  min-width: 0 !important;
+}
+
+.corridor-map-wrapper > .corridor-map-stage {
+  grid-area: map !important;
+  position: relative !important;
+  height: clamp(420px, 62vh, 660px) !important;
+  min-height: 420px !important;
+  max-height: 660px !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(139,92,246,.28) !important;
+  border-radius: 14px !important;
+}
+
+.corridor-map-wrapper > .corridor-map-stage .corridor-map-canvas,
+.corridor-map-wrapper > .corridor-map-stage .corridor-schematic-fallback {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+}
+
+.corridor-map-wrapper > .corridor-intel-sidebar {
+  grid-area: sidebar !important;
+  display: flex !important;
+  flex-direction: column !important;
+  position: relative !important;
+  inset: auto !important;
+  z-index: 1 !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  min-width: 0 !important;
+  max-height: clamp(420px, 62vh, 660px) !important;
+  overflow-y: auto !important;
+  padding: 12px !important;
+  margin: 0 !important;
+}
+
+.corridor-map-wrapper > .corridor-intel-sidebar .regional-weather-dock {
+  position: static !important;
+  inset: auto !important;
+  float: none !important;
+  z-index: auto !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  max-height: none !important;
+  overflow: visible !important;
+  margin: 0 !important;
+}
+
+.corridor-map-wrapper > .corridor-intel-sidebar .regional-weather {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  padding: 12px !important;
+  box-shadow: none !important;
+}
+
+.corridor-map-wrapper > .corridor-tactical-card {
+  grid-area: tactical !important;
+  min-width: 0 !important;
+}
+
+.corridor-map-wrapper .corridor-intel-heading {
+  padding-bottom: 10px !important;
+  margin-bottom: 10px !important;
+}
+
+.corridor-map-wrapper .corridor-intel-heading h2 {
+  font-size: 18px !important;
+  margin: 5px 0 !important;
+}
+
+.corridor-map-wrapper .rw-location {
+  margin-top: 8px !important;
+  font-size: 15px !important;
+}
+
+.corridor-map-wrapper .rw-current {
+  padding: 10px 0 !important;
+}
+
+.corridor-map-wrapper .rw-temp {
+  font-size: 38px !important;
+}
+
+.corridor-map-wrapper .rw-weather-symbol {
+  width: 52px !important;
+  height: 52px !important;
+  font-size: 30px !important;
+}
+
+.corridor-map-wrapper .rw-metrics > div {
+  padding: 8px 5px !important;
+  gap: 4px !important;
+}
+
+.corridor-map-wrapper .rw-risk-head,
+.corridor-map-wrapper .rw-season,
+.corridor-map-wrapper .rw-forecast {
+  margin-top: 10px !important;
+}
+
+.corridor-map-wrapper .rw-season {
+  padding: 9px !important;
+}
+
+/* Homepage: one illustrated road, no second full-page road photograph. */
+.nova-home::before {
+  background:
+    radial-gradient(ellipse at 78% 28%, rgba(92,72,190,.18), transparent 38%),
+    linear-gradient(90deg, rgba(9,10,16,.96), rgba(9,10,16,.82)),
+    linear-gradient(0deg, rgba(9,10,16,.95), transparent 75%) !important;
+}
+
+.nova-hero .nova-visual {
+  background:
+    linear-gradient(180deg, rgba(8,12,18,.10), rgba(8,12,18,.72)) !important;
+}
+
+.nova-hero .nova-road-scene {
+  display: block !important;
+  opacity: 1 !important;
+}
+
+@media (max-width: 900px) {
+  .corridor-map-wrapper {
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-areas:
+      "controls"
+      "map"
+      "sidebar"
+      "tactical" !important;
+  }
+
+  .corridor-map-wrapper > .corridor-map-stage {
+    height: 55vh !important;
+    min-height: 340px !important;
+  }
+
+  .corridor-map-wrapper > .corridor-intel-sidebar {
+    max-height: none !important;
+    overflow: visible !important;
   }
 }

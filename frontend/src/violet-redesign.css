@@ -982,7 +982,7 @@ body {
       rgba(9, 10, 16, .18) 55%,
       rgba(9, 10, 16, .48) 100%
     ),
-    url("https://upload.wikimedia.org/wikipedia/commons/2/2d/A_Road_near_lambasinghi.jpg");
+    url("https://commons.wikimedia.org/wiki/Special:FilePath/Scenic_view_of_Eastern_ghats_during_monsoon_at_Srungavarapukota.jpg?width=1920");
   background-size: cover;
   background-position: center 48%;
   opacity: .48;
@@ -1268,22 +1268,36 @@ body {
   }
 }
 
-/* Andhra Pradesh landscape background — homepage only */
-.nova-home {
+
+/* Homepage-wide Andhra Pradesh landscape background */
+main.nova-home {
   position: relative;
   isolation: isolate;
-  background: #090a10;
+  background-color: #090a10 !important;
+  background-image: linear-gradient(rgba(9,10,16,.28), rgba(9,10,16,.42)), url("/highway-hero.png") !important;
+  background-position: center center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: scroll;
 }
 
-.nova-home::before {
+main.nova-home::before {
   content: "";
   position: absolute;
   inset: 0;
   z-index: -1;
   pointer-events: none;
   background:
-    linear-gradient(90deg, rgba(9,10,16,.92), rgba(9,10,16,.48)),
-    linear-gradient(0deg, rgba(9,10,16,.9), transparent 75%),
-    url("https://upload.wikimedia.org/wikipedia/commons/2/2d/A_Road_near_lambasinghi.jpg")
-    center / cover no-repeat;
+    radial-gradient(ellipse at 78% 28%, rgba(92,72,190,.18), transparent 38%),
+    linear-gradient(90deg, rgba(9,10,16,.96), rgba(9,10,16,.82)),
+    linear-gradient(0deg, rgba(9,10,16,.95), transparent 75%);
+}
+
+main.nova-home .nova-nav,
+main.nova-home .nova-footer {
+  background: rgba(9, 10, 16, 0.58) !important;
+}
+
+main.nova-home .nova-hero {
+  background: transparent !important;
 }

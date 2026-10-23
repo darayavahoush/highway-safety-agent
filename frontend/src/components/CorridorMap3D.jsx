@@ -193,8 +193,8 @@ export default function CorridorMap3D({
   const orbitIntervalRef = useRef(null)
 
   const [activeCorridorId, setActiveCorridorId] = useState('AP-NH16-CENTRAL')
-  const [styleMode, setStyleMode] = useState('dark') // 'dark' | 'bright'
-  const [terrainEnabled, setTerrainEnabled] = useState(false)
+  const [styleMode, setStyleMode] = useState('bright') // 'dark' | 'bright'
+  const [terrainEnabled, setTerrainEnabled] = useState(true)
   const [isOrbiting, setIsOrbiting] = useState(false)
   const [mapLoaded, setMapLoaded] = useState(false)
   const [webGlFailed, setWebGlFailed] = useState(false)
@@ -227,7 +227,7 @@ export default function CorridorMap3D({
   // Style URLs
   const currentStyleUrl = useMemo(() => {
     return styleMode === 'dark'
-      ? 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json'
+      ? 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'
       : 'https://tiles.openfreemap.org/styles/bright'
   }, [styleMode])
 
@@ -319,8 +319,8 @@ export default function CorridorMap3D({
           style: currentStyleUrl,
           center: activeCorridor.center,
           zoom: activeCorridor.zoom,
-          pitch: 0,
-          bearing: 0,
+          pitch: 55,
+          bearing: -15,
           maxPitch: 75,
           antialias: true,
         })
@@ -339,7 +339,7 @@ export default function CorridorMap3D({
               maxzoom: 14,
             })
             if (terrainEnabled) {
-              mapInstance.setTerrain({ source: 'terrain-source', exaggeration: 1.4 })
+              mapInstance.setTerrain({ source: 'terrain-source', exaggeration: 2.0 })
             }
           } catch (e) {
             // Ignore terrain source load error
@@ -397,7 +397,7 @@ export default function CorridorMap3D({
     try {
       if (terrainEnabled) {
         if (mapRef.current.getSource('terrain-source')) {
-          mapRef.current.setTerrain({ source: 'terrain-source', exaggeration: 1.4 })
+          mapRef.current.setTerrain({ source: 'terrain-source', exaggeration: 2.0 })
         }
       } else {
         mapRef.current.setTerrain(null)
@@ -654,8 +654,8 @@ export default function CorridorMap3D({
       mapRef.current.flyTo({
         center: target.center,
         zoom: target.zoom,
-        pitch: 0,
-        bearing: 0,
+        pitch: 55,
+        bearing: -15,
       })
     }
   }
