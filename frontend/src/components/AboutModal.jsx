@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useRef } from 'react'
 import {
   X,
   Shield,
@@ -19,22 +19,46 @@ import {
   Hospital
 } from 'lucide-react'
 
+// Controls hidden inside a closed <details> (other than its own <summary>) cannot take focus.
+const canFocus = (el) => {
+  if (el.hidden || el.closest('[hidden]')) return false
+  const d = el.closest('details:not([open])')
+  return !d || (el.tagName === 'SUMMARY' && el.parentElement === d)
+}
+const FOCUSABLE = 'a[href], button:not([disabled]), summary, input, select, textarea, [tabindex]:not([tabindex="-1"])'
+
 export default function AboutModal({ isOpen, onClose }) {
+  const box = useRef(null)
+  const opener = useRef(null)
+
   useEffect(() => {
-    function handleKeyDown(e) {
-      if (e.key === 'Escape' && isOpen) {
-        onClose()
-      }
+    if (!isOpen) return undefined
+    opener.current = document.activeElement
+    // Move focus into the dialog, and keep Tab inside it while it is open.
+    const first = box.current?.querySelector('.about-close-btn') || box.current
+    first?.focus()
+    function onKey(e) {
+      if (e.key === 'Escape') { onClose(); return }
+      if (e.key !== 'Tab' || !box.current) return
+      const items = [...box.current.querySelectorAll(FOCUSABLE)].filter(canFocus)
+      if (items.length === 0) { e.preventDefault(); return }
+      const a = items[0]; const z = items[items.length - 1]
+      if (e.shiftKey && (document.activeElement === a || !box.current.contains(document.activeElement))) { e.preventDefault(); z.focus() }
+      else if (!e.shiftKey && (document.activeElement === z || !box.current.contains(document.activeElement))) { e.preventDefault(); a.focus() }
     }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
+    window.addEventListener('keydown', onKey)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      // Give focus back to whatever opened the dialog.
+      if (opener.current?.isConnected) opener.current.focus?.()
+    }
   }, [isOpen, onClose])
 
   if (!isOpen) return null
 
   return (
-    <div className="modal-backdrop" onClick={onClose} role="dialog" aria-modal="true">
-      <div className="about-modal" onClick={(e) => e.stopPropagation()}>
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="about-modal" ref={box} role="dialog" aria-modal="true" aria-labelledby="about-title" tabIndex={-1} onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="about-modal-head">
           <div className="about-modal-title">
@@ -42,11 +66,11 @@ export default function AboutModal({ isOpen, onClose }) {
               <Shield size={24} className="text-cyan" />
             </div>
             <div>
-              <h3>About Highway Safety Agent</h3>
+              <h3 id="about-title">About Highway Safety Agent</h3>
               <p className="about-modal-sub">A road-accident prevention tool for Andhra Pradesh highways (HRAP-2026)</p>
             </div>
           </div>
-          <button className="about-close-btn" onClick={onClose} title="Close (Esc)">
+          <button className="about-close-btn" onClick={onClose} title="Close (Esc)" aria-label="Close">
             <X size={20} />
           </button>
         </div>

@@ -2350,7 +2350,7 @@ body {
   --line-soft: #1b2a39;
   --text: #edf5fc;
   --dim: #9aafc4;
-  --faint: #617a91;
+  --faint: #6f869a;
   --green: #39dfae;
   --amber: #ffbd66;
   --red: #ff6474;
@@ -4453,7 +4453,7 @@ select:focus-visible, textarea:focus-visible {
   --premium-line: #d3dce1;
   --premium-text: #17232d;
   --premium-muted: #596875;
-  --premium-faint: #778590;
+  --premium-faint: #646e78;
   --premium-accent: #516e83;
 }
 
@@ -8313,3 +8313,14 @@ main.nova-home .nova-capabilities, main.nova-home .nova-manifesto { background: 
 }
 .app .inc .inc-tags { display: flex; align-items: center; justify-content: flex-end; gap: 8px; min-width: 0; }
 .app .inc .inc-veh { color: var(--dim); font-size: 10px; font-weight: 650; letter-spacing: .02em; white-space: nowrap; }
+
+/* Accessibility: skip link, visible only when focused by keyboard. */
+.skip-link {
+  position: fixed; top: 8px; left: 8px; z-index: 10000;
+  padding: 10px 16px; border-radius: 8px;
+  background: #fff; color: #0a0910; font: 600 14px/1 var(--font-body, system-ui, sans-serif);
+  transform: translateY(-200%); transition: transform .15s ease;
+  text-decoration: none; box-shadow: 0 6px 24px rgba(0,0,0,.45);
+}
+.skip-link:focus, .skip-link:focus-visible { transform: translateY(0); outline: 3px solid #9a79ff; outline-offset: 2px; }
+#main-content:focus { outline: none; }

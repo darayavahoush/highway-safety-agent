@@ -17,6 +17,7 @@ import AboutModal from './components/AboutModal.jsx'
 import HighwayIntelSidebar from './components/HighwayIntelSidebar.jsx'
 import { isActive, isBlind } from './lib/format.js'
 import { resolveShortcut } from './lib/shortcuts.js'
+import LiveAnnouncer from './components/LiveAnnouncer.jsx'
 
 function readTheme() {
   try {
@@ -75,6 +76,8 @@ export default function App() {
 
   return (
     <div className={`app app--${page}`}>
+      {page !== 'home' && <a className="skip-link" href="#main-content" onClick={(e) => { e.preventDefault(); document.getElementById('main-content')?.focus() }}>Skip to main content</a>}
+      <LiveAnnouncer list={list} conn={state.conn} />
       {page !== 'home' && (
         <TopBar
           conn={state.conn}
@@ -115,7 +118,7 @@ export default function App() {
           </nav>
 
           <div className="ops-workspace-shell">
-          <main className={`ops-page ops-page--${page}`}>
+          <main id="main-content" tabIndex={-1} className={`ops-page ops-page--${page}`}>
 
             {page === 'control' && (
               <ControlRoom state={state} list={list} selected={selected} now={now} actions={actions}
