@@ -1,0 +1,4 @@
+# Benchmark-only dependencies. Not needed by the CPU deployment.
+pycocotools>=2.0.7
+onnxruntime>=1.18.0
+ultralytics>=8.4.0   # used only to export stock YOLOv8n to ONNX
