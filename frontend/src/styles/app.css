@@ -8272,3 +8272,15 @@ main.nova-home .nova-capabilities, main.nova-home .nova-manifesto { background: 
   .app:not(.app--home) .topbar .topbar-right > * { max-width: 100%; }
   .app:not(.app--home) .topbar .pill { white-space: nowrap; font-size: 12px; padding: 5px 10px; }
 }
+
+/* ===== custom cursor =====
+   White arrow normally, lime arrow over clickable things. Only for mouse-like
+   pointers; touch screens ignore this. The keyword after the comma is the
+   fallback if an image cannot load. The map keeps its own grab/grabbing cursor. */
+@media (pointer: fine) {
+  html, body { cursor: url("/cursor-arrow.svg") 5 3, auto; }
+  a[href], button:not(:disabled), [role="button"]:not([aria-disabled="true"]), summary, select,
+  label[for], input[type="checkbox"], input[type="radio"], input[type="range"] {
+    cursor: url("/cursor-pointer.svg") 5 3, pointer;
+  }
+}
