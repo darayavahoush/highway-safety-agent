@@ -25,7 +25,7 @@ export default function CameraHealthBadge({ health, onClick, staleSeconds = null
         <button
           className="cam-health-badge-btn"
           onClick={onClick}
-          title="The camera has not sent a health report yet. Click for details."
+          title="The camera has not sent a health report yet. Click to open System status."
         >
           <span className="health-chip" style={{ borderColor: '#94a3b840', color: '#94a3b8' }}>
             <Camera size={12} />

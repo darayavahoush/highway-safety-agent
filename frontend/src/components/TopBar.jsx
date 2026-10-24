@@ -11,7 +11,7 @@ const PILL = {
 }
 
 export default function TopBar({
-  conn, camera, now, cameraHealth, cameraHealthAt, onOpenAbout,
+  conn, camera, now, cameraHealth, cameraHealthAt, onOpenAbout, onOpenSystem,
   onHome, theme = 'dark', onToggleTheme,
 }) {
   const [text, cls] = PILL[conn] || PILL.connecting
@@ -49,13 +49,13 @@ export default function TopBar({
       )}
 
       <div className="topbar-right">
-        <CameraHealthBadge health={cameraHealth} onClick={onOpenAbout}
+        <CameraHealthBadge health={cameraHealth} onClick={onOpenSystem || onOpenAbout}
           staleSeconds={isStale(cameraHealthAt, now) ? Math.round((now - cameraHealthAt) / 1000) : null} />
         <button className="topbar-icon-button" onClick={onToggleTheme} title="Toggle colour theme" aria-label="Toggle colour theme">
           {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
         </button>
-        <button className="topbar-about-btn" onClick={onOpenAbout} title="About the system">
-          <BookOpen size={14} /><span>System info</span><kbd>?</kbd>
+        <button className="topbar-about-btn" onClick={onOpenAbout} title="Help, what the labels mean, and keyboard shortcuts" aria-label="Help and keyboard shortcuts">
+          <BookOpen size={14} /><span>Help</span><kbd>?</kbd>
         </button>
         <span className={`pill ${cls}`}><i className="dot" />{text}</span>
         <time className="clock">{fmtClock(now)} IST</time>

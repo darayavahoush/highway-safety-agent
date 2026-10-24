@@ -86,6 +86,7 @@ export default function App() {
           cameraHealth={state.cameraHealth}
           cameraHealthAt={state.cameraHealthAt}
           onOpenAbout={() => setIsAboutOpen(true)}
+          onOpenSystem={() => setPage('system')}
           onHome={() => setPage('home')}
           theme={theme}
           onToggleTheme={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}

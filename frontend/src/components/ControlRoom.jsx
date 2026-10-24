@@ -105,13 +105,16 @@ export default function ControlRoom({
           </div>
         </div>
 
-        <ul className="cr-legend" aria-label="What the severity labels mean">
-          {SEVERITY_HELP.map(([key, label, meaning]) => (
-            <li key={key} style={{ '--sev': SEVERITY[key].color }}>
-              <i aria-hidden="true" /><b>{label}</b><span>{meaning}</span>
-            </li>
-          ))}
-        </ul>
+        <details className="cr-legend-wrap">
+          <summary>What do the severity labels mean?</summary>
+          <ul className="cr-legend" aria-label="What the severity labels mean">
+            {SEVERITY_HELP.map(([key, label, meaning]) => (
+              <li key={key} style={{ '--sev': SEVERITY[key].color }}>
+                <i aria-hidden="true" /><b>{label}</b><span>{meaning}</span>
+              </li>
+            ))}
+          </ul>
+        </details>
       </section>
 
       <div className="cr-grid">

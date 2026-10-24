@@ -8324,3 +8324,18 @@ main.nova-home .nova-capabilities, main.nova-home .nova-manifesto { background: 
 }
 .skip-link:focus, .skip-link:focus-visible { transform: translateY(0); outline: 3px solid #9a79ff; outline-offset: 2px; }
 #main-content:focus { outline: none; }
+
+/* Control room banner: tidy alignment and a quieter legend. */
+.cr-sub { column-gap: 14px; row-gap: 8px; }
+.cr-sub > span { flex: 0 1 auto; }
+.cr-open { margin-left: 0; align-self: center; line-height: 1; min-height: 32px; white-space: nowrap; }
+.cr-legend-wrap { grid-column: 1 / -1; border-top: 1px solid var(--cr-line); padding-top: 10px; }
+.cr-legend-wrap > summary {
+  display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+  font-size: 13px; color: var(--cr-dim); list-style: none;
+}
+.cr-legend-wrap > summary::-webkit-details-marker { display: none; }
+.cr-legend-wrap > summary::before { content: '+'; font-weight: 700; width: 12px; text-align: center; }
+.cr-legend-wrap[open] > summary::before { content: '\2212'; }
+.cr-legend-wrap > summary:hover { color: var(--cr-ink); }
+.cr-legend-wrap .cr-legend { border-top: 0; padding-top: 12px; }
