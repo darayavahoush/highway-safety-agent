@@ -193,17 +193,11 @@ export default function CorridorMap3D({
   const markersRef = useRef([])
   const orbitIntervalRef = useRef(null)
 
-<<<<<<< ours
   const [activeCorridorId, setActiveCorridorId] = useState('AP-NH16-NORTH')
-  const [styleMode, setStyleMode] = useState('bright') // 'dark' | 'bright'
-  const [terrainEnabled, setTerrainEnabled] = useState(true)
-  const [terrainStatus, setTerrainStatus] = useState('loading')
-  const [terrainError, setTerrainError] = useState('')
-=======
-  const [activeCorridorId, setActiveCorridorId] = useState('AP-NH16-CENTRAL')
   const [styleMode, setStyleMode] = useState('dark') // flat monochrome basemap
   const [terrainEnabled, setTerrainEnabled] = useState(false)
->>>>>>> theirs
+  const [terrainStatus, setTerrainStatus] = useState('loading')
+  const [terrainError, setTerrainError] = useState('')
   const [isOrbiting, setIsOrbiting] = useState(false)
   const [mapLoaded, setMapLoaded] = useState(false)
   const [webGlFailed, setWebGlFailed] = useState(false)
@@ -349,15 +343,9 @@ export default function CorridorMap3D({
           style: currentStyleUrl,
           center: activeCorridor.center,
           zoom: activeCorridor.zoom,
-<<<<<<< ours
-          pitch: terrainEnabled ? 66 : 0,
-          bearing: -18,
-          maxPitch: 78,
-=======
           pitch: 0,
           bearing: 0,
           maxPitch: 0,
->>>>>>> theirs
           antialias: true,
         })
 
@@ -630,7 +618,7 @@ export default function CorridorMap3D({
           </div>
         `
         hospEl.onclick = () => {
-          map.flyTo({ center: hosp.coordinates, zoom: 14, pitch: 50 })
+          map.flyTo({ center: hosp.coordinates, zoom: 14, pitch: 0 })
         }
         const hospMarker = new maplibreglShared.current.Marker({ element: hospEl })
           .setLngLat(hosp.coordinates)
@@ -723,8 +711,8 @@ export default function CorridorMap3D({
     mapRef.current.flyTo({
       center: activeCorridor.center,
       zoom: activeCorridor.zoom,
-      pitch: 55,
-      bearing: -15,
+      pitch: 0,
+      bearing: 0,
     })
   }
 
@@ -764,40 +752,6 @@ export default function CorridorMap3D({
         <div className="hud-group">
           <button
             type="button"
-<<<<<<< ours
-            className={`hud-btn ${styleMode === 'bright' ? 'is-active' : ''}`}
-            onClick={() => setStyleMode(styleMode === 'dark' ? 'bright' : 'dark')}
-            title="Toggle Basemap (Dark Matter / OpenFreeMap Bright)"
-          >
-            <Layers size={13} />
-            <span>{styleMode === 'dark' ? 'Dark' : 'Bright'}</span>
-          </button>
-
-          <button
-            type="button"
-            className={`hud-btn ${terrainEnabled ? 'is-active' : ''} ${terrainStatus === 'unavailable' ? 'terrain-unavailable' : ''}`}
-            onClick={() => setTerrainEnabled(!terrainEnabled)}
-            aria-pressed={terrainEnabled}
-            title={terrainError || 'Toggle 3D terrain elevation and hillshade'}
-          >
-            <Mountain size={13} />
-            <span>{terrainStatus === 'unavailable' ? 'Relief unavailable' : terrainStatus === 'loading' ? 'Loading relief…' : terrainEnabled ? '3D Relief · ON' : '3D Relief · OFF'}</span>
-          </button>
-
-          <button
-            type="button"
-            className={`hud-btn ${isOrbiting ? 'is-active' : ''}`}
-            onClick={() => setIsOrbiting(!isOrbiting)}
-            title="Toggle 3D Orbit Camera"
-          >
-            <Compass size={13} className={isOrbiting ? 'spin-slow' : ''} />
-            <span>Orbit</span>
-          </button>
-
-          <button
-            type="button"
-=======
->>>>>>> theirs
             className="hud-btn"
             onClick={handleResetView}
             title="Reset Perspective"

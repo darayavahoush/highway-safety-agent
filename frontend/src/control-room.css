@@ -4,7 +4,7 @@
    The control room stays dark in both themes, like a real control room.
    ========================================================================== */
 
-.cr {
+.cr-wrap {
   --cr-ink: #f7efe4;
   --cr-dim: rgba(247, 239, 228, 0.66);
   --cr-faint: rgba(247, 239, 228, 0.38);
@@ -19,19 +19,22 @@
   --cr-tone: var(--cr-green);
   --photo: url('/highway-hero.png');
   position: relative;
+  isolation: isolate;
+}
+.cr {
+  container: cr / inline-size;
   color: var(--cr-ink);
   font-family: 'IBM Plex Sans', system-ui, sans-serif;
-  isolation: isolate;
   padding-bottom: 72px;
 }
-.cr[data-tone='watch'] { --cr-tone: var(--cr-amber); }
-.cr[data-tone='critical'] { --cr-tone: var(--cr-red); }
+.cr-wrap[data-tone='watch'] { --cr-tone: var(--cr-amber); }
+.cr-wrap[data-tone='critical'] { --cr-tone: var(--cr-red); }
 
 /* Photograph chosen by the hour at the site. A missing file simply falls back. */
-.cr[data-scene='daybreak'] { --photo: url('/highway-valley-daybreak.png'), url('/highway-hero.png'); }
-.cr[data-scene='day'] { --photo: url('/highway-hero.png'); }
-.cr[data-scene='sunset'] { --photo: url('/highway-ghats-sunset.png'), url('/highway-hero.png'); }
-.cr[data-scene='night'] { --photo: url('/highway-monsoon-night.png'), url('/highway-hero.png'); }
+.cr-wrap[data-scene='daybreak'] { --photo: url('/highway-valley-daybreak.png'), url('/highway-hero.png'); }
+.cr-wrap[data-scene='day'] { --photo: url('/highway-hero.png'); }
+.cr-wrap[data-scene='sunset'] { --photo: url('/highway-ghats-sunset.png'), url('/highway-hero.png'); }
+.cr-wrap[data-scene='night'] { --photo: url('/highway-monsoon-night.png'), url('/highway-hero.png'); }
 
 .cr-backdrop {
   position: fixed;
@@ -88,7 +91,7 @@
   text-shadow: 0 2px 30px rgba(0, 0, 0, 0.5);
 }
 .cr-headline svg { flex: none; color: var(--cr-tone); filter: drop-shadow(0 0 14px var(--cr-tone)); }
-.cr[data-tone='critical'] .cr-headline svg { animation: cr-pulse 1.4s ease-in-out infinite; }
+.cr-wrap[data-tone='critical'] .cr-headline svg { animation: cr-pulse 1.4s ease-in-out infinite; }
 @keyframes cr-pulse { 50% { opacity: 0.45; } }
 .cr-sub { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 0; margin: 0; font-size: 16px; line-height: 1.5; color: var(--cr-dim); max-width: 62ch; }
 .cr-sub b { color: var(--cr-ink); font-weight: 600; }
@@ -259,17 +262,19 @@
 .cr-tech .stat-label, .cr-tech .stat-num span { color: var(--cr-dim) !important; }
 .cr-tech .stat-num b { color: var(--cr-ink) !important; }
 
-/* ---- Narrower screens ---- */
-@media (max-width: 1280px) {
-  .cr-grid { grid-template-columns: minmax(250px, 320px) minmax(0, 1fr); }
+/* ---- Adapts to the space it actually gets (the page has a side rail) ---- */
+@container cr (max-width: 1100px) {
+  .cr-grid { grid-template-columns: minmax(240px, 300px) minmax(0, 1fr); }
   .cr-col--detail { grid-column: 1 / -1; }
   .cr-col--detail .detail-body { max-height: none; }
+  .cr-headline { font-size: clamp(30px, 5cqw, 44px); }
 }
-@media (max-width: 860px) {
-  .cr-hero { grid-template-columns: 1fr; padding: 20px; }
+@container cr (max-width: 760px) {
+  .cr-hero { grid-template-columns: 1fr; padding: 18px; }
   .cr-grid { grid-template-columns: minmax(0, 1fr); }
-  .cr-col--list .scroll { max-height: 420px; }
+  .cr-col--list .scroll { max-height: 380px; }
+  .cr .seg button span { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .cr-backdrop, .cr[data-tone='critical'] .cr-headline svg { animation: none; }
+  .cr-backdrop, .cr-wrap[data-tone='critical'] .cr-headline svg { animation: none; }
 }

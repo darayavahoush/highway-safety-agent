@@ -17,7 +17,7 @@ const CONN = {
 const RANK = { P0: 0, P1: 1, P2: 2 }
 
 export default function ControlRoom({
-  state, list, selected, now, actions, filter, setFilter, camera, today,
+  state, list, selected, now, actions, filter, setFilter, camera, today, onCorridorInfo,
 }) {
   const active = list.filter(isActive)
   const top = [...active].sort(
@@ -33,8 +33,9 @@ export default function ControlRoom({
     : `${n} incident${n === 1 ? '' : 's'} need${n === 1 ? 's' : ''} attention`
 
   return (
-    <div className="cr" data-scene={sceneFor(now)} data-tone={tone}>
+    <div className="cr-wrap" data-scene={sceneFor(now)} data-tone={tone}>
       <div className="cr-backdrop" aria-hidden="true" />
+      <div className="cr">
 
       <section className="cr-hero" aria-live="polite">
         <div className="cr-hero-main">
@@ -90,7 +91,7 @@ export default function ControlRoom({
         <section className="cr-col cr-col--stage">
           <h3 className="cr-step"><em>02</em>Where it is</h3>
           <LiveStage incident={selected} camera={camera} metrics={state.metrics}
-            incidents={list} onSelectIncident={actions.select} />
+            incidents={list} onSelectIncident={actions.select} onCorridorInfo={onCorridorInfo} />
           <ActivityLog list={list} onSelect={actions.select} />
         </section>
 
@@ -113,6 +114,7 @@ export default function ControlRoom({
         <summary><Eye size={14} aria-hidden="true" />Technical performance <span>for engineers</span></summary>
         <StatsStrip metrics={state.metrics} open={n} today={today} blackspots={state.blackspots} camera={camera} />
       </details>
+      </div>
     </div>
   )
 }

@@ -127,29 +127,9 @@ export default function App() {
             </header>}
 
             {page === 'control' && (
-<<<<<<< ours
-              <>
-                <div className="main">
-                  <section className="col">
-                    <IncidentQueue list={list} selectedId={state.selectedId} onSelect={actions.select}
-                      now={now} filter={filter} setFilter={setFilter} />
-                  </section>
-                  <section className="col col--stage">
-                    <LiveStage incident={selected} camera={camera} metrics={state.metrics}
-                      incidents={list} onSelectIncident={actions.select} onCorridorInfo={setCorridorOverview} />
-                    <ActivityLog list={list} onSelect={actions.select} />
-                  </section>
-                  <section className="col">
-                    <IncidentDetail incident={selected} now={now} actions={actions} />
-                  </section>
-                </div>
-                <StatsStrip metrics={state.metrics} open={list.filter(isActive).length}
-                  today={today} blackspots={state.blackspots} camera={camera} />
-              </>
-=======
               <ControlRoom state={state} list={list} selected={selected} now={now} actions={actions}
-                filter={filter} setFilter={setFilter} camera={camera} today={today} />
->>>>>>> theirs
+                filter={filter} setFilter={setFilter} camera={camera} today={today}
+                onCorridorInfo={setCorridorOverview} />
             )}
 
             {page === 'corridor' && (
