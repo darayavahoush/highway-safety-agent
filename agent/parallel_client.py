@@ -81,7 +81,7 @@ class ParallelClient:
         vehicles = incident.get("vehicles", [])
         v_class = vehicles[0].get("cls", "vehicle").capitalize() if vehicles else "Vehicle"
         plate_info = vehicles[0].get("plate") if vehicles else None
-        plate_str = plate_info.get("text", "Unidentified") if plate_info else "Unidentified"
+        plate_str = plate_info.get("text", "Unidentified") if plate_info and plate_info.get("readable", True) else "Unidentified"
 
         query = f"Andhra Pradesh {highway} KM {km} Vijayawada Guntur accident blackspot safety advisory"
         objective = f"Provide expert incident debriefing and safety analysis for {inc_type} on {highway}"

@@ -40,6 +40,10 @@ class TrackHistory:
         self.current_speed_kmh = 0.0
         self.is_speed_valid = True
         self.invalid_speed_count = 0
+        # When the vehicle most recently BECAME stationary (None while it is moving or its
+        # speed is unknown). Track age is not stopped time: a vehicle tracked for 20 s that
+        # has only just braked to a halt has been stopped for 0 s.
+        self.stationary_since: Optional[float] = None
 
     def update(
         self,
@@ -48,6 +52,7 @@ class TrackHistory:
         px_per_meter: float = 22.0,
         max_plausible_kmh: float = 200.0,
         speed_window_s: float = 0.5,
+        stationary_max_kmh: float = 3.5,
     ):
         x, y, w, h = box
         cx = float(x + w / 2.0)
@@ -108,6 +113,14 @@ class TrackHistory:
         self.history.append((timestamp, cx, cy, float(w), float(h), ground_x, ground_y))
         self.last_seen_ts = timestamp
 
+        if not self.is_speed_valid:
+            pass  # speed unknown (spike): neither start nor reset the stopped timer
+        elif self.current_speed_kmh <= stationary_max_kmh:
+            if self.stationary_since is None:
+                self.stationary_since = timestamp
+        else:
+            self.stationary_since = None
+
     @property
     def displacement_vector(self) -> Tuple[float, float]:
         """Total displacement (dx, dy) in pixels over rolling history."""
@@ -116,6 +129,13 @@ class TrackHistory:
         start = self.history[0]
         end = self.history[-1]
         return end[1] - start[1], end[2] - start[2]
+
+    @property
+    def stationary_duration_seconds(self) -> float:
+        """How long the vehicle has been continuously stopped (0 while moving)."""
+        if self.stationary_since is None or not self.history:
+            return 0.0
+        return max(0.0, self.history[-1][0] - self.stationary_since)
 
     @property
     def duration_seconds(self) -> float:
@@ -191,6 +211,7 @@ class EdgeTriggerEngine:
                 px_per_meter=self.px_per_m,
                 max_plausible_kmh=self.max_plausible_kmh,
                 speed_window_s=self.speed_window_s,
+                stationary_max_kmh=float(self.rules_cfg.get("stalled_vehicle", {}).get("max_speed_kmh", 3.5)),
             )
 
         # Evict stale tracks unseen in > 3.0s
@@ -288,7 +309,7 @@ class EdgeTriggerEngine:
             congestion_thresh_kmh = float(stalled_cfg.get("congestion_threshold_kmh", 15.0))
 
             for th in track_list:
-                if th.duration_seconds >= min_sec and th.current_speed_kmh <= max_kmh:
+                if th.stationary_duration_seconds >= min_sec and th.is_speed_valid and th.current_speed_kmh <= max_kmh:
                     _, cx, cy, w, h, gx, gy = th.history[-1]
                     lane = self._resolve_lane(cx, cy, frame_w, frame_h)
                     lane_type = lane.get("type", "travel")
@@ -332,12 +353,12 @@ class EdgeTriggerEngine:
                             primary_track_id=th.track_id,
                             lane_id=lane_name,
                             rule_score=0.98,
-                            rule_reason=f"Vehicle #{th.track_id} ({th.label}) stationary for {round(th.duration_seconds, 1)}s in {lane_name} (speed: {round(th.current_speed_kmh, 1)} km/h). Severe collision hazard.",
+                            rule_reason=f"Vehicle #{th.track_id} ({th.label}) stationary for {round(th.stationary_duration_seconds, 1)}s in {lane_name} (speed: {round(th.current_speed_kmh, 1)} km/h). Severe collision hazard.",
                             involved_vehicles=[vt],
                             evidence_details={
                                 "track_age_s": round(th.duration_seconds, 2),
                                 "measured_speed_kmh": round(th.current_speed_kmh, 1),
-                                "stationary_duration_s": round(th.duration_seconds, 2),
+                                "stationary_duration_s": round(th.stationary_duration_seconds, 2),
                                 "lane_type": lane_type,
                                 "lane_name": lane_name,
                             },
@@ -391,7 +412,7 @@ class EdgeTriggerEngine:
                             evidence_details={
                                 "track_age_s": round(th.duration_seconds, 2),
                                 "measured_speed_kmh": round(th.current_speed_kmh, 1),
-                                "stationary_duration_s": round(th.duration_seconds, 2),
+                                "stationary_duration_s": round(th.stationary_duration_seconds, 2),
                                 "lane_type": lane_type,
                                 "lane_name": lane_name,
                                 "is_night": is_night,

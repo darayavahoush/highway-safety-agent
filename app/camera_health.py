@@ -34,19 +34,34 @@ class CameraHealthAnalyzer:
         self.prev_gray: Optional[np.ndarray] = None
         self.prev_pts: Optional[np.ndarray] = None
 
-        # Cached telemetry state
+        # No frame has been analysed yet, so nothing is known. Never start out "healthy":
+        # a camera that has sent nothing must not look like a camera that sees a clear road.
+        self._last_frame_s: Optional[float] = None
+        self.frames_analysed = 0
         self.cached_health: Dict[str, Any] = {
-            "is_static": True,
-            "camera_stability": "STATIC_LOCKED",
-            "background_drift_px": 0.0,
-            "motion_status": "Static highway surveillance pole / gantry mount",
-            "lighting_condition": "OPTIMAL_DAYLIGHT",
+            "is_static": None,
+            "camera_stability": None,
+            "background_drift_px": None,
+            "motion_status": "No video frame analysed yet",
+            "lighting_condition": None,
             "is_night_or_dusk": False,
-            "avg_luminance": 128.0,
-            "contrast_rms": 52.0,
-            "visibility_score": 96.0,
-            "evaluated_at": time.time() * 1000,
+            "avg_luminance": None,
+            "contrast_rms": None,
+            "visibility_score": None,
+            "evaluated_at": None,
         }
+
+    def snapshot(self, now: Optional[float] = None) -> Dict[str, Any]:
+        """Health plus proof of life: seconds since the last video frame actually arrived.
+
+        A repeated health message is not evidence the camera works. `frame_age_s` is None
+        until the first frame, and keeps growing if frames stop. It is an age, not a
+        timestamp, so browser and server clocks do not need to agree.
+        """
+        t = float(time.time() if now is None else now)
+        age = None if self._last_frame_s is None else max(0.0, t - self._last_frame_s)
+        return {**self.cached_health, "frames_analysed": self.frames_analysed,
+                "frame_age_s": None if age is None else round(age, 2)}
 
     def analyze_frame(
         self,
@@ -59,6 +74,8 @@ class CameraHealthAnalyzer:
         Downsampled to 320x180 for sub-millisecond execution.
         """
         cur_time = float(time.time() if now is None else now)
+        self._last_frame_s = cur_time
+        self.frames_analysed += 1
         if cur_time - self.last_eval_time < self.motion_sample_interval_s:
             return self.cached_health
 

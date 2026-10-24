@@ -161,7 +161,7 @@ export default function AboutModal({ isOpen, onClose }) {
                 <li><strong>Bumper Localization:</strong> Slices the bottom 45% bumper zone with Sobel rectangular morphological gating (aspect 2.0–5.5).</li>
                 <li><strong>HSRP Normalization:</strong> Regex engine standardizing state prefix, district RTO, series, and 4-digit registration (e.g. <code>AP 16 TX 4921</code>).</li>
                 <li><strong>Temporal Consensus Voting:</strong> Aggregates plate reads across multi-frame tracking history to eliminate single-frame OCR jitter.</li>
-                <li><strong>Hotlist Cross-Referencing:</strong> Alerts operators instantly for wanted hit-and-run vehicles, stolen freight, and repeat speed offenders.</li>
+                <li><strong>Hotlist cross-referencing:</strong> Designed to compare plates against an authorised police hotlist. No real hotlist is connected in this prototype, and an unreadable plate is shown as “No plate read”, never guessed.</li>
               </ul>
             </div>
 

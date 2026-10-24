@@ -9,6 +9,16 @@ export default function PlateChip({ plate, size = 'md' }) {
       </div>
     )
   }
+  if (plate.readable === false) {
+    return (
+      <div className="plate-wrap">
+        <div className={`plate plate--${size} plate--pending`}>
+          <span className="plate-text">No plate read</span>
+        </div>
+        {size !== 'sm' && <div className="plate-meta"><b>Plate not readable. Check the evidence photo.</b></div>}
+      </div>
+    )
+  }
   const low = plate.confidence < 0.8
   return (
     <div className="plate-wrap">

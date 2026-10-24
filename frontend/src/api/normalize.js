@@ -10,12 +10,13 @@ const toMs = (v) => {
 
 function normPlate(p) {
   if (!p) return null
-  if (typeof p === 'string') return { text: p, confidence: 0.8, votes: 1, frames: 1 }
+  if (typeof p === 'string') return { text: p, confidence: 0.8, votes: 1, frames: 1, readable: true }
   return {
     text: p.text ?? p.plate ?? '',
     confidence: p.confidence ?? 0.8,
     votes: p.votes ?? 1,
     frames: p.frames ?? p.total_frames ?? 1,
+    readable: p.readable !== false && !!(p.text ?? p.plate),
   }
 }
 

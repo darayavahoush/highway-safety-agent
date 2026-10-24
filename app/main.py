@@ -199,7 +199,7 @@ async def telemetry_broadcaster():
                     "agentLatencyMs": telemetry_stats["agentLatencyMs"],
                     "detectToDispatchS": telemetry_stats["detectToDispatchS"],
                 },
-                "camera_health": camera_health_analyzer.cached_health,
+                "camera_health": camera_health_analyzer.snapshot(),
             })
 
 
@@ -551,7 +551,7 @@ def simulate_incident(incident_type: str):
 @app.get("/api/camera/health")
 def get_camera_health():
     """Returns real-time camera motion stability (static vs drift/sway) and photometric lighting quality."""
-    return camera_health_analyzer.cached_health
+    return camera_health_analyzer.snapshot()
 
 
 # -----------------------------------------------------------------

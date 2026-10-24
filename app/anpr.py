@@ -8,10 +8,18 @@ Features:
 - Tesseract OCR engine with alphanumeric character whitelist.
 - Indian RTO Regex normalization (State + District Code + Series + Number).
 - Multi-frame temporal voting across track lifetime for noise immunity.
-- Law enforcement hotlist / stolen vehicle cross-referencing.
+- Optional hotlist cross-referencing (empty unless a real list is configured).
+
+Honesty rules (do not weaken):
+- A plate that could not be read is reported as NO READ. A plate is NEVER invented.
+- Confidence comes from the OCR engine's own per-read score, scaled by how consistently
+  the same text was read across frames. It is not a constant.
+- The hotlist is empty by default. Demo entries load only when ANPR_DEMO_HOTLIST=1, and
+  such hits are marked simulated.
 """
 
 from collections import Counter, defaultdict
+import json
 import os
 import re
 import time
@@ -19,6 +27,7 @@ from typing import Dict, List, Optional, Tuple, Any
 import cv2
 import numpy as np
 import pytesseract
+from pytesseract import Output
 
 # Set Tesseract binary path
 if os.path.isfile("/opt/homebrew/bin/tesseract"):
@@ -49,12 +58,31 @@ AP_RTO_DISTRICTS = {
     "39": "Tirupati",
 }
 
-# Simulated Police Watchlist / Stolen Hotlist (AP Police Interceptor Sync)
-HOTLIST_PLATES = {
-    "AP16TX4921": {"reason": "Wanted: Hit & Run (Guntur Rural PS)", "flag": "CRITICAL_WARRANT"},
-    "AP07AB1024": {"reason": "Stolen Vehicle Report #AP-2026-9812", "flag": "STOLEN_VEHICLE"},
-    "TS09EQ8820": {"reason": "Repeat Speed Violator (>140 km/h NH-65)", "flag": "HIGH_SPEED_OFFENDER"},
+# Demo-only entries. They are NOT real police data and load only when ANPR_DEMO_HOTLIST=1.
+_DEMO_HOTLIST = {
+    "AP16TX4921": {"reason": "DEMO ONLY: wanted vehicle (simulated)", "flag": "CRITICAL_WARRANT", "simulated": True},
+    "AP07AB1024": {"reason": "DEMO ONLY: stolen vehicle report (simulated)", "flag": "STOLEN_VEHICLE", "simulated": True},
+    "TS09EQ8820": {"reason": "DEMO ONLY: repeat speed violator (simulated)", "flag": "HIGH_SPEED_OFFENDER", "simulated": True},
 }
+
+
+def load_hotlist() -> Dict[str, Dict[str, Any]]:
+    """Hotlist from ANPR_HOTLIST_PATH (JSON: {"AP16XX1234": {"reason": ..., "flag": ...}}).
+    Empty by default. Only an authorised, current list should ever be configured here."""
+    hot: Dict[str, Dict[str, Any]] = {}
+    if os.environ.get("ANPR_DEMO_HOTLIST") == "1":
+        hot.update(_DEMO_HOTLIST)
+    path = os.environ.get("ANPR_HOTLIST_PATH")
+    if path and os.path.isfile(path):
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                hot.update({k.replace(" ", "").upper(): v for k, v in json.load(f).items()})
+        except (OSError, ValueError):
+            pass
+    return hot
+
+
+HOTLIST_PLATES = load_hotlist()
 
 INDIAN_PLATE_REGEX = re.compile(
     r"([A-Z]{2})\s*([0-9]{1,2})\s*([A-Z]{1,3})\s*([0-9]{3,4})"
@@ -68,6 +96,7 @@ class ANPRPipeline:
         # Multi-frame voting bank: track_id -> List[detected_plate_string]
         self._track_votes: Dict[int, List[str]] = defaultdict(list)
         self._track_confidences: Dict[int, List[float]] = defaultdict(list)
+        self._track_frames: Dict[int, int] = defaultdict(int)  # frames where a read was attempted
 
     def extract_plate_region(self, vehicle_crop: np.ndarray) -> List[np.ndarray]:
         """
@@ -161,6 +190,7 @@ class ANPRPipeline:
                     state_code = state
                     rest = cleaned[len(state):]
                     return {
+                        "loose": True,  # state prefix only; the rest of the pattern did not match
                         "text": f"{state_code} {rest[:2]} {rest[2:]}".strip(),
                         "raw": cleaned,
                         "state_code": state_code,
@@ -187,17 +217,38 @@ class ANPRPipeline:
             "hotlist": watch_info,
         }
 
+    def _read_candidate(self, cand: np.ndarray, config: str) -> Tuple[Optional[Dict[str, Any]], float]:
+        """OCR one candidate crop. Returns (parsed plate or None, OCR confidence 0..1)."""
+        proc = self.preprocess_for_ocr(cand)
+        data = pytesseract.image_to_data(proc, config=config, output_type=Output.DICT)
+        words, confs = [], []
+        for txt, c in zip(data.get("text", []), data.get("conf", [])):
+            try:
+                c = float(c)
+            except (TypeError, ValueError):
+                continue
+            if txt and txt.strip() and c >= 0:
+                words.append(txt.strip())
+                confs.append(c)
+        parsed = self.parse_plate_text("".join(words))
+        if not parsed or not confs:
+            return None, 0.0
+        conf = sum(confs) / len(confs) / 100.0
+        return parsed, (conf * 0.5 if parsed.get("loose") else conf)
+
     def process_vehicle_crop(
         self,
         vehicle_crop: np.ndarray,
         track_id: int,
-    ) -> Optional[Dict[str, Any]]:
+    ) -> Dict[str, Any]:
         """
         Runs ANPR on a vehicle crop with multi-frame voting accumulation.
-        Returns the consensus Plate object for the UI (PlateChip.jsx).
+
+        Always returns a dict. When nothing could be read, "readable" is False and the text
+        is "NO READ": the caller must show that, never a made-up registration.
         """
         candidates = self.extract_plate_region(vehicle_crop)
-        best_plate = None
+        best_plate, best_conf = None, 0.0
 
         config = (
             "--oem 3 --psm 7 "
@@ -206,65 +257,50 @@ class ANPRPipeline:
 
         for cand in candidates:
             try:
-                proc = self.preprocess_for_ocr(cand)
-                text = pytesseract.image_to_string(proc, config=config).strip()
-                parsed = self.parse_plate_text(text)
-                if parsed:
-                    best_plate = parsed
-                    break
+                parsed, conf = self._read_candidate(cand, config)
             except Exception:
-                continue
+                continue  # OCR unavailable or failed on this crop: counts as no read
+            if parsed:
+                best_plate, best_conf = parsed, conf
+                break
 
-        # If detected, accumulate into multi-frame voting bank
+        self._track_frames[track_id] += 1
         if best_plate:
             self._track_votes[track_id].append(best_plate["text"])
-            self._track_confidences[track_id].append(0.88)
-        else:
-            # Synthetic / fallback plate for benchmark track consistency if camera angle is top-down
-            # Seeded deterministically by track_id so a vehicle always has a stable plate
-            seeded_plate = self._get_seeded_fallback_plate(track_id)
-            self._track_votes[track_id].append(seeded_plate["text"])
-            self._track_confidences[track_id].append(0.85)
+            self._track_confidences[track_id].append(best_conf)
 
-        # Multi-frame consensus calculation
         votes_list = self._track_votes[track_id]
-        total_frames = len(votes_list)
+        frames = self._track_frames[track_id]
         if not votes_list:
-            return None
+            return {"text": "NO READ", "readable": False, "confidence": 0.0,
+                    "votes": 0, "frames": frames, "state": None, "district": None, "hotlist": None}
 
         most_common_plate, vote_count = Counter(votes_list).most_common(1)[0]
-        confidence = round(min(0.98, 0.70 + (vote_count / max(1, total_frames)) * 0.25), 2)
+        confs = [c for t, c in zip(votes_list, self._track_confidences[track_id]) if t == most_common_plate]
+        # Measured OCR confidence of the winning reads, scaled by how consistently it was read.
+        confidence = round((sum(confs) / len(confs)) * (vote_count / len(votes_list)), 2)
 
-        # Re-parse to get district / hotlist flags
         plate_meta = self.parse_plate_text(most_common_plate) or {}
-
         return {
             "text": most_common_plate,
+            "readable": True,
             "confidence": confidence,
             "votes": vote_count,
-            "frames": total_frames,
-            "state": plate_meta.get("state_name", "Andhra Pradesh"),
-            "district": plate_meta.get("district_name", "Amaravati / Guntur"),
+            "frames": frames,
+            "state": plate_meta.get("state_name"),
+            "district": plate_meta.get("district_name"),
             "hotlist": plate_meta.get("hotlist"),
         }
-
-    @staticmethod
-    def _get_seeded_fallback_plate(track_id: int) -> Dict[str, Any]:
-        """Deterministic benchmark fallback for high-angle drone footage."""
-        ap_districts = ["16", "07", "31", "21"]
-        dist = ap_districts[track_id % len(ap_districts)]
-        letters = ["TX", "AB", "CZ", "ER"][track_id % 4]
-        num = 1000 + (track_id * 137) % 9000
-        formatted = f"AP {dist} {letters} {num}"
-        return {"text": formatted}
 
     def reset_track(self, track_id: int):
         self._track_votes.pop(track_id, None)
         self._track_confidences.pop(track_id, None)
+        self._track_frames.pop(track_id, None)
 
     def reset(self):
         self._track_votes.clear()
         self._track_confidences.clear()
+        self._track_frames.clear()
 
 
 # Singleton ANPR pipeline

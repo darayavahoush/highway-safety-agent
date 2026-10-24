@@ -44,7 +44,11 @@ export function reducer(s, a) {
           ...s,
           metrics: e.metrics, metricsAt: at,
           cameraHealth: e.camera_health || s.cameraHealth,
-          cameraHealthAt: e.camera_health ? at : s.cameraHealthAt,
+          // A repeated health message is not proof the camera works. When the backend reports how
+          // long ago the last video frame arrived, date the health from that frame, not from the message.
+          cameraHealthAt: e.camera_health
+            ? (Number.isFinite(e.camera_health.frame_age_s) ? at - e.camera_health.frame_age_s * 1000 : at)
+            : s.cameraHealthAt,
         }
       }
       return s
