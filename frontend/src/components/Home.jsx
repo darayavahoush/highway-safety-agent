@@ -1,7 +1,7 @@
 import {
   ArrowDownRight, ArrowRight, Activity, ShieldCheck, Radio,
   MapPinned, ScanEye, Command, ChevronRight, MoveUpRight,
-  Zap, Radar, Orbit
+  Zap, Radar, Orbit, Sun, Moon
 } from 'lucide-react'
 
 const capabilities = [
@@ -44,6 +44,35 @@ export default function Home({ onEnter, conn, incidents = [], theme = 'dark', on
 
   return (
     <main className="nova-home">
+      <nav className="nova-nav" aria-label="Main navigation">
+        <a href="#" className="nova-brand" aria-label="Highway Safety Agent home">
+          <span className="nova-brand-mark"><Radar size={20} /></span>
+          <span className="nova-brand-type">
+            <strong>HRAP<span>.</span></strong>
+            <small>HIGHWAY RESPONSE &amp; AWARENESS</small>
+          </span>
+        </a>
+        <div className="nova-nav-right">
+          <span className={`nova-connection nova-connection-${conn || 'pending'}`}>
+            <i />
+            {connectionLabel}
+          </span>
+          {onToggleTheme && (
+            <button
+              type="button"
+              className="nova-theme-toggle"
+              onClick={onToggleTheme}
+              aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+            >
+              {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
+            </button>
+          )}
+          <button className="nova-nav-cta" onClick={onEnter}>
+            Open command <ArrowUpRightIcon />
+          </button>
+        </div>
+      </nav>
+
       <section className="nova-hero">
         <div className="nova-hero-copy">
           <div className="nova-overline">

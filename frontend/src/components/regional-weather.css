@@ -505,7 +505,6 @@
 .nova-hero .nova-visual-top,
 .nova-hero .nova-visual-caption,
 .nova-hero .nova-float-card {
-  position: relative;
   z-index: 2;
 }
 
@@ -1222,3 +1221,149 @@
   .corridor-map-wrapper > .corridor-tactical-card { grid-row:4 !important; grid-column:1 !important; }
 }
 
+
+/* HRAP_UI_REPAIR_V2 */
+
+/* Restore the homepage background without an opaque pseudo-element. */
+main.nova-home {
+  background-color: #090a10 !important;
+  background-image: url("/highway-hero.png") !important;
+  background-position: center !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+}
+main.nova-home::before {
+  content: none !important;
+  display: none !important;
+}
+main.nova-home .nova-hero {
+  background: transparent !important;
+}
+
+/* Road Art: retain one HUD strip, remove decorative bars. */
+.nova-hero .nova-visual::before,
+.nova-hero .nova-visual::after,
+.nova-hero .nova-visual-top::before,
+.nova-hero .nova-visual-top::after {
+  content: none !important;
+  display: none !important;
+}
+.nova-hero .nova-visual-top {
+  top: 19px !important;
+  left: 20px !important;
+  right: 20px !important;
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+/* Correct the redesigned multi-page app shell. */
+.app:not(.app--home) {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+.app:not(.app--home) > .topbar,
+.app:not(.app--home) > .ops-nav {
+  flex: 0 0 auto !important;
+}
+.app:not(.app--home) > .ops-page {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  min-width: 0 !important;
+  overflow: auto !important;
+}
+
+/* Let the Corridor map, weather rail, and tactical panel size naturally. */
+.app--corridor .ops-single-stage,
+.app--corridor .ops-single-stage > .panel.stage {
+  width: 100% !important;
+  min-width: 0 !important;
+  flex: 0 0 auto !important;
+  overflow: visible !important;
+}
+.app--corridor .ops-single-stage > .panel.stage > .stage-body {
+  display: block !important;
+  flex: 0 0 auto !important;
+  min-height: 0 !important;
+  height: auto !important;
+  overflow: visible !important;
+}
+
+/* HRAP_UI_REPAIR_V2 */
+
+/* Restore the homepage background without an opaque pseudo-element. */
+main.nova-home {
+  background-color: #090a10 !important;
+  background-image: url("/highway-hero.png") !important;
+  background-position: center !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+}
+main.nova-home::before {
+  content: none !important;
+  display: none !important;
+}
+main.nova-home .nova-hero {
+  background: transparent !important;
+}
+
+/* Road Art: retain one HUD strip, remove decorative bars. */
+.nova-hero .nova-visual::before,
+.nova-hero .nova-visual::after,
+.nova-hero .nova-visual-top::before,
+.nova-hero .nova-visual-top::after {
+  content: none !important;
+  display: none !important;
+}
+.nova-hero .nova-visual-top {
+  top: 19px !important;
+  left: 20px !important;
+  right: 20px !important;
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+/* Correct the redesigned multi-page app shell. */
+.app:not(.app--home) {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+.app:not(.app--home) > .topbar,
+.app:not(.app--home) > .ops-nav {
+  flex: 0 0 auto !important;
+}
+.app:not(.app--home) > .ops-page {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  min-width: 0 !important;
+  overflow: auto !important;
+}
+
+/* Let the Corridor map, weather rail, and tactical panel size naturally. */
+.app--corridor .ops-single-stage,
+.app--corridor .ops-single-stage > .panel.stage {
+  width: 100% !important;
+  min-width: 0 !important;
+  flex: 0 0 auto !important;
+  overflow: visible !important;
+}
+.app--corridor .ops-single-stage > .panel.stage > .stage-body {
+  display: block !important;
+  flex: 0 0 auto !important;
+  min-height: 0 !important;
+  height: auto !important;
+  overflow: visible !important;
+}
