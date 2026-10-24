@@ -24,3 +24,4 @@ screenshot_*.png
 *.backup-*
 *-backup-*
 *.pre-overhaul-*
+labels/frames/
