@@ -1,17 +1,7 @@
 import React from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App.jsx'
-import './styles.css'
-import './premium.css'
-import './compact-console.css'
-import './decision-first.css'
-import './redesign.css'
-import './violet-redesign.css'
-import './components/regional-weather.css'
-import './layout-fix.css'
-import './cinematic-road.css'
-import './cinematic-road-v4.css'
-import './control-room.css'
+import './styles/app.css'
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
