@@ -1,4 +1,4 @@
-import { ShieldCheck, Siren, Eye, ArrowRight, Wifi } from 'lucide-react'
+import { ShieldCheck, Siren, Eye, ArrowRight, Wifi, WifiOff } from 'lucide-react'
 import CinematicPage from './CinematicPage.jsx'
 import IncidentGuide from './IncidentGuide.jsx'
 import IncidentQueue from './IncidentQueue.jsx'
@@ -6,7 +6,7 @@ import LiveStage from './LiveStage.jsx'
 import ActivityLog from './ActivityLog.jsx'
 import IncidentDetail from './IncidentDetail.jsx'
 import StatsStrip from './StatsStrip.jsx'
-import { isActive, incidentTitle, locationLabel, fmtAge, SEVERITY } from '../lib/format.js'
+import { isActive, incidentTitle, locationLabel, fmtAge, SEVERITY, isBlind } from '../lib/format.js'
 import { SEVERITY_HELP, nextStep, whyItMatters } from '../lib/plain.js'
 
 const CONN = {
@@ -26,7 +26,8 @@ export default function ControlRoom({
     (a, b) => (RANK[a.severity] ?? 3) - (RANK[b.severity] ?? 3) || b.createdAt - a.createdAt,
   )[0]
   const critical = active.filter((i) => i.severity === 'P0').length
-  const tone = active.length === 0 ? 'clear' : critical > 0 ? 'critical' : 'watch'
+  const blind = isBlind(state.conn, list)
+  const tone = blind ? 'watch' : active.length === 0 ? 'clear' : critical > 0 ? 'critical' : 'watch'
   const road = camera ? `${camera.highway || 'the highway'}${camera.km ? `, KM ${camera.km}` : ''}` : 'the highway'
   const n = active.length
   const others = active
@@ -34,7 +35,9 @@ export default function ControlRoom({
     .sort((a, b) => (RANK[a.severity] ?? 3) - (RANK[b.severity] ?? 3) || b.createdAt - a.createdAt)
     .slice(0, 3)
 
-  const headline = tone === 'clear'
+  const headline = blind
+    ? (state.conn === 'offline' ? 'Can’t see the road right now' : 'Connecting to the tracker')
+    : tone === 'clear'
     ? 'All clear'
     : `${n} incident${n === 1 ? '' : 's'} need${n === 1 ? 's' : ''} attention`
 
@@ -50,12 +53,20 @@ export default function ControlRoom({
             Watching {road}
           </span>
           <h2 className="cr-headline">
-            {tone === 'clear'
+            {blind
+              ? <WifiOff size={38} aria-hidden="true" />
+              : tone === 'clear'
               ? <ShieldCheck size={38} aria-hidden="true" />
               : <Siren size={38} aria-hidden="true" />}
             <span>{headline}</span>
           </h2>
-          {tone === 'clear' ? (
+          {blind ? (
+            <p className="cr-sub">
+              {state.conn === 'offline'
+                ? 'The connection to the tracker is down, so an empty screen does not mean the road is clear. The app is retrying.'
+                : 'Waiting for the first update. This usually takes a few seconds.'}
+            </p>
+          ) : tone === 'clear' ? (
             <p className="cr-sub">Nothing needs you right now. New incidents appear here the moment the camera spots one.</p>
           ) : (
             <p className="cr-sub">
@@ -65,7 +76,7 @@ export default function ControlRoom({
               </button>
             </p>
           )}
-          {tone !== 'clear' && top && (
+          {!blind && tone !== 'clear' && top && (
             <div className="cr-next">
               <p><b>Why it matters.</b> {whyItMatters(top.type)}</p>
               <p><b>Do this next.</b> {nextStep(top)}</p>
@@ -107,14 +118,14 @@ export default function ControlRoom({
         <section className="cr-col cr-col--list">
           <h3 className="cr-step"><em>01</em>What is happening</h3>
           <IncidentQueue list={list} selectedId={state.selectedId} onSelect={actions.select}
-            now={now} filter={filter} setFilter={setFilter} />
+            now={now} filter={filter} setFilter={setFilter} conn={state.conn} />
         </section>
 
         <section className="cr-col cr-col--stage">
           <h3 className="cr-step"><em>02</em>Where it is</h3>
           <LiveStage incident={selected} camera={camera} metrics={state.metrics}
             incidents={list} onSelectIncident={actions.select} onCorridorInfo={onCorridorInfo} />
-          <ActivityLog list={list} onSelect={actions.select} />
+          <ActivityLog list={list} onSelect={actions.select} conn={state.conn} />
         </section>
 
         <section className="cr-col cr-col--detail">

@@ -6,10 +6,9 @@ import ReasoningTrace from './ReasoningTrace.jsx'
 import DispatchTimeline from './DispatchTimeline.jsx'
 import { isLive } from '../api/client.js'
 import {
-  SEVERITY, STATUS_LABEL, TYPE_META, incidentTitle, locationLabel, fmtDuration,
+  SEVERITY, STATUS_LABEL, TYPE_META, VEHICLE_LABEL, incidentTitle, locationLabel, fmtDuration,
 } from '../lib/format.js'
 
-const CLS_LABEL = { truck: 'Truck', bus: 'Bus', car: 'Car', van: 'Van', motorbike: 'Motorbike' }
 
 export default function IncidentDetail({ incident, now, actions }) {
   const [isExplaining, setIsExplaining] = useState(false)
@@ -65,7 +64,7 @@ export default function IncidentDetail({ incident, now, actions }) {
             {incident.vehicles.map((v) => (
               <li key={v.trackId} className="veh">
                 <div>
-                  <b>{CLS_LABEL[v.cls] || v.cls} #{v.trackId}</b>
+                  <b>{VEHICLE_LABEL[v.cls] || v.cls} #{v.trackId}</b>
                   <span>{Math.round(v.speedKmh)} km/h{v.lane ? `, ${v.lane.toLowerCase()}` : ''}</span>
                 </div>
                 <PlateChip plate={v.plate} />

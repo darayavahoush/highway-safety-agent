@@ -15,7 +15,7 @@ import { PAGE_COPY } from './lib/plain.js'
 import OperatorCopilot from './components/OperatorCopilot.jsx'
 import AboutModal from './components/AboutModal.jsx'
 import HighwayIntelSidebar from './components/HighwayIntelSidebar.jsx'
-import { isActive } from './lib/format.js'
+import { isActive, isBlind } from './lib/format.js'
 
 function readTheme() {
   try {
@@ -42,7 +42,7 @@ export default function App() {
   ]
 
   const openCount = list.filter(isActive).length
-  const tone = openCount === 0 ? 'clear' : list.some((i) => isActive(i) && i.severity === 'P0') ? 'critical' : 'watch'
+  const tone = isBlind(state.conn, list) ? 'watch' : openCount === 0 ? 'clear' : list.some((i) => isActive(i) && i.severity === 'P0') ? 'critical' : 'watch'
   const camera = state.camera ?? selected?.camera ?? list[0]?.camera ?? null
   const startOfDay = new Date()
   startOfDay.setHours(0, 0, 0, 0)
@@ -129,7 +129,7 @@ export default function App() {
                   <div className="cr-two">
                     <section className="cr-col">
                       <IncidentQueue list={list} selectedId={state.selectedId} onSelect={actions.select}
-                        now={now} filter={filter} setFilter={setFilter} />
+                        now={now} filter={filter} setFilter={setFilter} conn={state.conn} />
                     </section>
                     <section className="cr-col">
                       <IncidentGuide incident={selected} />
@@ -138,7 +138,7 @@ export default function App() {
                   </div>
                 )}
 
-                {page === 'activity' && <ActivityLog list={list} onSelect={actions.select} />}
+                {page === 'activity' && <ActivityLog list={list} onSelect={actions.select} conn={state.conn} />}
 
                 {page === 'system' && <SystemStatus state={state} list={list} camera={camera} today={today} />}
               </CinematicPage>

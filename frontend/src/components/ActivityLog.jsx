@@ -1,9 +1,11 @@
 import { useMemo } from 'react'
+import { BellOff } from 'lucide-react'
+import { EmptyState, SkeletonRows, OfflineState } from './StateBlock.jsx'
 import { targetMeta, fmtClock, incidentTitle } from '../lib/format.js'
 
 const STATE_TEXT = { queued: 'Queued', sent: 'Sent', acknowledged: 'Acknowledged', cancelled: 'Cancelled' }
 
-export default function ActivityLog({ list, onSelect }) {
+export default function ActivityLog({ list, onSelect, conn }) {
   const rows = useMemo(
     () => list
       .flatMap((i) => i.dispatches.map((d) => ({ d, i })))
@@ -27,7 +29,13 @@ export default function ActivityLog({ list, onSelect }) {
         </div>
       )}
       <div className="scroll">
-        {rows.length === 0 && <div className="empty empty--tight"><p>No dispatches yet today.</p></div>}
+        {rows.length === 0 && list.length === 0 && conn === 'connecting' && <SkeletonRows label="Loading alerts" />}
+        {rows.length === 0 && list.length === 0 && conn === 'offline' && <OfflineState what="alerts" />}
+        {rows.length === 0 && !(list.length === 0 && (conn === 'connecting' || conn === 'offline')) && (
+          <EmptyState icon={BellOff} title="No alerts sent yet" tight>
+            When the system warns drivers or calls a patrol, each message is listed here.
+          </EmptyState>
+        )}
         {rows.map(({ d, i }) => {
           const meta = targetMeta(d.target)
           const Icon = meta.icon

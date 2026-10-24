@@ -90,3 +90,32 @@ const clock = new Intl.DateTimeFormat('en-IN', {
   timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
 })
 export const fmtClock = (ms) => clock.format(new Date(ms))
+
+export const VEHICLE_LABEL = { truck: 'Truck', bus: 'Bus', car: 'Car', van: 'Van', motorbike: 'Motorbike' }
+
+// True when we have no data AND no working connection. An empty list then means
+// "we cannot see", not "all clear", so screens must not show reassurance.
+export const isBlind = (conn, list) => list.length === 0 && (conn === 'connecting' || conn === 'offline')
+
+const firstSentence = (text = '') => {
+  const t = String(text).trim().replace(/\s+/g, ' ')
+  const m = t.match(/^.*?[.!?](?=\s|$)/)
+  return (m ? m[0] : t).trim()
+}
+
+// One line saying why the system flagged this, from the tracker's own first note.
+export function incidentWhy(i) {
+  return firstSentence(i.trace?.[0]?.text) || firstSentence(i.briefing) || ''
+}
+
+// "Truck · 0 km/h" for one vehicle, "Truck + Motorbike" for several.
+export function vehicleSummary(i) {
+  const vs = i.vehicles || []
+  if (vs.length === 0) return ''
+  const name = (v) => VEHICLE_LABEL[v.cls] || (v.cls ? v.cls.charAt(0).toUpperCase() + v.cls.slice(1) : 'Vehicle')
+  if (vs.length === 1) {
+    const sp = vs[0].speedKmh
+    return Number.isFinite(sp) ? `${name(vs[0])} · ${Math.round(sp)} km/h` : name(vs[0])
+  }
+  return [...new Set(vs.map(name))].join(' + ')
+}
