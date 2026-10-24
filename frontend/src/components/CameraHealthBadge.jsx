@@ -14,7 +14,7 @@ import {
   AlertCircle
 } from 'lucide-react'
 
-export default function CameraHealthBadge({ health, onClick }) {
+export default function CameraHealthBadge({ health, onClick, staleSeconds = null }) {
   const [showPopover, setShowPopover] = useState(false)
 
   const reported = hasCameraReport(health)
@@ -30,6 +30,23 @@ export default function CameraHealthBadge({ health, onClick }) {
           <span className="health-chip" style={{ borderColor: '#94a3b840', color: '#94a3b8' }}>
             <Camera size={12} />
             <span>NOT REPORTED</span>
+          </span>
+        </button>
+      </div>
+    )
+  }
+
+  if (staleSeconds != null) {
+    return (
+      <div className="cam-health-badge-container">
+        <button
+          className="cam-health-badge-btn"
+          onClick={onClick}
+          title={`The camera last reported ${staleSeconds} s ago. What you see may be out of date.`}
+        >
+          <span className="health-chip" style={{ borderColor: '#f59e0b66', color: '#f59e0b' }}>
+            <Camera size={12} />
+            <span>LAST REPORT {staleSeconds} S AGO</span>
           </span>
         </button>
       </div>

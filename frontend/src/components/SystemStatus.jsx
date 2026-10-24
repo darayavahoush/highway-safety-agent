@@ -2,6 +2,14 @@ import { Wifi, Camera, Gauge, Timer, Database, Eye } from 'lucide-react'
 import StatsStrip from './StatsStrip.jsx'
 import { isActive } from '../lib/format.js'
 import { cameraStatus } from '../lib/plain.js'
+import { isStale } from '../lib/freshness.js'
+
+// When updates stop arriving, say so. Old numbers must not look current.
+export function withFreshness(card, at, now, what) {
+  if (!isStale(at, now)) return card
+  const secs = Math.round((now - at) / 1000)
+  return { tone: 'warn', headline: `No update for ${secs} s`, detail: `${what} stopped reporting. Last known: ${card.headline.toLowerCase()}.` }
+}
 
 function connection(conn) {
   switch (conn) {
@@ -24,12 +32,12 @@ function reaction(m) {
   return { tone: s > 10 ? 'warn' : 'ok', headline: `${s.toFixed(1)} seconds`, detail: 'Time from the camera spotting a problem to the first alert going out.' }
 }
 
-export default function SystemStatus({ state, list, camera, today }) {
+export default function SystemStatus({ state, list, camera, today, now = Date.now() }) {
   const open = list.filter(isActive).length
   const cards = [
     [Wifi, 'Connection', connection(state.conn)],
-    [Camera, 'Camera', cameraStatus(state.cameraHealth)],
-    [Gauge, 'Video tracker', tracker(state.metrics)],
+    [Camera, 'Camera', withFreshness(cameraStatus(state.cameraHealth), state.cameraHealthAt, now, 'The camera')],
+    [Gauge, 'Video tracker', withFreshness(tracker(state.metrics), state.metricsAt, now, 'The video tracker')],
     [Timer, 'Speed of response', reaction(state.metrics)],
     [Database, 'Incident records', {
       tone: 'ok',

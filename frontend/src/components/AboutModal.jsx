@@ -65,7 +65,7 @@ export default function AboutModal({ isOpen, onClose }) {
               <li><i style={{ background: '#f5b942' }} /><b>High</b> Check soon</li>
               <li><i style={{ background: '#5cb8ff' }} /><b>Watch</b> Keep an eye on it</li>
             </ul>
-            <p className="about-demo">“Demo simulation” means you are looking at sample data. No real emergency is happening. Press <kbd>?</kbd> any time to open this help.</p>
+            <p className="about-demo">“Demo simulation” means you are looking at sample data. No real emergency is happening. Press <kbd>?</kbd> any time to open this help, or <kbd>G</kbd> then <kbd>1</kbd> to <kbd>5</kbd> to jump between pages.</p>
           </section>
           <details className="about-tech">
             <summary>Technical details and keyboard shortcuts <span>for engineers</span></summary>
@@ -217,40 +217,28 @@ export default function AboutModal({ isOpen, onClose }) {
           <div className="about-section">
             <div className="about-section-head">
               <Keyboard size={18} className="text-cyan" />
-              <h4>Simultaneous View Access & Keyboard Shortcuts</h4>
+              <h4>Keyboard shortcuts</h4>
             </div>
             <div className="shortcuts-grid">
               <div className="shortcut-item">
-                <kbd>1</kbd>
-                <span>Live Camera View (MJPEG Video Feed)</span>
+                <kbd>G</kbd> then <kbd>1</kbd> to <kbd>5</kbd>
+                <span>Go to Overview, Corridor, Incidents, Activity or System status</span>
               </div>
               <div className="shortcut-item">
-                <kbd>2</kbd>
-                <span>3D Corridor & Trauma Network Map</span>
+                <kbd>1</kbd> to <kbd>4</kbd>
+                <span>On the Corridor page: Live camera, Road map, Lanes, Simulation</span>
               </div>
               <div className="shortcut-item">
-                <kbd>3</kbd>
-                <span>Top-Down Lane Topology Map</span>
-              </div>
-              <div className="shortcut-item">
-                <kbd>4</kbd>
-                <span>Three.js 3D Digital Twin Simulation</span>
-              </div>
-              <div className="shortcut-item">
-                <kbd>C</kbd>
-                <span>Toggle AI Operator Copilot Drawer</span>
+                <kbd>H</kbd>
+                <span>Back to the home page</span>
               </div>
               <div className="shortcut-item">
                 <kbd>?</kbd> or <kbd>A</kbd>
-                <span>Open About & Architecture Documentation</span>
+                <span>Open or close this help window</span>
               </div>
               <div className="shortcut-item">
                 <kbd>Esc</kbd>
-                <span>Close Active Modal or Drawer</span>
-              </div>
-              <div className="shortcut-item">
-                <kbd>Space</kbd>
-                <span>Pause / Resume Replay Stream</span>
+                <span>Close this window, or leave the control room</span>
               </div>
             </div>
           </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import useControlRoom from './state/useControlRoom.js'
 import TopBar from './components/TopBar.jsx'
 import Home from './components/Home.jsx'
@@ -16,6 +16,7 @@ import OperatorCopilot from './components/OperatorCopilot.jsx'
 import AboutModal from './components/AboutModal.jsx'
 import HighwayIntelSidebar from './components/HighwayIntelSidebar.jsx'
 import { isActive, isBlind } from './lib/format.js'
+import { resolveShortcut } from './lib/shortcuts.js'
 
 function readTheme() {
   try {
@@ -57,17 +58,20 @@ export default function App() {
     }
   }, [theme])
 
+  const chordAt = useRef(null)
   useEffect(() => {
+    // Capture phase, so a "G then 1" jump is handled here before the Corridor tab keys see the "1".
     function handleKeyDown(e) {
-      if (e.target?.matches?.('input, textarea, select, [contenteditable="true"]')) return
-      if (e.key === '?' || e.key === 'a' || e.key === 'A') {
-        setIsAboutOpen((prev) => !prev)
-      }
-      if (e.key === 'Escape' && page === 'control') setPage('home')
+      const r = resolveShortcut(e, { chordAt: chordAt.current, page, aboutOpen: isAboutOpen })
+      chordAt.current = r.chord
+      if (r.consume) e.stopPropagation()
+      if (!r.action) return
+      if (r.action.type === 'about') setIsAboutOpen(r.action.open)
+      else if (r.action.type === 'page') setPage(r.action.page)
     }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [page])
+    window.addEventListener('keydown', handleKeyDown, true)
+    return () => window.removeEventListener('keydown', handleKeyDown, true)
+  }, [page, isAboutOpen])
 
   return (
     <div className={`app app--${page}`}>
@@ -77,6 +81,7 @@ export default function App() {
           camera={camera}
           now={now}
           cameraHealth={state.cameraHealth}
+          cameraHealthAt={state.cameraHealthAt}
           onOpenAbout={() => setIsAboutOpen(true)}
           onHome={() => setPage('home')}
           theme={theme}
@@ -140,7 +145,7 @@ export default function App() {
 
                 {page === 'activity' && <ActivityLog list={list} onSelect={actions.select} conn={state.conn} />}
 
-                {page === 'system' && <SystemStatus state={state} list={list} camera={camera} today={today} />}
+                {page === 'system' && <SystemStatus state={state} list={list} camera={camera} today={today} now={now} />}
               </CinematicPage>
             )}
           </main>

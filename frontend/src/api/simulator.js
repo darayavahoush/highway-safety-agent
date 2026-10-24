@@ -233,6 +233,15 @@ export function startSimulator(emit) {
         agentLatencyMs: Math.round(rnd(4100, 4700)),
         detectToDispatchS: median(dts) ?? 4.3,
       },
+      camera_health: {
+        camera_stability: 'STATIC_LOCKED',
+        lighting_condition: 'OPTIMAL_DAYLIGHT',
+        background_drift_px: +rnd(0.1, 0.5).toFixed(2),
+        avg_luminance: Math.round(rnd(118, 138)),
+        contrast_rms: Math.round(rnd(48, 56)),
+        visibility_score: Math.round(rnd(93, 98)),
+        motion_status: 'Static gantry mount',
+      },
     })
   }, 1500)
 

@@ -1,6 +1,7 @@
 import { Camera, Radio, BookOpen, House, Sun, Moon } from 'lucide-react'
 import { fmtClock } from '../lib/format.js'
 import CameraHealthBadge from './CameraHealthBadge.jsx'
+import { isStale } from '../lib/freshness.js'
 
 const PILL = {
   demo: ['Demo simulation', 'pill--amber'],
@@ -10,7 +11,7 @@ const PILL = {
 }
 
 export default function TopBar({
-  conn, camera, now, cameraHealth, onOpenAbout,
+  conn, camera, now, cameraHealth, cameraHealthAt, onOpenAbout,
   onHome, theme = 'dark', onToggleTheme,
 }) {
   const [text, cls] = PILL[conn] || PILL.connecting
@@ -48,7 +49,8 @@ export default function TopBar({
       )}
 
       <div className="topbar-right">
-        <CameraHealthBadge health={cameraHealth} onClick={onOpenAbout} />
+        <CameraHealthBadge health={cameraHealth} onClick={onOpenAbout}
+          staleSeconds={isStale(cameraHealthAt, now) ? Math.round((now - cameraHealthAt) / 1000) : null} />
         <button className="topbar-icon-button" onClick={onToggleTheme} title="Toggle colour theme" aria-label="Toggle colour theme">
           {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
         </button>
