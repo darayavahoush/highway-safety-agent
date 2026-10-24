@@ -199,6 +199,7 @@ export default function CorridorMap3D({
   const [terrainEnabled, setTerrainEnabled] = useState(true)
   const [terrainStatus, setTerrainStatus] = useState('loading')
   const [terrainError, setTerrainError] = useState('')
+  const [terrainRetry, setTerrainRetry] = useState(0)
   const [isOrbiting, setIsOrbiting] = useState(false)
   const [mapLoaded, setMapLoaded] = useState(false)
   const [webGlFailed, setWebGlFailed] = useState(false)
@@ -407,7 +408,7 @@ export default function CorridorMap3D({
   // AWS Terrarium is a global, no-key raster DEM; no demo-only Alpine coverage is used.
   useEffect(() => {
     const map = mapRef.current
-    if (!map || !mapLoaded || !map.isStyleLoaded()) return undefined
+    if (!map || !mapLoaded) return undefined
 
     const sourceId = 'terrain-source'
     const hillshadeId = 'terrain-hillshade'
@@ -452,7 +453,7 @@ export default function CorridorMap3D({
             type: 'hillshade',
             source: sourceId,
             paint: {
-              'hillshade-exaggeration': 0.6,
+              'hillshade-exaggeration': 0.85,
               'hillshade-shadow-color': '#142637',
               'hillshade-highlight-color': '#c7d8e6',
               'hillshade-accent-color': '#526a7c',
@@ -460,23 +461,46 @@ export default function CorridorMap3D({
             },
           }, firstSymbol)
         }
-        map.setTerrain({ source: sourceId, exaggeration: 2.6 })
-        if (map.getPitch() < 58) map.easeTo({ pitch: 66, bearing: -18, duration: 650 })
+        map.setTerrain({ source: sourceId, exaggeration: 3.4 })
+        if (map.getPitch() < 58) map.easeTo({ pitch: 64, bearing: -18, duration: 650 })
+
+        // Extruded buildings when the basemap carries building footprints.
+        const styleSources = map.getStyle()?.sources || {}
+        const vecSource = styleSources.openmaptiles ? 'openmaptiles' : Object.keys(styleSources).find((k) => styleSources[k].type === 'vector')
+        if (vecSource && !map.getLayer('hrap-3d-buildings')) {
+          try {
+            map.addLayer({
+              id: 'hrap-3d-buildings', type: 'fill-extrusion', source: vecSource, 'source-layer': 'building', minzoom: 13,
+              paint: {
+                'fill-extrusion-color': '#d6c3ad',
+                'fill-extrusion-height': ['coalesce', ['get', 'render_height'], 12],
+                'fill-extrusion-base': ['coalesce', ['get', 'render_min_height'], 0],
+                'fill-extrusion-opacity': 0.85,
+              },
+            })
+          } catch (e) { /* basemap has no building layer; skip */ }
+        }
 
         // Report active only after the terrain API accepted the configuration.
         setTerrainStatus('active')
       }
     } catch (error) {
       console.warn('[HRAP] 3D terrain setup failed:', error)
-      setTerrainStatus('unavailable')
-      setTerrainError(error?.message || 'The terrain renderer could not be activated.')
+      const busy = /not done loading|style is not|not loaded/i.test(error?.message || '')
+      if (busy && terrainRetry < 5) {
+        // The basemap was still busy: try again as soon as it is idle.
+        map.once('idle', () => { if (!disposed) setTerrainRetry((n) => n + 1) })
+      } else {
+        setTerrainStatus('unavailable')
+        setTerrainError(error?.message || 'The terrain renderer could not be activated.')
+      }
     }
 
     return () => {
       disposed = true
       map.off('error', onTerrainError)
     }
-  }, [terrainEnabled, mapLoaded, currentStyleUrl])
+  }, [terrainEnabled, mapLoaded, currentStyleUrl, terrainRetry])
 
   // Andhra Pradesh only: black out everything outside the state, outline AP, faint district lines.
   useEffect(() => {
@@ -823,6 +847,11 @@ export default function CorridorMap3D({
 
       {/* Map and persistent intelligence sidebar */}
       <div className="corridor-map-stage">
+        {terrainEnabled && terrainStatus === 'unavailable' && (
+          <div className="ap-map-warn" role="status">
+            3D hills could not load{terrainError ? `: ${terrainError}` : '.'} The map is still usable.
+          </div>
+        )}
         <div className="ap-map-legend" aria-label="Map key">
           <div className="ap-map-legend__title">Map key</div>
           <div><i style={{ background: '#f59e0b' }} /> Road you picked</div>
