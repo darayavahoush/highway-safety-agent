@@ -8,6 +8,7 @@ export default defineConfig(({ mode }) => {
   const target = env.VITE_BACKEND_URL || 'http://localhost:8000'
   return {
     plugins: [react()],
+    test: { environment: 'jsdom', setupFiles: ['./src/test/setup.js'], css: false },
     server: {
       port: 5173,
       proxy: {
