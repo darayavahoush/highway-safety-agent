@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import { Video, Map as MapIcon, Boxes, Compass, Film } from 'lucide-react'
 import LaneMap from './LaneMap.jsx'
-import CorridorMap3D from './CorridorMap3D.jsx'
+// The map library is ~1.1 MB, so it is only downloaded when the Road map tab opens.
+const CorridorMap3D = lazy(() => import('./CorridorMap3D.jsx'))
 import DigitalTwin from './DigitalTwin.jsx'
 import { isLive } from '../api/client.js'
 
@@ -130,13 +131,22 @@ export default function LiveStage({ initialTab, incident, camera, metrics, incid
         ))}
 
         {tab === 'corridor' && (
-          <CorridorMap3D
-            onCorridorInfo={onCorridorInfo}
-            incidents={incidents}
-            selectedIncident={incident}
-            onSelectIncident={onSelectIncident}
-            camera={camera}
-          />
+          <Suspense
+            fallback={
+              <div className="stage-empty" role="status" aria-live="polite">
+                <Compass size={30} aria-hidden="true" />
+                <p><b>Loading the road map…</b></p>
+              </div>
+            }
+          >
+            <CorridorMap3D
+              onCorridorInfo={onCorridorInfo}
+              incidents={incidents}
+              selectedIncident={incident}
+              onSelectIncident={onSelectIncident}
+              camera={camera}
+            />
+          </Suspense>
         )}
 
         {tab === 'lane' && (

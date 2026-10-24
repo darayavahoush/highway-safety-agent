@@ -15,7 +15,6 @@ import {
 } from 'lucide-react'
 import RegionalWeather from './RegionalWeather.jsx'
 import { AP_BOUNDARY } from '../data/apBoundary.js'
-import 'maplibre-gl/dist/maplibre-gl.css'
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
 
 
