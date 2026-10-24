@@ -6493,7 +6493,7 @@ body {
       rgba(9, 10, 16, .18) 55%,
       rgba(9, 10, 16, .48) 100%
     ),
-    url("/highway-hero.png");
+    url("/highway-hero.webp");
   background-size: cover;
   background-position: center 48%;
   opacity: .48;
@@ -6785,7 +6785,7 @@ main.nova-home {
   position: relative;
   isolation: isolate;
   background-color: #090a10 !important;
-  background-image: linear-gradient(rgba(9,10,16,.28), rgba(9,10,16,.42)), url("/highway-hero.png") !important;
+  background-image: linear-gradient(rgba(9,10,16,.28), rgba(9,10,16,.42)), url("/highway-hero.webp") !important;
   background-position: center center;
   background-size: cover;
   background-repeat: no-repeat;
@@ -6821,7 +6821,7 @@ main.nova-home {
   background-color: #090a10 !important;
   background-image:
     linear-gradient(rgba(9,10,16,.12), rgba(9,10,16,.20)),
-    url("/highway-hero.png") !important;
+    url("/highway-hero.webp") !important;
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;
@@ -6942,7 +6942,7 @@ main.nova-home {
   background-color: #090a10 !important;
   background-image:
     linear-gradient(rgba(9,10,16,.20),rgba(9,10,16,.28)),
-    url("/highway-hero.png") !important;
+    url("/highway-hero.webp") !important;
   background-position: center center !important; background-size: cover !important;
   background-repeat: no-repeat !important; background-attachment: fixed;
 }
@@ -7090,7 +7090,7 @@ main.nova-home::before {
   background-image:
     linear-gradient(90deg, rgba(4, 9, 17, .88) 0%, rgba(4, 9, 17, .57) 43%, rgba(4, 9, 17, .18) 76%, rgba(4, 9, 17, .52) 100%),
     linear-gradient(0deg, rgba(4, 9, 17, .82) 0%, rgba(4, 9, 17, .10) 50%, rgba(4, 9, 17, .28) 100%),
-    url("/highway-ghats-sunset.png") !important;
+    url("/highway-ghats-sunset.webp") !important;
   background-size: cover !important;
   background-position: center 54% !important;
   background-repeat: no-repeat !important;
@@ -7117,7 +7117,7 @@ main.nova-home .nova-footer {
   background-color: #0a1521 !important;
   background-image:
     linear-gradient(180deg, rgba(4, 9, 17, .19), rgba(4, 9, 17, .47) 48%, rgba(4, 9, 17, .84)),
-    url("/highway-monsoon-night.png") !important;
+    url("/highway-monsoon-night.webp") !important;
   background-size: cover !important;
   background-position: center 55% !important;
   border: 1px solid rgba(181, 210, 242, .25) !important;
@@ -7170,11 +7170,11 @@ main.nova-home .nova-footer {
   background: #070d15 !important;
   color: var(--hrap-text) !important;
 }
-.app--control { --hrap-road-image: url("/highway-valley-daybreak.png"); --hrap-road-position: center 52%; }
-.app--corridor { --hrap-road-image: url("/highway-monsoon-night.png"); --hrap-road-position: center 56%; }
-.app--incidents { --hrap-road-image: url("/highway-ghats-sunset.png"); --hrap-road-position: center 44%; }
-.app--activity { --hrap-road-image: url("/highway-monsoon-night.png"); --hrap-road-position: center 48%; }
-.app--system { --hrap-road-image: url("/highway-valley-daybreak.png"); --hrap-road-position: center 45%; }
+.app--control { --hrap-road-image: url("/highway-valley-daybreak.webp"); --hrap-road-position: center 52%; }
+.app--corridor { --hrap-road-image: url("/highway-monsoon-night.webp"); --hrap-road-position: center 56%; }
+.app--incidents { --hrap-road-image: url("/highway-ghats-sunset.webp"); --hrap-road-position: center 44%; }
+.app--activity { --hrap-road-image: url("/highway-monsoon-night.webp"); --hrap-road-position: center 48%; }
+.app--system { --hrap-road-image: url("/highway-valley-daybreak.webp"); --hrap-road-position: center 45%; }
 .app:not(.app--home)::before {
   content: "" !important;
   display: block !important;
@@ -7182,7 +7182,7 @@ main.nova-home .nova-footer {
   inset: 0 !important;
   z-index: 0 !important;
   pointer-events: none !important;
-  background-image: var(--hrap-road-image, url("/highway-ghats-sunset.png")) !important;
+  background-image: var(--hrap-road-image, url("/highway-ghats-sunset.webp")) !important;
   background-size: cover !important;
   background-position: var(--hrap-road-position, center) !important;
   background-repeat: no-repeat !important;
@@ -7319,7 +7319,7 @@ main.nova-home .nova-footer {
   overflow: hidden !important;
   border: 1px solid rgba(187,214,247,.17) !important;
   border-radius: 11px !important;
-  background-image: linear-gradient(180deg, rgba(4,10,17,.20), rgba(4,10,17,.80)), url("/highway-monsoon-night.png") !important;
+  background-image: linear-gradient(180deg, rgba(4,10,17,.20), rgba(4,10,17,.80)), url("/highway-monsoon-night.webp") !important;
   background-size: cover !important;
   background-position: center 60% !important;
 }
@@ -7484,14 +7484,14 @@ main.nova-home .nova-footer {
 .hrap-rail-guide > p { color: #b0c2d5 !important; font-size: 9px !important; line-height: 1.55 !important; }
 .hrap-rail-next { display: flex; align-items: flex-start; gap: 6px; margin-top: 10px; padding-top: 9px; border-top: 1px solid rgba(156,196,226,.12); color: #a9d0f8; font-size: 9px; line-height: 1.45; }
 .hrap-rail-next svg { flex: 0 0 auto; margin-top: 1px; }
-.hrap-rail-hero { background-image: linear-gradient(90deg, rgba(4,10,17,.58), rgba(4,10,17,.20)), linear-gradient(0deg, rgba(4,10,17,.72), transparent 78%), url("/highway-ghats-sunset.png") !important; }
+.hrap-rail-hero { background-image: linear-gradient(90deg, rgba(4,10,17,.58), rgba(4,10,17,.20)), linear-gradient(0deg, rgba(4,10,17,.72), transparent 78%), url("/highway-ghats-sunset.webp") !important; }
 
 /* Homepage: full scenic canvas + the original designed road illustration in its own card. */
 main.nova-home::before {
   background-image:
     linear-gradient(90deg, rgba(4,9,17,.83) 0%, rgba(4,9,17,.46) 54%, rgba(4,9,17,.18) 82%, rgba(4,9,17,.42) 100%),
     linear-gradient(0deg, rgba(4,9,17,.86), rgba(4,9,17,.08) 48%, rgba(4,9,17,.18)),
-    url("/highway-ghats-sunset.png") !important;
+    url("/highway-ghats-sunset.webp") !important;
   background-size: cover !important; background-position: center 52% !important; opacity: 1 !important;
 }
 main.nova-home .nova-ribbon { background: rgba(5,12,21,.66) !important; backdrop-filter: blur(12px); }
@@ -7778,7 +7778,7 @@ main.nova-home .nova-capabilities, main.nova-home .nova-manifesto { background: 
   --cr-green: #72d6a8;
   --cr-radius: 16px;
   --cr-tone: var(--cr-green);
-  --photo: url('/highway-hero.png');
+  --photo: url('/highway-hero.webp');
   position: relative;
   isolation: isolate;
 }
@@ -7792,10 +7792,10 @@ main.nova-home .nova-capabilities, main.nova-home .nova-manifesto { background: 
 .cr-wrap[data-tone='critical'] { --cr-tone: var(--cr-red); }
 
 /* Photograph chosen by the hour at the site. A missing file simply falls back. */
-.cr-wrap[data-scene='daybreak'] { --photo: url('/highway-valley-daybreak.png'), url('/highway-hero.png'); }
-.cr-wrap[data-scene='day'] { --photo: url('/highway-hero.png'); }
-.cr-wrap[data-scene='sunset'] { --photo: url('/highway-ghats-sunset.png'), url('/highway-hero.png'); }
-.cr-wrap[data-scene='night'] { --photo: url('/highway-monsoon-night.png'), url('/highway-hero.png'); }
+.cr-wrap[data-scene='daybreak'] { --photo: url('/highway-valley-daybreak.webp'), url('/highway-hero.webp'); }
+.cr-wrap[data-scene='day'] { --photo: url('/highway-hero.webp'); }
+.cr-wrap[data-scene='sunset'] { --photo: url('/highway-ghats-sunset.webp'), url('/highway-hero.webp'); }
+.cr-wrap[data-scene='night'] { --photo: url('/highway-monsoon-night.webp'), url('/highway-hero.webp'); }
 
 .cr-backdrop {
   position: fixed;
@@ -8123,7 +8123,7 @@ main.nova-home .nova-capabilities, main.nova-home .nova-manifesto { background: 
 /* ---------- Right rail (site navigation) ---------- */
 .rail { gap: 14px !important; }
 .rail h2, .rail h3, .rail p { margin: 0; }
-.rail-hero { position: relative; overflow: hidden; padding: 20px 18px 16px; border-radius: 16px; border: 1px solid rgba(255, 208, 138, .22); background: linear-gradient(180deg, rgba(4, 9, 16, .15), rgba(4, 9, 16, .88)), url("/highway-valley-daybreak.png") center 35% / cover; }
+.rail-hero { position: relative; overflow: hidden; padding: 20px 18px 16px; border-radius: 16px; border: 1px solid rgba(255, 208, 138, .22); background: linear-gradient(180deg, rgba(4, 9, 16, .15), rgba(4, 9, 16, .88)), url("/highway-valley-daybreak.webp") center 35% / cover; }
 .rail-eyebrow { display: block; font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #ffd08a; }
 .rail-hero h2 { margin-top: 6px; font-size: 30px; line-height: 1.05; font-weight: 800; color: #fff; text-shadow: 0 2px 14px rgba(0, 0, 0, .6); }
 .rail-hero p { margin-top: 8px; font-size: 13.5px; line-height: 1.5; color: #dbe7f3; max-width: 30ch; }

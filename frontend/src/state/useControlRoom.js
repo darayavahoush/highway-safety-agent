@@ -53,7 +53,9 @@ export function reducer(s, a) {
   }
 }
 
-function useNow(ms = 250) {
+// Counters on screen show whole seconds, so one tick a second is enough.
+// (Ticking four times a second re-rendered the entire app four times a second.)
+function useNow(ms = 1000) {
   const [n, setN] = useState(() => Date.now())
   useEffect(() => {
     const id = setInterval(() => setN(Date.now()), ms)

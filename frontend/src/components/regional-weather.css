@@ -1227,7 +1227,7 @@
 /* Restore the homepage background without an opaque pseudo-element. */
 main.nova-home {
   background-color: #090a10 !important;
-  background-image: url("/highway-hero.png") !important;
+  background-image: url("/highway-hero.webp") !important;
   background-position: center !important;
   background-size: cover !important;
   background-repeat: no-repeat !important;
@@ -1300,7 +1300,7 @@ main.nova-home .nova-hero {
 /* Restore the homepage background without an opaque pseudo-element. */
 main.nova-home {
   background-color: #090a10 !important;
-  background-image: url("/highway-hero.png") !important;
+  background-image: url("/highway-hero.webp") !important;
   background-position: center !important;
   background-size: cover !important;
   background-repeat: no-repeat !important;
