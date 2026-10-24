@@ -11,6 +11,7 @@ import './components/regional-weather.css'
 import './layout-fix.css'
 import './cinematic-road.css'
 import './cinematic-road-v4.css'
+import './control-room.css'
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>

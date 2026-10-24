@@ -7,6 +7,7 @@ import LiveStage from './components/LiveStage.jsx'
 import ActivityLog from './components/ActivityLog.jsx'
 import IncidentDetail from './components/IncidentDetail.jsx'
 import StatsStrip from './components/StatsStrip.jsx'
+import ControlRoom from './components/ControlRoom.jsx'
 import OperatorCopilot from './components/OperatorCopilot.jsx'
 import AboutModal from './components/AboutModal.jsx'
 import HighwayIntelSidebar from './components/HighwayIntelSidebar.jsx'
@@ -104,7 +105,7 @@ export default function App() {
 
           <div className="ops-workspace-shell">
           <main className={`ops-page ops-page--${page}`}>
-            <header className="ops-page-heading">
+            {page !== 'control' && <header className="ops-page-heading">
               <div>
                 <span className="ops-eyebrow">FIELD INTELLIGENCE / LIVE WORKSPACE</span>
                 <h1>{({
@@ -123,9 +124,10 @@ export default function App() {
                 })[page]}</p>
               </div>
               <span className="ops-page-index">{navigation.findIndex(([key]) => key === page) + 1} / 05</span>
-            </header>
+            </header>}
 
             {page === 'control' && (
+<<<<<<< ours
               <>
                 <div className="main">
                   <section className="col">
@@ -144,6 +146,10 @@ export default function App() {
                 <StatsStrip metrics={state.metrics} open={list.filter(isActive).length}
                   today={today} blackspots={state.blackspots} camera={camera} />
               </>
+=======
+              <ControlRoom state={state} list={list} selected={selected} now={now} actions={actions}
+                filter={filter} setFilter={setFilter} camera={camera} today={today} />
+>>>>>>> theirs
             )}
 
             {page === 'corridor' && (

@@ -8,10 +8,10 @@ import { isLive } from '../api/client.js'
 const VIDEO_PATH = import.meta.env.VITE_VIDEO_PATH || '/video_feed'
 
 const TABS = [
-  ['camera', 'Camera', Video],
-  ['corridor', '3D Corridor Map', Compass],
-  ['lane', 'Lane view', MapIcon],
-  ['twin', 'Digital twin', Boxes],
+  ['camera', 'Live camera', Video],
+  ['corridor', 'Road map', Compass],
+  ['lane', 'Lanes', MapIcon],
+  ['twin', 'Simulation', Boxes],
 ]
 
 export default function LiveStage({ initialTab, incident, camera, metrics, incidents = [], onSelectIncident, onCorridorInfo }) {

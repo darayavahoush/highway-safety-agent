@@ -193,11 +193,17 @@ export default function CorridorMap3D({
   const markersRef = useRef([])
   const orbitIntervalRef = useRef(null)
 
+<<<<<<< ours
   const [activeCorridorId, setActiveCorridorId] = useState('AP-NH16-NORTH')
   const [styleMode, setStyleMode] = useState('bright') // 'dark' | 'bright'
   const [terrainEnabled, setTerrainEnabled] = useState(true)
   const [terrainStatus, setTerrainStatus] = useState('loading')
   const [terrainError, setTerrainError] = useState('')
+=======
+  const [activeCorridorId, setActiveCorridorId] = useState('AP-NH16-CENTRAL')
+  const [styleMode, setStyleMode] = useState('dark') // flat monochrome basemap
+  const [terrainEnabled, setTerrainEnabled] = useState(false)
+>>>>>>> theirs
   const [isOrbiting, setIsOrbiting] = useState(false)
   const [mapLoaded, setMapLoaded] = useState(false)
   const [webGlFailed, setWebGlFailed] = useState(false)
@@ -343,9 +349,15 @@ export default function CorridorMap3D({
           style: currentStyleUrl,
           center: activeCorridor.center,
           zoom: activeCorridor.zoom,
+<<<<<<< ours
           pitch: terrainEnabled ? 66 : 0,
           bearing: -18,
           maxPitch: 78,
+=======
+          pitch: 0,
+          bearing: 0,
+          maxPitch: 0,
+>>>>>>> theirs
           antialias: true,
         })
 
@@ -514,7 +526,7 @@ export default function CorridorMap3D({
         source: 'corridors-src',
         layout: { 'line-join': 'round', 'line-cap': 'round' },
         paint: {
-          'line-color': ['case', ['get', 'isActive'], '#ef4444', '#38bdf8'],
+          'line-color': ['case', ['get', 'isActive'], '#ef4444', '#f2b45a'],
           'line-width': ['case', ['get', 'isActive'], 10, 5],
           'line-opacity': 0.35,
           'line-blur': 4,
@@ -528,7 +540,7 @@ export default function CorridorMap3D({
         source: 'corridors-src',
         layout: { 'line-join': 'round', 'line-cap': 'round' },
         paint: {
-          'line-color': ['case', ['get', 'isActive'], '#f59e0b', '#0284c7'],
+          'line-color': ['case', ['get', 'isActive'], '#f59e0b', '#b9791f'],
           'line-width': ['case', ['get', 'isActive'], 4, 2.5],
           'line-opacity': 0.95,
         },
@@ -724,8 +736,8 @@ export default function CorridorMap3D({
       mapRef.current.flyTo({
         center: target.center,
         zoom: target.zoom,
-        pitch: 55,
-        bearing: -15,
+        pitch: 0,
+        bearing: 0,
       })
     }
   }
@@ -752,6 +764,7 @@ export default function CorridorMap3D({
         <div className="hud-group">
           <button
             type="button"
+<<<<<<< ours
             className={`hud-btn ${styleMode === 'bright' ? 'is-active' : ''}`}
             onClick={() => setStyleMode(styleMode === 'dark' ? 'bright' : 'dark')}
             title="Toggle Basemap (Dark Matter / OpenFreeMap Bright)"
@@ -783,6 +796,8 @@ export default function CorridorMap3D({
 
           <button
             type="button"
+=======
+>>>>>>> theirs
             className="hud-btn"
             onClick={handleResetView}
             title="Reset Perspective"
