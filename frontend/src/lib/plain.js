@@ -64,9 +64,15 @@ export const PAGE_COPY = {
   },
 }
 
+// True only when the camera has actually sent something we can show.
+// Used by both the top-bar badge and the System page so they always agree.
+export function hasCameraReport(h) {
+  return !!h && (h.camera_stability != null || h.lighting_condition != null || h.visibility_score != null)
+}
+
 // Plain wording for the camera's self-reported health.
 export function cameraStatus(h) {
-  if (!h) return { tone: 'idle', headline: 'Not reported yet', detail: 'The camera has not sent a health report.' }
+  if (!hasCameraReport(h)) return { tone: 'idle', headline: 'Not reported yet', detail: 'The camera has not sent a health report.' }
   if (h.camera_stability === 'WIND_SWAY') return { tone: 'warn', headline: 'Swaying in the wind', detail: 'Detections may be a little less accurate until it settles.' }
   if (h.camera_stability === 'PANNING_OR_DRIFT') return { tone: 'warn', headline: 'Camera has moved', detail: 'The view has shifted. Lane positions may be off until it is re-aligned.' }
   if (h.visibility_score != null && h.visibility_score < 60) return { tone: 'warn', headline: 'Poor visibility', detail: 'Fog, rain or low light is reducing what the camera can see.' }

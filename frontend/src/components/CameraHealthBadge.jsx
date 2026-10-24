@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { hasCameraReport } from '../lib/plain'
 import {
   Camera,
   Sun,
@@ -16,14 +17,32 @@ import {
 export default function CameraHealthBadge({ health, onClick }) {
   const [showPopover, setShowPopover] = useState(false)
 
-  const isStatic = health?.is_static ?? true
-  const stability = health?.camera_stability || 'STATIC_LOCKED'
-  const lighting = health?.lighting_condition || 'OPTIMAL_DAYLIGHT'
-  const driftPx = health?.background_drift_px ?? 0.0
-  const avgLum = health?.avg_luminance ?? 128.0
-  const contrastRms = health?.contrast_rms ?? 52.0
-  const visScore = health?.visibility_score ?? 96.0
-  const motionDesc = health?.motion_status || 'Static gantry mount'
+  const reported = hasCameraReport(health)
+
+  if (!reported) {
+    return (
+      <div className="cam-health-badge-container">
+        <button
+          className="cam-health-badge-btn"
+          onClick={onClick}
+          title="The camera has not sent a health report yet. Click for details."
+        >
+          <span className="health-chip" style={{ borderColor: '#94a3b840', color: '#94a3b8' }}>
+            <Camera size={12} />
+            <span>NOT REPORTED</span>
+          </span>
+        </button>
+      </div>
+    )
+  }
+
+  const stability = health.camera_stability || 'STATIC_LOCKED'
+  const lighting = health.lighting_condition || 'OPTIMAL_DAYLIGHT'
+  const driftPx = health.background_drift_px ?? 0.0
+  const avgLum = health.avg_luminance ?? 128.0
+  const contrastRms = health.contrast_rms ?? 52.0
+  const visScore = health.visibility_score ?? 96.0
+  const motionDesc = health.motion_status || 'Static gantry mount'
 
   // Stability badge styling
   let stabilityColor = '#34d399' // Green

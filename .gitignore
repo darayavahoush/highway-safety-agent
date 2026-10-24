@@ -21,3 +21,6 @@ screenshot_*.png
 *.bak-*
 *.fix-backup
 *.before-*
+*.backup-*
+*-backup-*
+*.pre-overhaul-*
