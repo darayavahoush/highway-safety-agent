@@ -25,3 +25,5 @@ screenshot_*.png
 *-backup-*
 *.pre-overhaul-*
 labels/frames/
+demo_videos/
+labels/

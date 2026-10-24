@@ -4,9 +4,10 @@ import {
 } from 'lucide-react'
 
 export const TYPE_META = {
-  STALLED_VEHICLE: { label: 'Stalled vehicle', icon: AlertTriangle },
+  STALLED_VEHICLE: { label: 'Vehicle on shoulder / Stalled', icon: AlertTriangle },
   WRONG_WAY: { label: 'Wrong-way driving', icon: ArrowLeftRight },
   TAILGATING: { label: 'Dangerous tailgating', icon: CarFront },
+  FEEDER_INTRUSION: { label: 'Feeder road intrusion', icon: Signpost },
   IMPACT: { label: 'Possible crash', icon: Siren },
 }
 
@@ -29,15 +30,16 @@ export function targetMeta(target = '') {
 }
 
 export const SEVERITY = {
-  P0: { label: 'Critical', color: 'var(--red)' },
-  P1: { label: 'High', color: 'var(--amber)' },
-  P2: { label: 'Watch', color: 'var(--blue)' },
+  P0: { label: 'P0 Critical', color: 'var(--red)', badge: 'CRITICAL HAZARD' },
+  P1: { label: 'P1 High', color: 'var(--amber)', badge: 'HIGH HAZARD' },
+  P2: { label: 'P2 Monitored', color: 'var(--blue)', badge: 'MONITORED' },
 }
 
 export const STATUS_LABEL = {
   detected: 'Detected',
   analysing: 'Agent analysing',
   dispatched: 'Dispatched',
+  monitoring: 'Monitored',
   acknowledged: 'Acknowledged',
   resolved: 'Resolved',
   false_alarm: 'False alarm',
@@ -52,9 +54,15 @@ export function incidentTitle(i) {
   const a = v[0]
   const lane = a?.lane ? ` in ${a.lane.toLowerCase()}` : ''
   switch (i.type) {
-    case 'STALLED_VEHICLE': return a ? `Stalled ${a.cls}${lane}` : 'Stalled vehicle'
+    case 'STALLED_VEHICLE': {
+      if (a?.lane && a.lane.toLowerCase().includes('shoulder')) {
+        return a ? `${cap(a.cls)} on shoulder` : 'Vehicle on shoulder'
+      }
+      return a ? `Stalled ${a.cls}${lane}` : 'Stalled vehicle'
+    }
     case 'WRONG_WAY': return a ? `Wrong-way ${a.cls}` : 'Wrong-way driving'
     case 'TAILGATING': return a && v[1] ? `${cap(a.cls)} tailgating ${v[1].cls}` : 'Dangerous tailgating'
+    case 'FEEDER_INTRUSION': return a ? `${cap(a.cls)} feeder road intrusion` : 'Feeder road intrusion'
     case 'IMPACT': return 'Possible crash'
     default: return TYPE_META[i.type]?.label || 'Incident'
   }
