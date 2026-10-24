@@ -7,7 +7,7 @@ import ActivityLog from './ActivityLog.jsx'
 import IncidentDetail from './IncidentDetail.jsx'
 import StatsStrip from './StatsStrip.jsx'
 import { isActive, incidentTitle, locationLabel, fmtAge, SEVERITY } from '../lib/format.js'
-import { SEVERITY_HELP } from '../lib/plain.js'
+import { SEVERITY_HELP, nextStep, whyItMatters } from '../lib/plain.js'
 
 const CONN = {
   demo: 'Demo simulation',
@@ -29,6 +29,10 @@ export default function ControlRoom({
   const tone = active.length === 0 ? 'clear' : critical > 0 ? 'critical' : 'watch'
   const road = camera ? `${camera.highway || 'the highway'}${camera.km ? `, KM ${camera.km}` : ''}` : 'the highway'
   const n = active.length
+  const others = active
+    .filter((i) => i.id !== top?.id)
+    .sort((a, b) => (RANK[a.severity] ?? 3) - (RANK[b.severity] ?? 3) || b.createdAt - a.createdAt)
+    .slice(0, 3)
 
   const headline = tone === 'clear'
     ? 'All clear'
@@ -60,6 +64,24 @@ export default function ControlRoom({
                 Open it <ArrowRight size={15} aria-hidden="true" />
               </button>
             </p>
+          )}
+          {tone !== 'clear' && top && (
+            <div className="cr-next">
+              <p><b>Why it matters.</b> {whyItMatters(top.type)}</p>
+              <p><b>Do this next.</b> {nextStep(top)}</p>
+            </div>
+          )}
+          {others.length > 0 && (
+            <div className="cr-others" aria-label="Other open incidents">
+              <span>Also open:</span>
+              {others.map((i) => (
+                <button key={i.id} type="button" style={{ '--sev': (SEVERITY[i.severity] || SEVERITY.P1).color }}
+                  onClick={() => actions.select(i.id)}>
+                  <i aria-hidden="true" />{incidentTitle(i)}
+                </button>
+              ))}
+              {n - 1 > others.length && <em>+{n - 1 - others.length} more</em>}
+            </div>
           )}
         </div>
 

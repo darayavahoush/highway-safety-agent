@@ -339,3 +339,14 @@
 .ap-map-legend i { display: inline-block; width: 18px; height: 4px; border-radius: 2px; margin-right: 8px; vertical-align: middle; }
 .ap-map-legend p { margin: 6px 0 0; color: #a9b9ca; font-size: 11px; }
 @media (max-width: 640px) { .ap-map-legend { display: none; } }
+
+/* Hero: plain "what to do" and other open incidents */
+.cr-next { margin-top: 12px; padding: 12px 14px; border-radius: 12px; max-width: 66ch; background: rgba(6, 12, 22, .55); border-left: 3px solid var(--cr-tone); }
+.cr-next p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--cr-dim); }
+.cr-next p + p { margin-top: 6px; }
+.cr-next b { color: var(--cr-ink); font-weight: 600; }
+.cr-others { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; font-size: 13px; color: var(--cr-dim); }
+.cr-others button { display: inline-flex; align-items: center; gap: 7px; padding: 5px 11px; border-radius: 999px; font: inherit; color: var(--cr-ink); cursor: pointer; background: rgba(6, 12, 22, .6); border: 1px solid color-mix(in srgb, var(--sev) 55%, transparent); }
+.cr-others button:hover { background: color-mix(in srgb, var(--sev) 22%, rgba(6, 12, 22, .6)); }
+.cr-others button i { width: 8px; height: 8px; border-radius: 50%; background: var(--sev); box-shadow: 0 0 8px var(--sev); }
+.cr-others em { font-style: normal; opacity: .75; }
