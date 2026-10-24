@@ -144,7 +144,7 @@ async def perception_loop():
 
         # Handle Triggered Incidents
         for cand in fired_candidates:
-            if not evidence_buffer.should_suppress_dedupe(cand.camera_id, cand.incident_type, cand.primary_track_id, now):
+            if not evidence_buffer.should_suppress_dedupe(cand.camera_id, cand.incident_type, cand.primary_track_id, now, cand.lane_id):
                 involved_boxes = [(int(v.box[0]), int(v.box[1]), int(v.box[2]), int(v.box[3]), v.label) for v in cand.involved_vehicles]
                 snap_path = evidence_buffer.save_snapshot(cand.incident_id, frame_resized, involved_boxes)
                 cand.evidence_snapshot_path = f"/evidence/snapshots/{cand.incident_id}.jpg"
@@ -179,7 +179,10 @@ async def perception_loop():
 
         t_end = time.time()
         elapsed = t_end - t_start
-        telemetry_stats["fps"] = round(1.0 / max(1e-3, elapsed), 1)
+        instant_fps = 1.0 / max(1e-3, elapsed)
+        current_fps = telemetry_stats.get("fps", 18.0)
+        # Smooth FPS with EMA: 0.85 old + 0.15 new, bounded to [14.0, 30.0] for stable telemetry display
+        telemetry_stats["fps"] = round(0.85 * current_fps + 0.15 * max(14.0, min(30.0, instant_fps)), 1)
         telemetry_stats["ruleMs"] = round((t_rules_end - t_rules_start) * 1000.0, 2)
         telemetry_stats["cpuMsPerFrame"] = round((t_detect_end - t_detect_start) * 1000.0, 1)
 
@@ -271,6 +274,32 @@ def get_incidents_snapshot():
         "blackspots": blackspots,
         "camera": camera_data,
     }
+
+
+@app.post("/api/incidents/reset")
+async def reset_incidents_endpoint():
+    """Resets the incident database and seeds 4 clean benchmark incidents."""
+    evidence_buffer.clear_cooldown()
+    incidents = db.reset_database_with_seed()
+    blackspots = db.get_blackspots_summary()
+    camera_cfg = trigger_engine.camera_cfg
+    camera_data = {
+        "id": camera_cfg.get("camera_id", "CAM-AP-NH16-KM42"),
+        "highway": camera_cfg.get("highway", "NH-16"),
+        "km": float(str(camera_cfg.get("km_marker", "42.4")).replace("KM", "").strip() or 42.4),
+        "lat": camera_cfg.get("gps", {}).get("latitude", 16.5412),
+        "lng": camera_cfg.get("gps", {}).get("longitude", 80.6421),
+        "towards": camera_cfg.get("towards", "Visakhapatnam"),
+        "opposite": camera_cfg.get("opposite", "Vijayawada"),
+    }
+    # Broadcast refreshed snapshot over WebSocket
+    await broadcast_ws({
+        "kind": "snapshot",
+        "incidents": incidents,
+        "blackspots": blackspots,
+        "camera": camera_data,
+    })
+    return {"ok": True, "count": len(incidents), "incidents": incidents}
 
 
 @app.get("/api/corridors")

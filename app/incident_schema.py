@@ -38,6 +38,7 @@ class IncidentStatus(str, Enum):
     DETECTED = "detected"
     ANALYSING = "analysing"
     DISPATCHED = "dispatched"
+    MONITORING = "monitoring"
     ACKNOWLEDGED = "acknowledged"
     RESOLVED = "resolved"
     FALSE_ALARM = "false_alarm"
