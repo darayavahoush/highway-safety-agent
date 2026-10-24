@@ -427,3 +427,67 @@
 .about-tech summary { cursor: pointer; font-weight: 600; color: #dbe7f3; margin-bottom: 14px; }
 .about-tech summary span { margin-left: 8px; font-size: 11px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: #7f95ab; }
 @media (max-width: 760px) { .about-steps { grid-template-columns: 1fr; } }
+
+/* ================= Round 2: see-it-first fixes ================= */
+
+/* Right rail: nothing may be squashed, and the Copilot pill must not cover content */
+.rail > * { flex: 0 0 auto !important; }
+.rail { padding-bottom: 76px !important; gap: 12px !important; }
+.rail-hero { min-height: 150px; display: flex; flex-direction: column; justify-content: flex-end; }
+.rail-hero h2 { font-size: 26px; }
+.rail-nav { gap: 6px; }
+.rail-nav-item { padding: 8px 10px; border-radius: 12px; }
+.rail-nav-icon { flex-basis: 34px; width: 34px; height: 34px; border-radius: 10px; }
+.rail-nav-copy strong { font-size: 14.5px; }
+.rail-nav-copy small { font-size: 11.5px; }
+.rail-road { padding: 12px 14px; }
+.rail-road-title strong { font-size: 20px; }
+
+/* Page headings: smaller so the page content is the first thing you see */
+.cr-pagehead { padding: 14px 22px !important; margin-bottom: 14px !important; border-radius: 18px !important; }
+.cr-pagehead h2 { font-size: clamp(24px, 2.3vw, 32px) !important; margin: 4px 0 2px !important; }
+.cr-pagehead p { font-size: 14px !important; max-width: 78ch !important; }
+
+/* Control room banner: short enough that incidents, map and detail are on screen at once */
+.cr-hero { padding: 14px 22px 12px; margin-bottom: 14px; gap: 10px 28px; align-items: start; border-radius: 20px; }
+.cr-headline { font-size: clamp(26px, 2.5vw, 38px); margin: 6px 0 2px; }
+.cr-headline svg { width: 30px; height: 30px; }
+.cr-sub { font-size: 15px; }
+.cr-next { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 18px; max-width: none; margin-top: 10px; padding: 10px 14px; }
+.cr-next p { font-size: 13px; }
+.cr-next p + p { margin-top: 0; }
+.cr-others { margin-top: 10px; }
+.cr-glance { align-self: start; }
+.cr-glance div { padding: 8px 14px; }
+.cr-glance b { font-size: 26px; }
+.cr-legend { padding-top: 8px; font-size: 12px; }
+@container cr (max-width: 900px) { .cr-next { grid-template-columns: 1fr; } }
+
+/* Activity summary */
+.act-summary { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px 16px; border-bottom: 1px solid var(--cr-line, rgba(160,200,235,.14)); font-size: 13px; color: var(--cr-dim, #aebfd0); }
+.act-summary b { color: var(--cr-ink, #fff); }
+
+/* System status verdict + evenly filled grid */
+.cr-verdict { --t: var(--cr-green); display: flex; align-items: center; flex-wrap: wrap; gap: 14px 18px; margin-bottom: 14px; padding: 14px 20px; border-radius: 16px; border: 1px solid color-mix(in srgb, var(--t) 45%, transparent); background: color-mix(in srgb, var(--t) 12%, rgba(10, 12, 24, .7)); backdrop-filter: blur(12px); }
+.cr-verdict[data-tone='warn'] { --t: var(--cr-amber); }
+.cr-verdict[data-tone='bad'] { --t: var(--cr-red); }
+.cr-verdict > i { flex: none; width: 14px; height: 14px; border-radius: 50%; background: var(--t); box-shadow: 0 0 16px var(--t); }
+.cr-verdict > div { display: flex; flex-direction: column; gap: 2px; flex: 1 1 260px; }
+.cr-verdict > div b { font-size: 18px; color: var(--cr-ink); }
+.cr-verdict > div span { font-size: 13.5px; color: var(--cr-dim); }
+.cr-verdict ul { display: flex; gap: 8px; margin: 0; padding: 0; list-style: none; flex-wrap: wrap; }
+.cr-verdict li { padding: 5px 12px; border-radius: 999px; font-size: 12.5px; color: var(--cr-dim); background: rgba(6, 12, 22, .6); border: 1px solid var(--cr-line); }
+.cr-verdict li b { color: var(--cr-ink); font-size: 14px; margin-right: 4px; }
+.cr-health { display: flex !important; flex-wrap: wrap; }
+.cr-health-card { flex: 1 1 260px; }
+
+/* Banner: stats float top-right so the text can use the full width */
+.cr-hero { position: relative; grid-template-columns: minmax(0, 1fr); }
+.cr-hero .cr-glance { position: absolute; top: 14px; right: 22px; }
+.cr-hero-main { padding-right: 0; }
+.cr-hero-main .cr-kicker { max-width: calc(100% - 370px); }
+.cr-hero-main .cr-headline { max-width: calc(100% - 370px); }
+@container cr (max-width: 900px) {
+  .cr-hero .cr-glance { position: static; }
+  .cr-hero-main .cr-kicker, .cr-hero-main .cr-headline { max-width: none; }
+}

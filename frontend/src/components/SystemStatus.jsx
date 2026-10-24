@@ -37,8 +37,27 @@ export default function SystemStatus({ state, list, camera, today }) {
       detail: `${open} still open. ${today} seen today.`,
     }],
   ]
+  const count = (t) => cards.filter(([, , c]) => c.tone === t).length
+  const ok = count('ok'); const warn = count('warn'); const bad = count('bad'); const idle = count('idle')
+  const verdict = bad
+    ? { tone: 'bad', title: 'Something is not working', text: 'Check the red card below first.' }
+    : warn
+      ? { tone: 'warn', title: 'Working, with things to check', text: 'Amber cards are worth a look, but nothing has stopped.' }
+      : idle
+        ? { tone: 'ok', title: 'Working. A few details have not been reported yet', text: 'Grey cards simply have not sent anything yet.' }
+        : { tone: 'ok', title: 'Everything is working', text: 'Every part of the system reported in and looks healthy.' }
   return (
     <>
+      <div className="cr-verdict" data-tone={verdict.tone} role="status">
+        <i aria-hidden="true" />
+        <div><b>{verdict.title}</b><span>{verdict.text}</span></div>
+        <ul aria-label="Summary">
+          <li><b>{ok}</b> working</li>
+          {warn > 0 && <li><b>{warn}</b> to check</li>}
+          {bad > 0 && <li><b>{bad}</b> failing</li>}
+          {idle > 0 && <li><b>{idle}</b> not reported</li>}
+        </ul>
+      </div>
       <div className="cr-health">
         {cards.map(([Icon, label, c]) => (
           <article key={label} className="cr-health-card" data-tone={c.tone}>
