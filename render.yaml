@@ -1,4 +1,4 @@
-﻿services:
+services:
   - type: web
     name: highway-safety-agent
     runtime: docker
@@ -10,8 +10,6 @@
     autoDeploy: true
     envVars:
       - key: VIDEO_SOURCE
-        value: demo_videos/drone/DJI_0011.MP4
+        value: /tmp/highway-demo-video-missing.mp4
       - key: ENABLE_SIMULATION
         value: "0"
-      - key: PARALLEL_API_KEY
-        sync: false
