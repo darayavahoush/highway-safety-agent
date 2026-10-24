@@ -140,7 +140,6 @@ def test_a_clearly_readable_plate_is_read_with_measured_confidence():
     assert r["readable"] is True
     assert r["text"].replace(" ", "") == "AP16TX4921"
     assert 0.0 < r["confidence"] <= 1.0
-    assert r["confidence"] != 0.85 and r["confidence"] != 0.88 and r["confidence"] != 0.95
 
 
 def test_confidence_falls_when_reads_disagree(monkeypatch):
@@ -171,3 +170,15 @@ def test_frame_age_grows_when_frames_stop():
     snap = a.snapshot(now=1030.0)  # 30 s with no frames, health message still being sent
     assert snap["frame_age_s"] == 30.0 and snap["frames_analysed"] == 1
     assert snap["camera_stability"] is not None  # real data after a real frame
+
+
+def test_confidence_responds_to_image_quality():
+    """Confidence is measured from the image, so a blurred crop of the same
+    plate must score lower than the sharp crop."""
+    import cv2
+    clean = _crop_with_plate("AP16TX4921")
+    blurred = cv2.GaussianBlur(clean, (0, 0), 4)
+    sharp = ANPRPipeline().process_vehicle_crop(clean, track_id=9)
+    blur = ANPRPipeline().process_vehicle_crop(blurred, track_id=9)
+    assert sharp["readable"] is True
+    assert sharp["confidence"] > blur["confidence"]
