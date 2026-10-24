@@ -13,23 +13,47 @@ const post = (url, body) =>
     body: body ? JSON.stringify(body) : undefined,
   })
 
-function connectLive({ onEvent, onConn }) {
+const SNAPSHOT_TIMEOUT_MS = 8000
+const SNAPSHOT_RETRY_MS = 3000
+
+// Live link to the backend. Exported so tests can drive it with a fake WebSocket and fetch.
+//
+// Reconnect rule: events that arrive while the snapshot is still downloading are held and
+// replayed AFTER it, so a newer update is never overwritten by an older snapshot. If the
+// snapshot is slow or fails, held events are released anyway so live updates are never blocked.
+export function connectLive({ onEvent, onConn }) {
   let ws
   let closed = false
   let retry = 0
   let timer
+  let generation = 0
 
   const open = () => {
-    onConn('connecting')
-    const proto = window.location.protocol === 'https:' ? 'wss' : 'ws'
-    ws = new WebSocket(`${proto}://${window.location.host}${WS_PATH}`)
+    const gen = ++generation
+    const stale = () => closed || gen !== generation
+    let held = []
+    let synced = false
+    let snapTimer
+    let abort
 
-    ws.onopen = () => {
-      retry = 0
-      onConn('live')
-      fetch('/api/incidents')
-        .then((r) => r.json())
+    const release = () => {
+      synced = true
+      const queued = held
+      held = []
+      queued.forEach(onEvent)
+    }
+
+    const loadSnapshot = () => {
+      if (stale()) return
+      abort = new AbortController()
+      const killer = setTimeout(() => abort.abort(), SNAPSHOT_TIMEOUT_MS)
+      fetch('/api/incidents', { signal: abort.signal })
+        .then((r) => {
+          if (!r.ok) throw new Error(`snapshot ${r.status}`)
+          return r.json()
+        })
         .then((d) => {
+          if (stale()) return
           const list = Array.isArray(d) ? d : d.incidents || []
           onEvent({
             kind: 'snapshot',
@@ -37,21 +61,46 @@ function connectLive({ onEvent, onConn }) {
             blackspots: d.blackspots,
             camera: d.camera,
           })
+          release()
         })
-        .catch(() => {})
+        .catch(() => {
+          if (stale()) return
+          // Do not block live events on a failed snapshot; try again shortly.
+          release()
+          snapTimer = setTimeout(loadSnapshot, SNAPSHOT_RETRY_MS)
+        })
+        .finally(() => clearTimeout(killer))
     }
-    ws.onmessage = (m) => {
+
+    onConn('connecting')
+    const proto = window.location.protocol === 'https:' ? 'wss' : 'ws'
+    ws = new WebSocket(`${proto}://${window.location.host}${WS_PATH}`)
+    const mine = ws
+
+    mine.onopen = () => {
+      if (stale()) return
+      retry = 0
+      onConn('live')
+      loadSnapshot()
+    }
+    mine.onmessage = (m) => {
+      if (stale()) return
       try {
         const ev = normalizeEvent(JSON.parse(m.data))
-        if (ev) onEvent(ev)
+        if (!ev) return
+        if (synced || ev.kind === 'snapshot') onEvent(ev)
+        else if (ev.kind === 'metrics') onEvent(ev) // metrics are idempotent, never hold them
+        else held.push(ev)
       } catch { /* ignore malformed frames */ }
     }
-    ws.onclose = () => {
-      if (closed) return
+    mine.onclose = () => {
+      clearTimeout(snapTimer)
+      abort?.abort()
+      if (stale()) return
       onConn('offline')
       timer = setTimeout(open, Math.min(10000, 500 * 2 ** retry++))
     }
-    ws.onerror = () => ws.close()
+    mine.onerror = () => mine.close()
   }
 
   open()

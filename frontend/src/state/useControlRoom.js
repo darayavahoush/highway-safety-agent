@@ -2,9 +2,12 @@ import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'r
 import { connect } from '../api/client.js'
 import { isActive } from '../lib/format.js'
 
-const initial = { incidents: {}, metrics: null, cameraHealth: null, blackspots: [], camera: null, conn: 'connecting', selectedId: null }
+export const initial = {
+  incidents: {}, metrics: null, metricsAt: null, cameraHealth: null, cameraHealthAt: null,
+  blackspots: [], camera: null, conn: 'connecting', selectedId: null,
+}
 
-function reducer(s, a) {
+export function reducer(s, a) {
   switch (a.type) {
     case 'conn': return { ...s, conn: a.conn }
     case 'select': return { ...s, selectedId: a.id }
@@ -15,11 +18,13 @@ function reducer(s, a) {
         e.incidents.forEach((i) => { incidents[i.id] = i })
         const newest = Object.values(incidents).sort((x, y) => y.createdAt - x.createdAt)
         const pick = newest.find(isActive) || newest[0]
+        // Keep the operator's selection only if that incident still exists after the refresh.
+        const keep = s.selectedId && incidents[s.selectedId] ? s.selectedId : null
         return {
           ...s, incidents,
           blackspots: e.blackspots || s.blackspots,
           camera: e.camera || s.camera,
-          selectedId: s.selectedId ?? pick?.id ?? null,
+          selectedId: keep ?? pick?.id ?? null,
         }
       }
       if (e.kind === 'incident.upsert') {
@@ -33,7 +38,15 @@ function reducer(s, a) {
           selectedId: takeFocus ? e.incident.id : s.selectedId ?? e.incident.id,
         }
       }
-      if (e.kind === 'metrics') return { ...s, metrics: e.metrics, cameraHealth: e.camera_health || s.cameraHealth }
+      if (e.kind === 'metrics') {
+        const at = a.at ?? Date.now()
+        return {
+          ...s,
+          metrics: e.metrics, metricsAt: at,
+          cameraHealth: e.camera_health || s.cameraHealth,
+          cameraHealthAt: e.camera_health ? at : s.cameraHealthAt,
+        }
+      }
       return s
     }
     default: return s
