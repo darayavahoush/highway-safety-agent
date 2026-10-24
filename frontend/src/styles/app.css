@@ -8339,3 +8339,8 @@ main.nova-home .nova-capabilities, main.nova-home .nova-manifesto { background: 
 .cr-legend-wrap[open] > summary::before { content: '\2212'; }
 .cr-legend-wrap > summary:hover { color: var(--cr-ink); }
 .cr-legend-wrap .cr-legend { border-top: 0; padding-top: 12px; }
+
+/* Dispatch failed, unconfirmed or unrecognised: always red and always worded, never shown as success. */
+.app .disp--problem .disp-icon { background: rgba(239, 68, 68, 0.18); color: var(--red); border-color: rgba(239, 68, 68, 0.5); }
+.app .disp--problem .disp-meta { color: var(--red); font-weight: 600; }
+.app .chip--problem { background: rgba(239, 68, 68, 0.16); color: var(--red); border: 1px solid rgba(239, 68, 68, 0.5); font-weight: 600; }

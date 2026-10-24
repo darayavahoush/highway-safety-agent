@@ -50,7 +50,7 @@ export function normalizeIncident(r) {
     dispatches: (r.dispatches ?? []).map((d) => ({
       id: d.id ?? d.dispatch_id,
       target: String(d.target ?? d.stakeholder ?? '').toUpperCase(),
-      status: String(d.status ?? 'sent').toLowerCase(),
+      status: String(d.status ?? 'unknown').toLowerCase(),
       message: d.message ?? d.summary ?? '',
       queuedAt: toMs(d.queuedAt ?? d.queued_at) ?? toMs(d.sentAt ?? d.sent_at) ?? createdAt,
       sentAt: toMs(d.sentAt ?? d.sent_at),

@@ -1,5 +1,6 @@
 import { Eye, X } from 'lucide-react'
 import { targetMeta, fmtClock, fmtOffset } from '../lib/format.js'
+import { isProblem, problemText } from '../lib/dispatch.js'
 
 function Row({ d, incident, now, onCancel }) {
   const meta = targetMeta(d.target)
@@ -17,12 +18,14 @@ function Row({ d, incident, now, onCancel }) {
   } else if (d.status === 'acknowledged') {
     status = `Acknowledged ${fmtOffset((d.ackAt ?? now) - t0)} after detection`
     time = fmtOffset((d.sentAt ?? now) - t0)
-  } else {
+  } else if (d.status === 'cancelled') {
     status = 'Cancelled by operator'
+  } else {
+    status = problemText(d.status)
   }
   const isVms = d.target === 'VARIABLE_MESSAGE_SIGN_VMS'
   return (
-    <li className={`disp disp--${d.status}`}>
+    <li className={`disp disp--${isProblem(d) ? 'problem' : d.status}`}>
       <span className="disp-icon"><Icon size={16} aria-hidden="true" /></span>
       <div className="disp-main">
         <div className="disp-title">{meta.label}</div>

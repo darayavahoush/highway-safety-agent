@@ -1,3 +1,4 @@
+import { dispatchNextStep } from './dispatch.js'
 // Plain-language helpers for the control room. No jargon, no codes.
 
 export const SEVERITY_HELP = [
@@ -21,7 +22,7 @@ export function nextStep(incident) {
     case 'analysing':
       return 'The agent is checking the evidence and writing a briefing. You do not need to do anything yet.'
     case 'dispatched':
-      return 'Alerts have been sent. Open “Dispatch history” to see who was told, then confirm it is real, or mark it a false alarm.'
+      return dispatchNextStep(incident.dispatches) || 'Open “Dispatch history” to see who was told, then confirm it is real, or mark it a false alarm.'
     case 'acknowledged':
       return 'A responder has accepted this. Keep an eye on it and mark it real or a false alarm once you can tell.'
     default:

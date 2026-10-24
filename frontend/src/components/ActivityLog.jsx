@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { BellOff } from 'lucide-react'
 import { EmptyState, SkeletonRows, OfflineState } from './StateBlock.jsx'
 import { targetMeta, fmtClock, incidentTitle } from '../lib/format.js'
+import { isProblem, problemLabel } from '../lib/dispatch.js'
 
 const STATE_TEXT = { queued: 'Queued', sent: 'Sent', acknowledged: 'Acknowledged', cancelled: 'Cancelled' }
 
@@ -13,7 +14,7 @@ export default function ActivityLog({ list, onSelect, conn }) {
       .slice(0, 30),
     [list],
   )
-  const tally = rows.reduce((t, { d }) => ({ ...t, [d.status]: (t[d.status] || 0) + 1 }), {})
+  const tally = rows.reduce((t, { d }) => { const k = isProblem(d) ? 'problem' : d.status; return { ...t, [k]: (t[k] || 0) + 1 } }, {})
   return (
     <div className="panel activity">
       <div className="panel-head">
@@ -23,8 +24,8 @@ export default function ActivityLog({ list, onSelect, conn }) {
       {rows.length > 0 && (
         <div className="act-summary" aria-label="Alert summary">
           <span><b>{rows.length}</b> alerts</span>
-          {['acknowledged', 'sent', 'queued', 'cancelled'].filter((k) => tally[k]).map((k) => (
-            <span key={k} className={`chip chip--${k}`}>{tally[k]} {(STATE_TEXT[k] || k).toLowerCase()}</span>
+          {['problem', 'acknowledged', 'sent', 'queued', 'cancelled'].filter((k) => tally[k]).map((k) => (
+            <span key={k} className={`chip chip--${k}`}>{tally[k]} {k === 'problem' ? 'failed or not confirmed' : STATE_TEXT[k].toLowerCase()}</span>
           ))}
         </div>
       )}
@@ -44,7 +45,7 @@ export default function ActivityLog({ list, onSelect, conn }) {
               <time>{fmtClock(d.sentAt ?? d.queuedAt)}</time>
               <span className="act-target"><Icon size={14} aria-hidden="true" />{meta.label}</span>
               <span className="act-msg">{d.message || incidentTitle(i)}</span>
-              <span className={`chip chip--${d.status}`}>{STATE_TEXT[d.status] || d.status}</span>
+              <span className={`chip chip--${isProblem(d) ? 'problem' : d.status}`}>{isProblem(d) ? problemLabel(d.status) : STATE_TEXT[d.status]}</span>
             </button>
           )
         })}
