@@ -172,13 +172,25 @@ def test_frame_age_grows_when_frames_stop():
     assert snap["camera_stability"] is not None  # real data after a real frame
 
 
-def test_confidence_responds_to_image_quality():
-    """Confidence is measured from the image, so a blurred crop of the same
-    plate must score lower than the sharp crop."""
+def test_confidence_matches_tesseract_word_confidence_and_drops_when_degraded():
+    """Confidence must be the measured Tesseract word confidence, not a constant.
+    The expected value is computed here independently of ANPRPipeline."""
     import cv2
+    import pytesseract
+    from pytesseract import Output
     clean = _crop_with_plate("AP16TX4921")
-    blurred = cv2.GaussianBlur(clean, (0, 0), 4)
-    sharp = ANPRPipeline().process_vehicle_crop(clean, track_id=9)
-    blur = ANPRPipeline().process_vehicle_crop(blurred, track_id=9)
+    pipe = ANPRPipeline()
+    cfg = ("--oem 3 --psm 7 "
+           "-c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+    proc = pipe.preprocess_for_ocr(pipe.extract_plate_region(clean)[0])
+    d = pytesseract.image_to_data(proc, config=cfg, output_type=Output.DICT)
+    word_confs = [float(c) for t, c in zip(d["text"], d["conf"]) if t.strip() and float(c) >= 0]
+    expected = round(sum(word_confs) / len(word_confs) / 100.0, 2)
+
+    sharp = pipe.process_vehicle_crop(clean, track_id=9)
     assert sharp["readable"] is True
-    assert sharp["confidence"] > blur["confidence"]
+    assert sharp["confidence"] == expected
+
+    blurred = cv2.GaussianBlur(clean, (0, 0), 4)
+    blur = ANPRPipeline().process_vehicle_crop(blurred, track_id=9)
+    assert blur["readable"] is False or blur["confidence"] < sharp["confidence"]

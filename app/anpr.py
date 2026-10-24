@@ -260,7 +260,8 @@ class ANPRPipeline:
                 parsed, conf = self._read_candidate(cand, config)
             except Exception:
                 continue  # OCR unavailable or failed on this crop: counts as no read
-            if parsed:
+            # A loose (state-prefix-only) parse or an unmeasured confidence is not a read.
+            if parsed and not parsed.get("loose") and conf > 0.0:
                 best_plate, best_conf = parsed, conf
                 break
 
