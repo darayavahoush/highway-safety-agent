@@ -5,6 +5,7 @@ import LaneMap from './LaneMap.jsx'
 const CorridorMap3D = lazy(() => import('./CorridorMap3D.jsx'))
 import DigitalTwin from './DigitalTwin.jsx'
 import { isLive } from '../api/client.js'
+import { isTypingTarget, hasModifier } from '../lib/shortcuts.js'
 
 const VIDEO_PATH = import.meta.env.VITE_VIDEO_PATH || '/video_feed'
 
@@ -58,7 +59,9 @@ export default function LiveStage({ initialTab, incident, camera, metrics, incid
 
   useEffect(() => {
     function handleKeyDown(e) {
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return
+      // Leave typing, Ctrl/Cmd+number (browser tab switch) and an open dialog alone.
+      if (e.defaultPrevented || isTypingTarget(e.target) || hasModifier(e)) return
+      if (document.querySelector('[role="dialog"]')) return
       if (e.key === '1') setTab('camera')
       if (e.key === '2') setTab('corridor')
       if (e.key === '3') setTab('lane')
