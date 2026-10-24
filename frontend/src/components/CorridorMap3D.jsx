@@ -18,6 +18,36 @@ import { AP_BOUNDARY } from '../data/apBoundary.js'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
 
+
+// Turn a road polyline into a thin ground-hugging polygon so it can be raised in 3D.
+function roadRibbon(coords, half) {
+  const n = coords.length
+  if (n < 2) return null
+  const left = []
+  const right = []
+  for (let i = 0; i < n; i += 1) {
+    const [lng, lat] = coords[i]
+    const a = coords[Math.max(0, i - 1)]
+    const b = coords[Math.min(n - 1, i + 1)]
+    const k = Math.cos((lat * Math.PI) / 180) || 1
+    const dx = (b[0] - a[0]) * k
+    const dy = b[1] - a[1]
+    const len = Math.hypot(dx, dy) || 1
+    const nx = -dy / len
+    const ny = dx / len
+    left.push([lng + (nx * half) / k, lat + ny * half])
+    right.push([lng - (nx * half) / k, lat - ny * half])
+  }
+  return [...left, ...right.reverse(), left[0]]
+}
+
+// A small square footprint, used for tall 3D beacon pillars.
+function pillar(lng, lat, size = 0.003) {
+  const k = Math.cos((lat * Math.PI) / 180) || 1
+  const dx = size / k
+  return [[lng - dx, lat - size], [lng + dx, lat - size], [lng + dx, lat + size], [lng - dx, lat + size], [lng - dx, lat - size]]
+}
+
 // Default Andhra Pradesh Highway Corridors & Designated Trauma Network
 const DEFAULT_CORRIDORS = [
   {
@@ -351,6 +381,7 @@ export default function CorridorMap3D({
           minZoom: 5.6,
           maxBounds: [[AP_BOUNDARY.bounds[0] - 1.6, AP_BOUNDARY.bounds[1] - 1.4], [AP_BOUNDARY.bounds[2] + 1.6, AP_BOUNDARY.bounds[3] + 1.4]],
           antialias: true,
+          attributionControl: { compact: true },
         })
 
         mapInstance.addControl(new maplibreglShared.current.NavigationControl({ visualizePitch: true }), 'top-right')
@@ -588,6 +619,36 @@ export default function CorridorMap3D({
       })
     }
 
+    // 1b. Raise the roads in 3D so highways stand up from the terrain.
+    try {
+      const ribbons = {
+        type: 'FeatureCollection',
+        features: DEFAULT_CORRIDORS.map((c) => {
+          const isActive = c.id === activeCorridorId
+          const ring = roadRibbon(c.coordinates, isActive ? 0.0022 : 0.0014)
+          return ring ? { type: 'Feature', properties: { isActive }, geometry: { type: 'Polygon', coordinates: [ring] } } : null
+        }).filter(Boolean),
+      }
+      if (map.getSource('corridors-3d-src')) {
+        map.getSource('corridors-3d-src').setData(ribbons)
+      } else {
+        map.addSource('corridors-3d-src', { type: 'geojson', data: ribbons })
+        map.addLayer({
+          id: 'corridor-3d',
+          type: 'fill-extrusion',
+          source: 'corridors-3d-src',
+          paint: {
+            'fill-extrusion-color': ['case', ['get', 'isActive'], '#ffb347', '#38a6ff'],
+            'fill-extrusion-height': ['case', ['get', 'isActive'], 320, 190],
+            'fill-extrusion-base': 0,
+            'fill-extrusion-opacity': 0.92,
+          },
+        })
+      }
+    } catch (err) {
+      console.warn('[HRAP] 3D road layer failed:', err)
+    }
+
     // 2. Draw Trauma Care Route
     if (traumaRoute && traumaRoute.geometry) {
       const routeGeoJson = {
@@ -714,6 +775,45 @@ export default function CorridorMap3D({
           .addTo(map)
         markersRef.current.push(incMarker)
       })
+
+      // 4. Tall 3D beacon pillars so cameras, hospitals and incidents stand out from the terrain.
+      try {
+        const items = [{ c: sentryCamera.coordinates, color: '#22d3ee', h: 700 }]
+        hospitals.forEach((h) => items.push({ c: h.coordinates, color: '#34d399', h: 900 }))
+        incidents.forEach((inc) => {
+          const ic = getIncidentCoordinates(inc)
+          if (!ic) return
+          items.push({
+            c: ic,
+            color: inc.severity === 'P0' ? '#ef4444' : inc.severity === 'P1' ? '#f59e0b' : '#60a5fa',
+            h: inc.severity === 'P0' ? 1500 : inc.severity === 'P1' ? 1100 : 800,
+          })
+        })
+        const data = {
+          type: 'FeatureCollection',
+          features: items
+            .filter((it) => Array.isArray(it.c) && it.c.length >= 2)
+            .map((it) => ({ type: 'Feature', properties: { color: it.color, h: it.h }, geometry: { type: 'Polygon', coordinates: [pillar(it.c[0], it.c[1])] } })),
+        }
+        if (map.getSource('beacons-src')) {
+          map.getSource('beacons-src').setData(data)
+        } else {
+          map.addSource('beacons-src', { type: 'geojson', data })
+          map.addLayer({
+            id: 'beacons-3d',
+            type: 'fill-extrusion',
+            source: 'beacons-src',
+            paint: {
+              'fill-extrusion-color': ['get', 'color'],
+              'fill-extrusion-height': ['get', 'h'],
+              'fill-extrusion-base': 0,
+              'fill-extrusion-opacity': 0.85,
+            },
+          })
+        }
+      } catch (err) {
+        console.warn('[HRAP] 3D beacon layer failed:', err)
+      }
     })
   }, [
     mapLoaded,
@@ -852,13 +952,14 @@ export default function CorridorMap3D({
             3D hills could not load{terrainError ? `: ${terrainError}` : '.'} The map is still usable.
           </div>
         )}
-        <div className="ap-map-legend" aria-label="Map key">
-          <div className="ap-map-legend__title">Map key</div>
-          <div><i style={{ background: '#f59e0b' }} /> Road you picked</div>
+        <details className="ap-map-legend">
+          <summary>Map key</summary>
+          <div><i style={{ background: '#f59e0b' }} /> Road you picked (raised)</div>
           <div><i style={{ background: '#0284c7' }} /> Other highways</div>
           <div><i style={{ background: '#10b981' }} /> Fastest way to a hospital</div>
+          <div><i style={{ background: '#ef4444' }} /> Tall red pillar: critical incident</div>
           <p>Drag to move · Scroll to zoom · Right-drag to tilt</p>
-        </div>
+        </details>
         {/* Main Map Canvas or WebGL Fallback */}
         {!webGlFailed ? (
         <div ref={mapContainerRef} className="corridor-map-canvas" />

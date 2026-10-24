@@ -42,10 +42,8 @@ export default function AboutModal({ isOpen, onClose }) {
               <Shield size={24} className="text-cyan" />
             </div>
             <div>
-              <h3>Highway Safety & Accident Prevention Autonomous Agent</h3>
-              <p className="about-modal-sub">
-                AP Road Accident Prevention Challenge (HRAP-2026) · Govt of Andhra Pradesh & Ratan Tata Innovation Hub
-              </p>
+              <h3>About Highway Safety Agent</h3>
+              <p className="about-modal-sub">A road-accident prevention tool for Andhra Pradesh highways (HRAP-2026)</p>
             </div>
           </div>
           <button className="about-close-btn" onClick={onClose} title="Close (Esc)">
@@ -55,6 +53,22 @@ export default function AboutModal({ isOpen, onClose }) {
 
         {/* Content Body */}
         <div className="about-modal-body">
+          <section className="about-plain">
+            <h4>What this does, in 10 seconds</h4>
+            <div className="about-steps">
+              <div><b>1</b><strong>A camera watches the road</strong><p>The system spots stopped vehicles, wrong-way driving, cars too close together and crashes, within seconds.</p></div>
+              <div><b>2</b><strong>The agent tells the right people</strong><p>It alerts patrols, ambulances, police and roadside signs, and writes a short briefing for you.</p></div>
+              <div><b>3</b><strong>You make the call</strong><p>Open an incident to see why it matters and what to do next. Mark it real, or a false alarm.</p></div>
+            </div>
+            <ul className="about-key">
+              <li><i style={{ background: '#ef4444' }} /><b>Critical</b> Act now</li>
+              <li><i style={{ background: '#f5b942' }} /><b>High</b> Check soon</li>
+              <li><i style={{ background: '#5cb8ff' }} /><b>Watch</b> Keep an eye on it</li>
+            </ul>
+            <p className="about-demo">“Demo simulation” means you are looking at sample data. No real emergency is happening. Press <kbd>?</kbd> any time to open this help.</p>
+          </section>
+          <details className="about-tech">
+            <summary>Technical details and keyboard shortcuts <span>for engineers</span></summary>
           {/* Mission Banner */}
           <div className="about-banner">
             <div className="about-banner-badge">
@@ -240,6 +254,7 @@ export default function AboutModal({ isOpen, onClose }) {
               </div>
             </div>
           </div>
+          </details>
         </div>
 
         {/* Footer */}
