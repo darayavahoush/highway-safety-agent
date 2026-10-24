@@ -245,7 +245,7 @@
 .cr .hud-btn { background: rgba(255, 240, 220, 0.07); color: var(--cr-ink); border: 1px solid var(--cr-line); }
 .cr .corridor-select { background: rgba(255, 240, 220, 0.07); color: var(--cr-ink); border: 1px solid var(--cr-line); }
 .cr .stage-meta { display: none; }
-.cr .tab-kbd-hint { display: none; }
+.cr .tab-kbd-hint { display: none !important; }
 
 /* ---- Technical numbers, tucked away ---- */
 .cr-tech {
@@ -262,12 +262,58 @@
 .cr-tech .stat-label, .cr-tech .stat-num span { color: var(--cr-dim) !important; }
 .cr-tech .stat-num b { color: var(--cr-ink) !important; }
 
+/* ---- Page headings for every page after the overview ---- */
+.cr-pagehead {
+  padding: 22px 26px 18px; margin-bottom: 16px;
+  border: 1px solid var(--cr-line); border-radius: 22px;
+  background: linear-gradient(100deg, rgba(10, 12, 24, 0.78), rgba(10, 12, 24, 0.38));
+  backdrop-filter: blur(14px) saturate(1.2);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 235, 210, 0.08);
+}
+.cr-pagehead .cr-kicker { color: var(--cr-amber); }
+.cr-pagehead h2 {
+  margin: 6px 0 6px; font: 700 clamp(30px, 3.4vw, 46px)/1.02 'Barlow Condensed', sans-serif;
+  letter-spacing: 0.01em; text-transform: uppercase; color: var(--cr-ink);
+  text-shadow: 0 2px 30px rgba(0, 0, 0, 0.5);
+}
+.cr-pagehead p { margin: 0; max-width: 64ch; font-size: 16px; line-height: 1.5; color: var(--cr-dim); }
+
+/* Incidents page */
+.cr-two { display: grid; grid-template-columns: minmax(270px, 380px) minmax(0, 1fr); gap: 18px; align-items: start; }
+.cr-two .scroll { max-height: clamp(380px, calc(100vh - 420px), 720px); }
+.cr-two .detail-body { max-height: none; }
+
+/* Health check cards */
+.cr-health { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; }
+.cr-health-card {
+  --t: var(--cr-faint);
+  padding: 18px 20px; border-radius: var(--cr-radius);
+  background: var(--cr-glass); border: 1px solid var(--cr-line);
+  border-top: 3px solid var(--t); backdrop-filter: blur(16px) saturate(1.15);
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.35);
+}
+.cr-health-card[data-tone='ok'] { --t: var(--cr-green); }
+.cr-health-card[data-tone='warn'] { --t: var(--cr-amber); }
+.cr-health-card[data-tone='bad'] { --t: var(--cr-red); }
+.cr-health-label { display: flex; align-items: center; gap: 8px; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--cr-dim); }
+.cr-health-card b { display: flex; align-items: center; gap: 10px; margin: 12px 0 6px; font: 700 26px/1.1 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: 0.02em; color: var(--cr-ink); }
+.cr-health-card b i { flex: none; width: 11px; height: 11px; border-radius: 50%; background: var(--t); box-shadow: 0 0 12px var(--t); }
+.cr-health-card p { margin: 0; font-size: 14px; line-height: 1.5; color: var(--cr-dim); }
+
+/* Quieter AI pill so it covers less */
+.app .copilot-badge { display: none !important; }
+.app .copilot-toggle-btn { padding: 8px 14px !important; font-size: 13px !important; }
+
 /* ---- Adapts to the space it actually gets (the page has a side rail) ---- */
 @container cr (max-width: 1100px) {
   .cr-grid { grid-template-columns: minmax(240px, 300px) minmax(0, 1fr); }
   .cr-col--detail { grid-column: 1 / -1; }
   .cr-col--detail .detail-body { max-height: none; }
   .cr-headline { font-size: clamp(30px, 5cqw, 44px); }
+}
+@container cr (max-width: 900px) {
+  .cr-two { grid-template-columns: minmax(0, 1fr); }
+  .cr-two .scroll { max-height: 360px; }
 }
 @container cr (max-width: 760px) {
   .cr-hero { grid-template-columns: 1fr; padding: 18px; }
@@ -277,4 +323,14 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .cr-backdrop, .cr-wrap[data-tone='critical'] .cr-headline svg { animation: none; }
+}
+
+/* Phones: keep the top bar inside the screen */
+@media (max-width: 520px) {
+  .app:not(.app--home) .topbar { flex-wrap: wrap; gap: 8px; height: auto; }
+  .app:not(.app--home) .topbar .brand-text,
+  .app:not(.app--home) .topbar .clock,
+  .app:not(.app--home) .topbar .topbar-about-btn,
+  .app:not(.app--home) .topbar .camera-id { display: none !important; }
+  .cr-glance div { min-width: 0; flex: 1; }
 }

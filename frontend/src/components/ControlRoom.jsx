@@ -1,11 +1,13 @@
-import { ShieldCheck, Siren, Eye, ArrowRight, Wifi, Lightbulb } from 'lucide-react'
+import { ShieldCheck, Siren, Eye, ArrowRight, Wifi } from 'lucide-react'
+import CinematicPage from './CinematicPage.jsx'
+import IncidentGuide from './IncidentGuide.jsx'
 import IncidentQueue from './IncidentQueue.jsx'
 import LiveStage from './LiveStage.jsx'
 import ActivityLog from './ActivityLog.jsx'
 import IncidentDetail from './IncidentDetail.jsx'
 import StatsStrip from './StatsStrip.jsx'
 import { isActive, incidentTitle, locationLabel, fmtAge, SEVERITY } from '../lib/format.js'
-import { SEVERITY_HELP, whyItMatters, nextStep, sceneFor } from '../lib/plain.js'
+import { SEVERITY_HELP } from '../lib/plain.js'
 
 const CONN = {
   demo: 'Demo simulation',
@@ -33,9 +35,7 @@ export default function ControlRoom({
     : `${n} incident${n === 1 ? '' : 's'} need${n === 1 ? 's' : ''} attention`
 
   return (
-    <div className="cr-wrap" data-scene={sceneFor(now)} data-tone={tone}>
-      <div className="cr-backdrop" aria-hidden="true" />
-      <div className="cr">
+    <CinematicPage now={now} tone={tone}>
 
       <section className="cr-hero" aria-live="polite">
         <div className="cr-hero-main">
@@ -97,15 +97,7 @@ export default function ControlRoom({
 
         <section className="cr-col cr-col--detail">
           <h3 className="cr-step"><em>03</em>What to do</h3>
-          {selected && (
-            <div className="cr-guide" style={{ '--sev': (SEVERITY[selected.severity] || SEVERITY.P1).color }}>
-              <Lightbulb size={16} aria-hidden="true" />
-              <div>
-                <p><b>Why it matters.</b> {whyItMatters(selected.type)}</p>
-                <p><b>Your next step.</b> {nextStep(selected)}</p>
-              </div>
-            </div>
-          )}
+          <IncidentGuide incident={selected} />
           <IncidentDetail incident={selected} now={now} actions={actions} />
         </section>
       </div>
@@ -114,7 +106,6 @@ export default function ControlRoom({
         <summary><Eye size={14} aria-hidden="true" />Technical performance <span>for engineers</span></summary>
         <StatsStrip metrics={state.metrics} open={n} today={today} blackspots={state.blackspots} camera={camera} />
       </details>
-      </div>
-    </div>
+    </CinematicPage>
   )
 }

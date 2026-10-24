@@ -39,3 +39,36 @@ export function sceneFor(ms) {
   if (h >= 16 && h < 19) return 'sunset'
   return 'night'
 }
+
+// Page headings, written for someone seeing the screen for the first time.
+export const PAGE_COPY = {
+  corridor: {
+    kicker: 'Road map',
+    title: 'Where is the road at risk?',
+    lead: 'Pick a stretch of highway to see its weather, its past accident spots, and the nearest trauma hospital.',
+  },
+  incidents: {
+    kicker: 'All incidents',
+    title: 'Every incident, in one place',
+    lead: 'Choose an incident on the left to see what happened, what the agent already did, and what to do next.',
+  },
+  activity: {
+    kicker: 'Who was alerted',
+    title: 'Who was told, and when',
+    lead: 'Each row is one alert sent to a patrol, ambulance, police team or road sign. Click a row to open its incident.',
+  },
+  system: {
+    kicker: 'Health check',
+    title: 'Is everything working?',
+    lead: 'Green means working. Amber means worth checking. Grey means the app has not been told yet.',
+  },
+}
+
+// Plain wording for the camera's self-reported health.
+export function cameraStatus(h) {
+  if (!h) return { tone: 'idle', headline: 'Not reported yet', detail: 'The camera has not sent a health report.' }
+  if (h.camera_stability === 'WIND_SWAY') return { tone: 'warn', headline: 'Swaying in the wind', detail: 'Detections may be a little less accurate until it settles.' }
+  if (h.camera_stability === 'PANNING_OR_DRIFT') return { tone: 'warn', headline: 'Camera has moved', detail: 'The view has shifted. Lane positions may be off until it is re-aligned.' }
+  if (h.visibility_score != null && h.visibility_score < 60) return { tone: 'warn', headline: 'Poor visibility', detail: 'Fog, rain or low light is reducing what the camera can see.' }
+  return { tone: 'ok', headline: 'Steady and clear', detail: 'The camera is fixed in place and can see the road well.' }
+}

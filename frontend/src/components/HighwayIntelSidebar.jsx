@@ -6,7 +6,7 @@ import RegionalWeather from './RegionalWeather.jsx'
 
 const PAGE_GUIDE = {
   control: { eyebrow: 'COMMAND CENTRE', title: 'Start with the signal', body: 'Scan active incidents first, inspect the selected event, then review the camera and response context.', next: 'Open Corridor Map to explore the wider road environment.' },
-  corridor: { eyebrow: 'ROAD NETWORK', title: 'Read the terrain', body: 'Choose a highway, keep 3D Relief enabled for elevation, and select a map point to refresh its weather context.', next: 'Use incident markers and the trauma-routing panel as decision support.' },
+  corridor: { eyebrow: 'ROAD NETWORK', title: 'Read the terrain', body: 'Choose a highway on the map, then click a point to see the weather there.', next: 'Click an incident marker to see the nearest trauma hospital and the drive time.' },
   incidents: { eyebrow: 'EVENT REVIEW', title: 'Triage with context', body: 'Filter the queue, select an incident, and compare severity with location and supporting details.', next: 'Return to Overview when you need the overall operational picture.' },
   activity: { eyebrow: 'DISPATCH HISTORY', title: 'Follow the response', body: 'Use the timeline to understand what happened, when it happened, and which incident each action belongs to.', next: 'Select an event to connect its history to the incident record.' },
   system: { eyebrow: 'SERVICE HEALTH', title: 'Check the signals', body: 'Review connection status, camera health, tracker rate, and event totals reported by the app.', next: 'A missing metric means it was not reported; it does not prove service health.' },
@@ -53,18 +53,18 @@ export default function HighwayIntelSidebar({
       <section className="hrap-rail-corridor" aria-label="Corridor overview">
         <div className="hrap-rail-section-top">
           <span className="hrap-rail-section-label"><Compass size={13} /> CORRIDOR OVERVIEW</span>
-          <span className={`hrap-rail-terrain${active?.terrainEnabled ? ' is-on' : ''}`}><span /> 3D RELIEF {active?.terrainEnabled === false ? 'OFF' : 'ON'}</span>
+          <span className="hrap-rail-terrain"><span /> FLAT MAP</span>
         </div>
         <div className="hrap-rail-route-title"><strong>{highway}</strong><span>{active?.id ? 'SELECTED' : 'REFERENCE'}</span></div>
         <h3>{stretch}</h3>
         <div className="hrap-rail-corridor-facts">
           <div><span>Districts</span><strong>{districts}</strong></div>
           <div><span>Listed blackspots</span><strong>{blackspots}</strong></div>
-          <div><span>Map elevation</span><strong>{active?.terrainStatus === 'unavailable' ? 'Unavailable' : active?.terrainStatus === 'loading' ? 'Loading…' : active?.terrainEnabled === false ? 'Flat view' : active?.terrainStatus === 'active' ? '3D relief active' : 'Ready to enable'}</strong></div>
+          <div><span>Map view</span><strong>Flat, top-down</strong></div>
         </div>
         {active?.terrainError && <p className="hrap-rail-terrain-error">{active.terrainError}</p>}
         <button type="button" className="hrap-rail-map-cta" onClick={() => onNavigate('corridor')}>
-          Open 3D corridor map <ArrowRight size={14} />
+          Open road map <ArrowRight size={14} />
         </button>
         {!active && <p className="hrap-rail-hint">The selected corridor details update when the map is opened.</p>}
       </section>
