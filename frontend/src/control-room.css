@@ -233,8 +233,6 @@
   background: var(--cr-glass-strong) !important; border: 1px solid var(--cr-line) !important;
   border-radius: 12px !important; color: var(--cr-ink);
 }
-/* Warm the monochrome basemap so it sits inside the photograph's palette */
-.cr .corridor-map-canvas canvas { filter: sepia(0.35) hue-rotate(-12deg) saturate(0.85) brightness(0.92) contrast(1.05); }
 .cr .corridor-map-stage::after { /* vignette over the map */
   content: ''; position: absolute; inset: 0; pointer-events: none;
   box-shadow: inset 0 0 90px rgba(5, 6, 14, 0.65);
@@ -334,3 +332,10 @@
   .app:not(.app--home) .topbar .camera-id { display: none !important; }
   .cr-glance div { min-width: 0; flex: 1; }
 }
+
+/* Map key: plain-language legend over the 3D map */
+.ap-map-legend { position: absolute; left: 12px; bottom: 12px; z-index: 5; padding: 10px 12px; border-radius: 10px; font-size: 12px; line-height: 1.5; color: #eaf1f8; background: rgba(6, 12, 22, .78); border: 1px solid rgba(164, 208, 246, .28); backdrop-filter: blur(10px); pointer-events: none; max-width: 230px; }
+.ap-map-legend__title { font-weight: 700; letter-spacing: .08em; text-transform: uppercase; font-size: 10px; color: #ffd08a; margin-bottom: 4px; }
+.ap-map-legend i { display: inline-block; width: 18px; height: 4px; border-radius: 2px; margin-right: 8px; vertical-align: middle; }
+.ap-map-legend p { margin: 6px 0 0; color: #a9b9ca; font-size: 11px; }
+@media (max-width: 640px) { .ap-map-legend { display: none; } }

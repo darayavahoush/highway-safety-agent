@@ -14,6 +14,7 @@ import {
   Maximize2
 } from 'lucide-react'
 import RegionalWeather from './RegionalWeather.jsx'
+import { AP_BOUNDARY } from '../data/apBoundary.js'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
 
@@ -194,8 +195,8 @@ export default function CorridorMap3D({
   const orbitIntervalRef = useRef(null)
 
   const [activeCorridorId, setActiveCorridorId] = useState('AP-NH16-NORTH')
-  const [styleMode, setStyleMode] = useState('dark') // flat monochrome basemap
-  const [terrainEnabled, setTerrainEnabled] = useState(false)
+  const [styleMode, setStyleMode] = useState('bright') // 'dark' | 'bright'
+  const [terrainEnabled, setTerrainEnabled] = useState(true)
   const [terrainStatus, setTerrainStatus] = useState('loading')
   const [terrainError, setTerrainError] = useState('')
   const [isOrbiting, setIsOrbiting] = useState(false)
@@ -343,9 +344,11 @@ export default function CorridorMap3D({
           style: currentStyleUrl,
           center: activeCorridor.center,
           zoom: activeCorridor.zoom,
-          pitch: 0,
-          bearing: 0,
-          maxPitch: 0,
+          pitch: terrainEnabled ? 66 : 0,
+          bearing: -18,
+          maxPitch: 78,
+          minZoom: 5.6,
+          maxBounds: [[AP_BOUNDARY.bounds[0] - 1.6, AP_BOUNDARY.bounds[1] - 1.4], [AP_BOUNDARY.bounds[2] + 1.6, AP_BOUNDARY.bounds[3] + 1.4]],
           antialias: true,
         })
 
@@ -475,6 +478,32 @@ export default function CorridorMap3D({
     }
   }, [terrainEnabled, mapLoaded, currentStyleUrl])
 
+  // Andhra Pradesh only: black out everything outside the state, outline AP, faint district lines.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !mapLoaded) return
+    try {
+      if (!map.getSource('ap-mask-src')) {
+        const world = [[-180, -85], [180, -85], [180, 85], [-180, 85], [-180, -85]]
+        const geom = AP_BOUNDARY.state.geometry
+        const polys = geom.type === 'MultiPolygon' ? geom.coordinates : [geom.coordinates]
+        const holes = polys.map((poly) => poly[0])
+        map.addSource('ap-mask-src', {
+          type: 'geojson',
+          data: { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [world, ...holes] } },
+        })
+        map.addSource('ap-outline-src', { type: 'geojson', data: AP_BOUNDARY.state })
+        map.addSource('ap-districts-src', { type: 'geojson', data: AP_BOUNDARY.districts })
+        map.addLayer({ id: 'ap-mask', type: 'fill', source: 'ap-mask-src', paint: { 'fill-color': '#04070d', 'fill-opacity': 1 } })
+        map.addLayer({ id: 'ap-districts', type: 'line', source: 'ap-districts-src', paint: { 'line-color': '#ffffff', 'line-opacity': 0.28, 'line-width': 0.8 } })
+        map.addLayer({ id: 'ap-outline-glow', type: 'line', source: 'ap-outline-src', paint: { 'line-color': '#ffb454', 'line-width': 8, 'line-opacity': 0.28, 'line-blur': 5 } })
+        map.addLayer({ id: 'ap-outline', type: 'line', source: 'ap-outline-src', paint: { 'line-color': '#ffd08a', 'line-width': 2, 'line-opacity': 0.95 } })
+      }
+    } catch (err) {
+      console.warn('[HRAP] AP mask setup failed:', err)
+    }
+  }, [mapLoaded, currentStyleUrl])
+
   // Draw Corridors, Camera, and Trauma Routes on Map
   useEffect(() => {
     const map = mapRef.current
@@ -514,7 +543,7 @@ export default function CorridorMap3D({
         source: 'corridors-src',
         layout: { 'line-join': 'round', 'line-cap': 'round' },
         paint: {
-          'line-color': ['case', ['get', 'isActive'], '#ef4444', '#f2b45a'],
+          'line-color': ['case', ['get', 'isActive'], '#ef4444', '#38bdf8'],
           'line-width': ['case', ['get', 'isActive'], 10, 5],
           'line-opacity': 0.35,
           'line-blur': 4,
@@ -528,7 +557,7 @@ export default function CorridorMap3D({
         source: 'corridors-src',
         layout: { 'line-join': 'round', 'line-cap': 'round' },
         paint: {
-          'line-color': ['case', ['get', 'isActive'], '#f59e0b', '#b9791f'],
+          'line-color': ['case', ['get', 'isActive'], '#f59e0b', '#0284c7'],
           'line-width': ['case', ['get', 'isActive'], 4, 2.5],
           'line-opacity': 0.95,
         },
@@ -618,7 +647,7 @@ export default function CorridorMap3D({
           </div>
         `
         hospEl.onclick = () => {
-          map.flyTo({ center: hosp.coordinates, zoom: 14, pitch: 0 })
+          map.flyTo({ center: hosp.coordinates, zoom: 14, pitch: 50 })
         }
         const hospMarker = new maplibreglShared.current.Marker({ element: hospEl })
           .setLngLat(hosp.coordinates)
@@ -711,8 +740,8 @@ export default function CorridorMap3D({
     mapRef.current.flyTo({
       center: activeCorridor.center,
       zoom: activeCorridor.zoom,
-      pitch: 0,
-      bearing: 0,
+      pitch: 55,
+      bearing: -15,
     })
   }
 
@@ -724,8 +753,8 @@ export default function CorridorMap3D({
       mapRef.current.flyTo({
         center: target.center,
         zoom: target.zoom,
-        pitch: 0,
-        bearing: 0,
+        pitch: 55,
+        bearing: -15,
       })
     }
   }
@@ -752,9 +781,40 @@ export default function CorridorMap3D({
         <div className="hud-group">
           <button
             type="button"
+            className={`hud-btn ${styleMode === 'bright' ? 'is-active' : ''}`}
+            onClick={() => setStyleMode(styleMode === 'dark' ? 'bright' : 'dark')}
+            title="Switch between the colour map and the night map"
+          >
+            <Layers size={13} />
+            <span>{styleMode === 'dark' ? 'Night map' : 'Colour map'}</span>
+          </button>
+
+          <button
+            type="button"
+            className={`hud-btn ${terrainEnabled ? 'is-active' : ''} ${terrainStatus === 'unavailable' ? 'terrain-unavailable' : ''}`}
+            onClick={() => setTerrainEnabled(!terrainEnabled)}
+            aria-pressed={terrainEnabled}
+            title={terrainError || 'Toggle 3D terrain elevation and hillshade'}
+          >
+            <Mountain size={13} />
+            <span>{terrainStatus === 'unavailable' ? 'Hills unavailable' : terrainStatus === 'loading' ? 'Loading hills…' : terrainEnabled ? '3D hills · ON' : '3D hills · OFF'}</span>
+          </button>
+
+          <button
+            type="button"
+            className={`hud-btn ${isOrbiting ? 'is-active' : ''}`}
+            onClick={() => setIsOrbiting(!isOrbiting)}
+            title="Slowly rotate around the road"
+          >
+            <Compass size={13} className={isOrbiting ? 'spin-slow' : ''} />
+            <span>Rotate</span>
+          </button>
+
+          <button
+            type="button"
             className="hud-btn"
             onClick={handleResetView}
-            title="Reset Perspective"
+            title="Back to the starting view"
           >
             <RotateCcw size={13} />
           </button>
@@ -763,6 +823,13 @@ export default function CorridorMap3D({
 
       {/* Map and persistent intelligence sidebar */}
       <div className="corridor-map-stage">
+        <div className="ap-map-legend" aria-label="Map key">
+          <div className="ap-map-legend__title">Map key</div>
+          <div><i style={{ background: '#f59e0b' }} /> Road you picked</div>
+          <div><i style={{ background: '#0284c7' }} /> Other highways</div>
+          <div><i style={{ background: '#10b981' }} /> Fastest way to a hospital</div>
+          <p>Drag to move · Scroll to zoom · Right-drag to tilt</p>
+        </div>
         {/* Main Map Canvas or WebGL Fallback */}
         {!webGlFailed ? (
         <div ref={mapContainerRef} className="corridor-map-canvas" />

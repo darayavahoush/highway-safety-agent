@@ -53,14 +53,14 @@ export default function HighwayIntelSidebar({
       <section className="hrap-rail-corridor" aria-label="Corridor overview">
         <div className="hrap-rail-section-top">
           <span className="hrap-rail-section-label"><Compass size={13} /> CORRIDOR OVERVIEW</span>
-          <span className="hrap-rail-terrain"><span /> FLAT MAP</span>
+          <span className="hrap-rail-terrain"><span /> 3D MAP</span>
         </div>
         <div className="hrap-rail-route-title"><strong>{highway}</strong><span>{active?.id ? 'SELECTED' : 'REFERENCE'}</span></div>
         <h3>{stretch}</h3>
         <div className="hrap-rail-corridor-facts">
           <div><span>Districts</span><strong>{districts}</strong></div>
           <div><span>Listed blackspots</span><strong>{blackspots}</strong></div>
-          <div><span>Map view</span><strong>Flat, top-down</strong></div>
+          <div><span>Map view</span><strong>3D, Andhra Pradesh only</strong></div>
         </div>
         {active?.terrainError && <p className="hrap-rail-terrain-error">{active.terrainError}</p>}
         <button type="button" className="hrap-rail-map-cta" onClick={() => onNavigate('corridor')}>
