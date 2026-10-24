@@ -185,6 +185,7 @@ export default function CorridorMap3D({
   selectedIncident = null,
   onSelectIncident,
   camera = null,
+  onCorridorInfo,
 }) {
   const maplibreglShared = useRef(null)
   const mapContainerRef = useRef(null)
@@ -192,9 +193,11 @@ export default function CorridorMap3D({
   const markersRef = useRef([])
   const orbitIntervalRef = useRef(null)
 
-  const [activeCorridorId, setActiveCorridorId] = useState('AP-NH16-CENTRAL')
+  const [activeCorridorId, setActiveCorridorId] = useState('AP-NH16-NORTH')
   const [styleMode, setStyleMode] = useState('bright') // 'dark' | 'bright'
   const [terrainEnabled, setTerrainEnabled] = useState(true)
+  const [terrainStatus, setTerrainStatus] = useState('loading')
+  const [terrainError, setTerrainError] = useState('')
   const [isOrbiting, setIsOrbiting] = useState(false)
   const [mapLoaded, setMapLoaded] = useState(false)
   const [webGlFailed, setWebGlFailed] = useState(false)
@@ -210,6 +213,25 @@ export default function CorridorMap3D({
     () => DEFAULT_CORRIDORS.find((c) => c.id === activeCorridorId) || DEFAULT_CORRIDORS[0],
     [activeCorridorId]
   )
+
+  // Keep the sitewide intelligence rail in sync with the map's selected corridor,
+  // clicked weather point, and terrain toggle.
+  useEffect(() => {
+    onCorridorInfo?.({
+      id: activeCorridor.id,
+      highway: activeCorridor.highway,
+      name: activeCorridor.name,
+      districts: activeCorridor.districts,
+      blackspots: activeCorridor.blackspots,
+      center: activeCorridor.center,
+      zoom: activeCorridor.zoom,
+      weatherCoordinates: weatherPoint.coordinates,
+      weatherName: weatherPoint.name,
+      terrainEnabled,
+      terrainStatus,
+      terrainError,
+    })
+  }, [activeCorridor, weatherPoint, terrainEnabled, terrainStatus, terrainError, onCorridorInfo])
 
   const sentryCamera = useMemo(() => {
     if (camera && camera.lng && camera.lat) {
@@ -298,6 +320,8 @@ export default function CorridorMap3D({
 
   // Initialize MapLibre GL
   useEffect(() => {
+    setMapLoaded(false)
+    setTerrainStatus('loading')
     let mapInstance = null
 
     async function initMap() {
@@ -319,9 +343,9 @@ export default function CorridorMap3D({
           style: currentStyleUrl,
           center: activeCorridor.center,
           zoom: activeCorridor.zoom,
-          pitch: 55,
-          bearing: -15,
-          maxPitch: 75,
+          pitch: terrainEnabled ? 66 : 0,
+          bearing: -18,
+          maxPitch: 78,
           antialias: true,
         })
 
@@ -329,21 +353,6 @@ export default function CorridorMap3D({
 
         mapInstance.on('load', () => {
           setMapLoaded(true)
-          // Add Terrain if supported
-          try {
-            mapInstance.addSource('terrain-source', {
-              type: 'raster-dem',
-              tiles: ['https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png'],
-              encoding: 'terrarium',
-              tileSize: 256,
-              maxzoom: 14,
-            })
-            if (terrainEnabled) {
-              mapInstance.setTerrain({ source: 'terrain-source', exaggeration: 2.0 })
-            }
-          } catch (e) {
-            // Ignore terrain source load error
-          }
         })
 
         mapInstance.on('error', () => {
@@ -391,19 +400,80 @@ export default function CorridorMap3D({
     return () => map.off('click', handleWeatherPoint)
   }, [mapLoaded, activeCorridor])
 
-  // Update Terrain state
+  // Keep DEM installation, hillshade, terrain mesh, camera pitch, and status in sync.
+  // AWS Terrarium is a global, no-key raster DEM; no demo-only Alpine coverage is used.
   useEffect(() => {
-    if (!mapRef.current || !mapLoaded) return
+    const map = mapRef.current
+    if (!map || !mapLoaded || !map.isStyleLoaded()) return undefined
+
+    const sourceId = 'terrain-source'
+    const hillshadeId = 'terrain-hillshade'
+    let disposed = false
+
+    const onTerrainError = (event) => {
+      const sourceIdFromError = event?.sourceId || event?.source?.id
+      if (sourceIdFromError !== sourceId) return
+      if (disposed) return
+      setTerrainStatus('unavailable')
+      setTerrainError(event?.error?.message || 'Elevation tiles could not be loaded. Check network access and retry.')
+    }
+    map.on('error', onTerrainError)
+
     try {
-      if (terrainEnabled) {
-        if (mapRef.current.getSource('terrain-source')) {
-          mapRef.current.setTerrain({ source: 'terrain-source', exaggeration: 2.0 })
-        }
+      if (!terrainEnabled) {
+        map.setTerrain(null)
+        if (map.getLayer(hillshadeId)) map.removeLayer(hillshadeId)
+        if (Math.abs(map.getPitch()) > 1) map.easeTo({ pitch: 0, duration: 450 })
+        setTerrainStatus('off')
+        setTerrainError('')
       } else {
-        mapRef.current.setTerrain(null)
+        setTerrainStatus('loading')
+        setTerrainError('')
+        if (!map.getSource(sourceId)) {
+          map.addSource(sourceId, {
+            type: 'raster-dem',
+            tiles: ['https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png'],
+            encoding: 'terrarium',
+            tileSize: 256,
+            minzoom: 0,
+            maxzoom: 15,
+            attribution: 'Elevation: AWS Open Data / Terrain Tiles (Terrarium)',
+          })
+        }
+
+        // Hillshade makes subtle elevation visible even before strong terrain relief loads.
+        if (!map.getLayer(hillshadeId)) {
+          const firstSymbol = map.getStyle()?.layers?.find((layer) => layer.type === 'symbol')?.id
+          map.addLayer({
+            id: hillshadeId,
+            type: 'hillshade',
+            source: sourceId,
+            paint: {
+              'hillshade-exaggeration': 0.6,
+              'hillshade-shadow-color': '#142637',
+              'hillshade-highlight-color': '#c7d8e6',
+              'hillshade-accent-color': '#526a7c',
+              'hillshade-illumination-direction': 335,
+            },
+          }, firstSymbol)
+        }
+        map.setTerrain({ source: sourceId, exaggeration: 2.6 })
+        if (map.getPitch() < 58) map.easeTo({ pitch: 66, bearing: -18, duration: 650 })
+
+        // Report active only after the terrain API accepted the configuration.
+        setTerrainStatus('active')
       }
-    } catch (e) {}
-  }, [terrainEnabled, mapLoaded])
+    } catch (error) {
+      console.warn('[HRAP] 3D terrain setup failed:', error)
+      setTerrainStatus('unavailable')
+      setTerrainError(error?.message || 'The terrain renderer could not be activated.')
+    }
+
+    return () => {
+      disposed = true
+      map.off('error', onTerrainError)
+    }
+  }, [terrainEnabled, mapLoaded, currentStyleUrl])
 
   // Draw Corridors, Camera, and Trauma Routes on Map
   useEffect(() => {
@@ -641,8 +711,8 @@ export default function CorridorMap3D({
     mapRef.current.flyTo({
       center: activeCorridor.center,
       zoom: activeCorridor.zoom,
-      pitch: 0,
-      bearing: 0,
+      pitch: 55,
+      bearing: -15,
     })
   }
 
@@ -692,12 +762,13 @@ export default function CorridorMap3D({
 
           <button
             type="button"
-            className={`hud-btn ${terrainEnabled ? 'is-active' : ''}`}
+            className={`hud-btn ${terrainEnabled ? 'is-active' : ''} ${terrainStatus === 'unavailable' ? 'terrain-unavailable' : ''}`}
             onClick={() => setTerrainEnabled(!terrainEnabled)}
-            title="Toggle 3D Elevation & Hillshade"
+            aria-pressed={terrainEnabled}
+            title={terrainError || 'Toggle 3D terrain elevation and hillshade'}
           >
             <Mountain size={13} />
-            <span>3D Relief</span>
+            <span>{terrainStatus === 'unavailable' ? 'Relief unavailable' : terrainStatus === 'loading' ? 'Loading relief…' : terrainEnabled ? '3D Relief · ON' : '3D Relief · OFF'}</span>
           </button>
 
           <button

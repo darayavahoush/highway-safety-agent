@@ -1,0 +1,212 @@
+/* HRAP_CINEMATIC_ROADS_V4 — intentional road/vehicle visual language, loaded last */
+:root {
+  --hrap-asphalt: #07111c;
+  --hrap-lane: rgba(236, 244, 251, .7);
+  --hrap-sign: #f2bc72;
+  --hrap-sky: #9fd4ff;
+  --hrap-road-green: #7fe1b8;
+}
+
+/* The scenic image must actually read through the interface. V3's 0.93 black veil hid it. */
+.app:not(.app--home)::before { opacity: .48 !important; }
+.app:not(.app--home)::after {
+  background:
+    linear-gradient(105deg, rgba(3, 8, 15, .66), rgba(3, 8, 15, .48) 54%, rgba(3, 8, 15, .62)),
+    linear-gradient(0deg, rgba(3, 8, 15, .22), transparent 65%) !important;
+}
+.app:not(.app--home) .ops-page-heading {
+  position: relative !important;
+  padding: 4px 0 22px !important;
+  margin-bottom: 20px !important;
+  border-bottom: 1px solid rgba(157, 199, 237, .18) !important;
+}
+.app:not(.app--home) .ops-page-heading::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 160px;
+  height: 3px;
+  background: repeating-linear-gradient(90deg, var(--hrap-lane) 0 18px, transparent 18px 28px);
+  opacity: .7;
+}
+.app:not(.app--home) .ops-page-heading h1 {
+  letter-spacing: -.04em !important;
+  text-shadow: 0 4px 26px rgba(55, 143, 224, .20) !important;
+}
+.app:not(.app--home) .ops-page-heading .ops-eyebrow::before {
+  content: "▰";
+  display: inline-block;
+  margin-right: 7px;
+  color: var(--hrap-sign);
+  font-size: 10px;
+}
+
+/* Site navigation is now the first useful section in the right rail, never below weather. */
+.highway-intel-sidebar > .hrap-rail-hero { order: -1 !important; }
+.hrap-rail-vehicle-strip { position: absolute; z-index: 2; left: 14px; right: 14px; bottom: 35px; display: flex; align-items: center; gap: 7px; color: #d4eaff; opacity: .95; }
+.hrap-rail-vehicle-strip > svg { flex: 0 0 auto; filter: drop-shadow(0 2px 5px rgba(0,0,0,.75)); }
+.hrap-rail-vehicle-strip > svg:first-child { color: #b5dfff; }
+.hrap-rail-vehicle-strip > svg:nth-of-type(2) { color: #f2bc72; }
+.hrap-rail-vehicle-lane { flex: 1; min-width: 12px; height: 2px; background: repeating-linear-gradient(90deg, rgba(243,248,255,.8) 0 8px, transparent 8px 15px); }
+.hrap-rail-vehicle-label { position: absolute; right: 0; top: -14px; color: #e1eefb; font-size: 7px; font-weight: 800; letter-spacing: .1em; text-shadow: 0 2px 8px rgba(0,0,0,.9); }
+.highway-intel-sidebar > .hrap-rail-navigation { order: 0 !important; }
+.highway-intel-sidebar > .hrap-rail-corridor { order: 1 !important; }
+.highway-intel-sidebar > .hrap-rail-status { order: 2 !important; }
+.highway-intel-sidebar > .hrap-rail-weather { order: 3 !important; }
+.highway-intel-sidebar > .hrap-rail-guide { order: 4 !important; }
+.highway-intel-sidebar > .hrap-rail-advisory { order: 5 !important; }
+.highway-intel-sidebar > .hrap-rail-footer { order: 6 !important; }
+.hrap-rail-navigation {
+  padding: 13px !important;
+  border-color: rgba(146, 199, 247, .34) !important;
+  background: linear-gradient(150deg, rgba(17, 36, 55, .98), rgba(6, 15, 26, .96)) !important;
+  box-shadow: inset 3px 0 0 rgba(112, 187, 247, .72), 0 10px 28px rgba(0, 0, 0, .16) !important;
+}
+.hrap-rail-navigation > .hrap-rail-section-label {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin-bottom: 9px !important;
+  color: #c6e5ff !important;
+  font-size: 10px !important;
+  letter-spacing: .12em !important;
+}
+.hrap-rail-navigation > .hrap-rail-section-label::after {
+  content: "5 DESTINATIONS";
+  margin-left: auto;
+  color: #769ab9;
+  font-size: 7px;
+  letter-spacing: .08em;
+}
+.hrap-rail-nav-list { gap: 5px !important; margin-top: 0 !important; }
+.hrap-rail-nav-item {
+  position: relative !important;
+  grid-template-columns: 30px minmax(0, 1fr) 18px !important;
+  min-height: 52px !important;
+  padding: 8px 9px !important;
+  gap: 9px !important;
+  border: 1px solid rgba(145, 189, 227, .08) !important;
+  border-radius: 8px !important;
+  background: rgba(3, 10, 18, .28) !important;
+  transition: background .18s ease, border-color .18s ease, transform .18s ease !important;
+}
+.hrap-rail-nav-item:hover { transform: translateX(2px); border-color: rgba(155, 208, 251, .33) !important; background: rgba(61, 132, 194, .15) !important; }
+.hrap-rail-nav-item.is-current {
+  border-color: rgba(147, 206, 255, .5) !important;
+  background: linear-gradient(95deg, rgba(63, 143, 211, .28), rgba(19, 47, 72, .48)) !important;
+  box-shadow: inset 3px 0 0 #9bd6ff !important;
+}
+.hrap-rail-nav-number {
+  display: grid !important;
+  place-items: center !important;
+  width: 27px !important;
+  height: 27px !important;
+  border: 1px solid rgba(154, 204, 244, .22) !important;
+  border-radius: 7px !important;
+  background: rgba(127, 181, 230, .08) !important;
+  color: #b4d8fb !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+}
+.hrap-rail-nav-item.is-current .hrap-rail-nav-number { color: #061321 !important; background: #a6d9ff !important; border-color: #a6d9ff !important; }
+.hrap-rail-nav-copy strong { font-size: 11px !important; letter-spacing: .01em !important; }
+.hrap-rail-nav-copy small { color: #a8bdd1 !important; font-size: 9px !important; line-height: 1.35 !important; }
+.hrap-rail-nav-item > svg { width: 15px; height: 15px; }
+.hrap-rail-navigation::after {
+  content: "Use these links to move between all operational views.";
+  display: block;
+  margin-top: 9px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(143, 188, 231, .2);
+  color: #8faac2;
+  font-size: 8px;
+  line-height: 1.4;
+}
+
+/* Road signage, route plates and asphalt details are the design language, not generic neon cards. */
+.ops-workspace-shell > .ops-page { border-radius: 11px !important; }
+.app:not(.app--home) .ops-section,
+.app:not(.app--home) .ops-system-card,
+.app:not(.app--home) .panel,
+.app:not(.app--home) .ops-single-stage > .panel.stage {
+  border-radius: 10px !important;
+  border-color: rgba(143, 191, 232, .25) !important;
+  box-shadow: 0 15px 36px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.035) !important;
+}
+.app:not(.app--home) .panel-head {
+  position: relative !important;
+  border-bottom-color: rgba(143, 191, 232, .19) !important;
+  background:
+    linear-gradient(100deg, rgba(58, 112, 158, .16), rgba(8, 16, 27, .34)),
+    repeating-linear-gradient(90deg, transparent 0 28px, rgba(218, 234, 249, .025) 28px 29px) !important;
+}
+.app:not(.app--home) .ops-system-card::before,
+.app:not(.app--home) .ops-section::before {
+  content: "";
+  display: block;
+  height: 2px;
+  margin: -1px 0 12px;
+  background: repeating-linear-gradient(90deg, rgba(163, 209, 248, .65) 0 16px, transparent 16px 26px);
+  opacity: .55;
+}
+.app:not(.app--home) .ops-system-card { overflow: hidden !important; }
+.app:not(.app--home) .ops-system-card h2 { letter-spacing: -.015em !important; }
+.app:not(.app--home) .ops-system-value { color: #b9e0ff !important; }
+.app:not(.app--home) .ops-page-index {
+  padding: 6px 8px !important;
+  border: 1px solid rgba(155, 205, 249, .24) !important;
+  border-radius: 6px !important;
+  background: rgba(11, 27, 42, .58) !important;
+  color: #b8d9f5 !important;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The designed Road Art remains a single illustration. Remove the animated scan stripe and all duplicate pseudo bars. */
+.nova-hero .nova-visual { border-radius: 12px !important; }
+.nova-hero .nova-visual::before,
+.nova-hero .nova-visual::after,
+.nova-hero .nova-visual-top::before,
+.nova-hero .nova-visual-top::after,
+.nova-hero .nova-visual-top > *::before,
+.nova-hero .nova-visual-top > *::after { content: none !important; display: none !important; }
+.nova-hero .nova-scanline { display: none !important; opacity: 0 !important; animation: none !important; }
+.nova-hero .nova-visual-top {
+  top: 17px !important; left: 18px !important; right: 18px !important;
+  border: 0 !important; outline: 0 !important; box-shadow: none !important;
+  background: transparent !important; transform: none !important;
+}
+.nova-hero .nova-visual-top span { text-shadow: 0 2px 10px rgba(0,0,0,.75) !important; }
+.nova-hero .nova-visual-top span:first-child i { box-shadow: 0 0 0 4px rgba(127,225,184,.12), 0 0 12px rgba(127,225,184,.5) !important; }
+.nova-hero .nova-road { background: linear-gradient(90deg, #141e29, #2a3744 50%, #141e29) !important; }
+.nova-hero .nova-road::before, .nova-hero .nova-road::after { background: linear-gradient(transparent, #f1c57c, rgba(241,197,124,.1)) !important; }
+.nova-hero .nova-road-edge { background: #bddfff !important; }
+.nova-hero .nova-road-dash { background: rgba(243, 248, 255, .9) !important; }
+.nova-hero .nova-road-pin span { box-shadow: 0 0 0 4px rgba(131,195,246,.12), 0 0 24px rgba(131,195,246,.35) !important; }
+
+/* The map should feel like a highway operations console, with active controls looking unmistakably active. */
+.corridor-hud-controls { display: flex !important; align-items: center !important; justify-content: space-between !important; flex-wrap: wrap !important; gap: 8px !important; }
+.corridor-hud-controls .hud-group { border: 1px solid rgba(147, 197, 238, .24) !important; border-radius: 9px !important; background: rgba(5, 14, 23, .91) !important; }
+.corridor-hud-controls .hud-btn { min-height: 36px !important; }
+.corridor-hud-controls .hud-btn.is-active { border-color: rgba(127,225,184,.58) !important; color: #a7f0d0 !important; background: linear-gradient(120deg, rgba(29,128,96,.28), rgba(10,42,39,.45)) !important; box-shadow: inset 0 0 0 1px rgba(127,225,184,.08), 0 0 18px rgba(77,205,153,.08) !important; }
+.corridor-hud-controls .hud-btn.terrain-unavailable { border-color: rgba(255, 151, 127, .7) !important; color: #ffc1ad !important; }
+.hrap-rail-terrain.is-bad { color: #ffb4a3 !important; }
+.hrap-rail-terrain.is-bad > span { background: #ff967f !important; box-shadow: 0 0 10px rgba(255,150,127,.45) !important; }
+.hrap-rail-terrain-error { margin-top: 8px !important; color: #ffc1ad !important; font-size: 9px !important; line-height: 1.45 !important; }
+.corridor-map-wrapper > .corridor-map-stage { min-height: 470px !important; height: clamp(470px, 62vh, 700px) !important; border: 1px solid rgba(136, 190, 239, .28) !important; border-radius: 11px !important; }
+.corridor-map-wrapper .maplibregl-ctrl-group { border: 1px solid rgba(164, 208, 246, .30) !important; border-radius: 8px !important; background: rgba(4, 12, 21, .88) !important; overflow: hidden !important; }
+.corridor-map-wrapper .maplibregl-ctrl-group button { background-color: transparent !important; }
+.corridor-map-wrapper .maplibregl-ctrl-group button:hover { background-color: rgba(93, 159, 217, .22) !important; }
+
+/* On narrower windows preserve the side rail and make the primary navigation easy to find. */
+@media (max-width: 1050px) {
+  .ops-workspace-shell { grid-template-columns: minmax(0,1fr) !important; overflow-y: auto !important; }
+  .highway-intel-sidebar { max-height: none !important; overflow: visible !important; }
+  .hrap-rail-nav-item { min-height: 48px !important; }
+  .corridor-map-wrapper > .corridor-map-stage { min-height: 360px !important; height: 52vh !important; }
+}
+@media (max-width: 700px) {
+  .hrap-rail-navigation { order: -1 !important; }
+  .hrap-rail-nav-copy small { font-size: 9px !important; }
+  .corridor-map-wrapper > .corridor-map-stage { min-height: 310px !important; height: 44vh !important; }
+}

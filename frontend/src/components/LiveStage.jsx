@@ -14,8 +14,8 @@ const TABS = [
   ['twin', 'Digital twin', Boxes],
 ]
 
-export default function LiveStage({ incident, camera, metrics, incidents = [], onSelectIncident }) {
-  const [tab, setTab] = useState(isLive ? 'camera' : 'corridor')
+export default function LiveStage({ initialTab, incident, camera, metrics, incidents = [], onSelectIncident, onCorridorInfo }) {
+  const [tab, setTab] = useState(initialTab || (isLive ? 'camera' : 'corridor'))
   const [videoFailed, setVideoFailed] = useState(false)
   const [clips, setClips] = useState([])
   const [activeClip, setActiveClip] = useState('')
@@ -131,6 +131,7 @@ export default function LiveStage({ incident, camera, metrics, incidents = [], o
 
         {tab === 'corridor' && (
           <CorridorMap3D
+            onCorridorInfo={onCorridorInfo}
             incidents={incidents}
             selectedIncident={incident}
             onSelectIncident={onSelectIncident}

@@ -155,8 +155,19 @@ export default function RegionalWeather({
               <div className="rw-condition">{describeWeather(weather.weather_code)}</div>
               <div className="rw-feels">Feels like {Math.round(weather.apparent_temperature)}°C</div>
             </div>
-            <div className="rw-weather-symbol" aria-hidden="true">
-              {Number(weather.weather_code) >= 51 ? '☂' : Number(weather.weather_code) >= 45 ? '〰' : Number(weather.temperature_2m) >= 34 ? '☼' : '◌'}
+            <div
+              className={`rw-weather-symbol rw-weather-symbol--${
+                [95, 96, 99].includes(Number(weather.weather_code)) ? 'storm' :
+                [51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82, 85, 86].includes(Number(weather.weather_code)) ? 'rain' :
+                [45, 48].includes(Number(weather.weather_code)) ? 'fog' :
+                [1, 2, 3].includes(Number(weather.weather_code)) ? 'cloud' : 'sun'
+              }`}
+              aria-hidden="true"
+            >
+              {[95, 96, 99].includes(Number(weather.weather_code)) ? '⛈' :
+                [51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82, 85, 86].includes(Number(weather.weather_code)) ? '🌧' :
+                [45, 48].includes(Number(weather.weather_code)) ? '🌫' :
+                [1, 2, 3].includes(Number(weather.weather_code)) ? '⛅' : '☀'}
             </div>
           </div>
 

@@ -1,0 +1,8 @@
+HRAP generated highway imagery
+
+All three highway landscape assets in this folder were generated for this project UI by OpenAI image generation on 2026-10-23. They are decorative illustrations, not real-time road evidence or authenticated location photography.
+
+Files:
+- highway-ghats-sunset.png — scenic daylight/sunset highway used on home
+- highway-monsoon-night.png — rainy twilight highway used on Road Art and the shared rail
+- highway-valley-daybreak.png — dramatic sunlit valley highway used on selected operations pages

@@ -9,6 +9,7 @@ import IncidentDetail from './components/IncidentDetail.jsx'
 import StatsStrip from './components/StatsStrip.jsx'
 import OperatorCopilot from './components/OperatorCopilot.jsx'
 import AboutModal from './components/AboutModal.jsx'
+import HighwayIntelSidebar from './components/HighwayIntelSidebar.jsx'
 import { isActive } from './lib/format.js'
 
 function readTheme() {
@@ -25,6 +26,7 @@ export default function App() {
   const [isAboutOpen, setIsAboutOpen] = useState(false)
   const [page, setPage] = useState('home')
   const [theme, setTheme] = useState(readTheme)
+  const [corridorOverview, setCorridorOverview] = useState(null)
 
   const navigation = [
     ['control', 'Overview', '01'],
@@ -100,6 +102,7 @@ export default function App() {
             </div>
           </nav>
 
+          <div className="ops-workspace-shell">
           <main className={`ops-page ops-page--${page}`}>
             <header className="ops-page-heading">
               <div>
@@ -131,7 +134,7 @@ export default function App() {
                   </section>
                   <section className="col col--stage">
                     <LiveStage incident={selected} camera={camera} metrics={state.metrics}
-                      incidents={list} onSelectIncident={actions.select} />
+                      incidents={list} onSelectIncident={actions.select} onCorridorInfo={setCorridorOverview} />
                     <ActivityLog list={list} onSelect={actions.select} />
                   </section>
                   <section className="col">
@@ -145,8 +148,8 @@ export default function App() {
 
             {page === 'corridor' && (
               <div className="ops-single-stage">
-                <LiveStage incident={selected} camera={camera} metrics={state.metrics}
-                  incidents={list} onSelectIncident={actions.select} />
+                <LiveStage initialTab="corridor" incident={selected} camera={camera} metrics={state.metrics}
+                  incidents={list} onSelectIncident={actions.select} onCorridorInfo={setCorridorOverview} />
               </div>
             )}
 
@@ -201,6 +204,17 @@ export default function App() {
               </div>
             )}
           </main>
+            <HighwayIntelSidebar
+              page={page}
+              onNavigate={setPage}
+              incidents={list}
+              activeCount={list.filter(isActive).length}
+              conn={state.conn}
+              metrics={state.metrics}
+              camera={camera}
+              corridorOverview={corridorOverview}
+            />
+          </div>
           <OperatorCopilot incident={selected} />
         </>
       )}

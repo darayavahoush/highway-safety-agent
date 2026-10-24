@@ -15,3 +15,9 @@ frontend/dist/
 replay_output/
 *.db*
 screenshot_*.png
+
+# editor/script backups
+*.bak
+*.bak-*
+*.fix-backup
+*.before-*
