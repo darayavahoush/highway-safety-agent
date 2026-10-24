@@ -491,3 +491,23 @@
   .cr-hero .cr-glance { position: static; }
   .cr-hero-main .cr-kicker, .cr-hero-main .cr-headline { max-width: none; }
 }
+
+/* Tablet and phone: stack the page and the rail, each at its full height (no overlap) */
+@media (max-width: 1050px) {
+  .app:not(.app--home) > .ops-workspace-shell {
+    grid-template-rows: none !important;
+    grid-auto-rows: max-content !important;
+    align-content: start !important;
+  }
+  .app:not(.app--home) > .ops-workspace-shell > .ops-page { height: auto !important; max-height: none !important; }
+  .rail { max-height: none !important; }
+}
+
+/* Phone: the top bar wraps inside the screen instead of running off the right edge */
+@media (max-width: 520px) {
+  .app:not(.app--home) .topbar { align-items: center; padding: 8px 12px !important; }
+  .app:not(.app--home) .topbar .brand { flex: 0 0 auto; }
+  .app:not(.app--home) .topbar .topbar-right { display: flex !important; flex-wrap: wrap; gap: 6px !important; flex: 1 1 100%; max-width: 100%; min-width: 0; }
+  .app:not(.app--home) .topbar .topbar-right > * { max-width: 100%; }
+  .app:not(.app--home) .topbar .pill { white-space: nowrap; font-size: 12px; padding: 5px 10px; }
+}
