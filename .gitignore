@@ -27,3 +27,4 @@ screenshot_*.png
 labels/frames/
 models/yolov8n_coco_320.onnx
 models/yolov8n_coco_320.onnx
+reports/smoke_*.json
