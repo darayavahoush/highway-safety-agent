@@ -1,0 +1,151 @@
+{
+  "model": "models/yolov8n_coco_320.onnx",
+  "model_size_bytes": 12725062,
+  "model_sha256": "2d4c483a11e10a8685ff65a126dd202da02674651d6a80a5e991288ae097f78c",
+  "split": "configs/visdrone_det_split_v1.json",
+  "split_version": "visdrone-det-split-v1",
+  "taxonomy_version": "highway-proposed-v0",
+  "conf_threshold": 0.001,
+  "nms_threshold": 0.45,
+  "input_resolution": [
+    320,
+    320
+  ],
+  "images": 1554,
+  "gt_scored_boxes": 43190,
+  "gt_boxes_per_class": {
+    "car": 33624,
+    "motorcycle": 5842,
+    "truck": 1967,
+    "bus": 1757
+  },
+  "predictions": 53296,
+  "system_metadata": {
+    "cpu_model": "Apple M2",
+    "cpu_count_logical": 8,
+    "ram_total_bytes": 8589934592,
+    "ram_total_gb": 8.0,
+    "os": "Darwin 24.3.0 (arm64)",
+    "python_version": "3.14.8",
+    "onnxruntime_version": "1.31.0",
+    "thread_count": 4
+  },
+  "latency_benchmark": {
+    "warmup_iterations": 20,
+    "measured_iterations": 1534,
+    "inference_latency_ms": {
+      "p50": 52.03,
+      "p95": 174.7,
+      "p99": 576.08,
+      "mean": 80.28,
+      "min": 23.0,
+      "max": 2829.33,
+      "std": 136.66
+    },
+    "full_pipeline_latency_ms": {
+      "p50": 65.54,
+      "p95": 203.3,
+      "p99": 632.41,
+      "mean": 96.98,
+      "min": 30.05,
+      "max": 3073.08,
+      "std": 155.48
+    },
+    "preprocess_latency_ms": {
+      "p50": 2.14,
+      "p95": 6.11,
+      "p99": 20.55,
+      "mean": 3.18,
+      "min": 0.84,
+      "max": 207.87,
+      "std": 7.74
+    },
+    "postprocess_latency_ms": {
+      "p50": 9.9,
+      "p95": 28.54,
+      "p99": 56.38,
+      "mean": 13.51,
+      "min": 5.49,
+      "max": 486.78,
+      "std": 18.3
+    },
+    "steady_state_fps_inference_only": 12.46,
+    "steady_state_fps_full_pipeline": 10.31
+  },
+  "warmup_iterations": 20,
+  "measured_iterations": 1534,
+  "steady_state_fps": 12.46,
+  "steady_state_fps_full_pipeline": 10.31,
+  "inference_latency_ms": {
+    "p50": 52.03,
+    "p95": 174.7,
+    "p99": 576.08,
+    "mean": 80.28,
+    "min": 23.0,
+    "max": 2829.33,
+    "std": 136.66
+  },
+  "full_pipeline_latency_ms": {
+    "p50": 65.54,
+    "p95": 203.3,
+    "p99": 632.41,
+    "mean": 96.98,
+    "min": 30.05,
+    "max": 3073.08,
+    "std": 155.48
+  },
+  "overall": {
+    "AP50_95": 0.021513875781025357,
+    "AP50": 0.03981052075215106
+  },
+  "per_class": {
+    "car": {
+      "AP50_95": 0.059236736168156445,
+      "AP50": 0.12346160364311663,
+      "gt_boxes": 33624
+    },
+    "motorcycle": {
+      "AP50_95": 0.00219059405940594,
+      "AP50": 0.0028288543140028285,
+      "gt_boxes": 5842
+    },
+    "truck": {
+      "AP50_95": 0.012149153304330957,
+      "AP50": 0.01864860898351402,
+      "gt_boxes": 1967
+    },
+    "bus": {
+      "AP50_95": 0.012479019592208086,
+      "AP50": 0.01430301606797076,
+      "gt_boxes": 1757
+    }
+  },
+  "bootstrap_mAP_ci_95": {
+    "bootstrap_iterations": 50,
+    "sample_subset_fraction": 0.85,
+    "AP50_95_ci_95": [
+      0.0208,
+      0.0226
+    ],
+    "AP50_95_std": 0.0005,
+    "AP50_ci_95": [
+      0.0385,
+      0.0412
+    ],
+    "AP50_std": 0.0008
+  },
+  "bootstrap_ci": {
+    "bootstrap_iterations": 50,
+    "sample_subset_fraction": 0.85,
+    "AP50_95_ci_95": [
+      0.0208,
+      0.0226
+    ],
+    "AP50_95_std": 0.0005,
+    "AP50_ci_95": [
+      0.0385,
+      0.0412
+    ],
+    "AP50_std": 0.0008
+  }
+}
