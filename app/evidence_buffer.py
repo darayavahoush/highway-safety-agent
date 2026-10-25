@@ -57,18 +57,33 @@ class EvidenceBuffer:
         # Store frame copy so perception thread can continue mutating/drawing
         self.frame_buffer.append((ts, frame.copy()))
 
+    def clear_cooldown(self):
+        """Clears cooldown cache on manual queue reset."""
+        self._cooldown_map.clear()
+
     def should_suppress_dedupe(
         self,
         camera_id: str,
         incident_type: str,
         track_id: int,
         now: Optional[float] = None,
+        lane_id: Optional[str] = None,
     ) -> bool:
         """
         Deduplication gate: Returns True if this exact (camera, incident_type, track_id)
         has already fired within the cooldown period.
+        Also applies broader spatial cooldown for stationary shoulder stops across video loops.
         """
         current_time = float(time.time() if now is None else now)
+
+        # Broad spatial suppression for stalled shoulder vehicles (180s cooldown across video loops)
+        if incident_type == "STALLED_VEHICLE" or (lane_id and "shoulder" in lane_id.lower()):
+            shoulder_key = (str(camera_id), "STALLED_SHOULDER_ZONE", 0)
+            if shoulder_key in self._cooldown_map:
+                if current_time - self._cooldown_map[shoulder_key] < 180.0:
+                    return True
+            self._cooldown_map[shoulder_key] = current_time
+
         key = (str(camera_id), str(incident_type), int(track_id))
         if key not in self._cooldown_map:
             self._cooldown_map[key] = current_time

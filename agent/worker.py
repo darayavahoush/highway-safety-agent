@@ -87,7 +87,12 @@ class SafetyAgentWorker:
         event.briefing = briefing
         event.trace = trace
         event.dispatches = dispatches
-        event.status = IncidentStatus.DISPATCHED
+        if dispatches:
+            event.status = IncidentStatus.DISPATCHED
+        elif candidate.severity in ["P2", IncidentSeverity.P2]:
+            event.status = IncidentStatus.MONITORING
+        else:
+            event.status = IncidentStatus.DETECTED
 
         # Execute immediate dispatches (VMS, NHAI)
         for d in event.dispatches:
