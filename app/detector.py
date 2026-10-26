@@ -109,11 +109,50 @@ class YoloOnnxDetector:
 
 
 class OrtYoloDetector:
+    """ONNX Runtime detector with explicit CPU settings and optional I/O Binding.
+
+    I/O Binding is opt-in (ORT_USE_IO_BINDING=1) so the original execution path
+    remains the default. The reusable output buffer is only intended for one
+    inference call at a time per detector instance.
     """
-    ONNX Runtime backend: executes both standard FP32 and INT8-quantized
-    ONNX models on CPU, taking advantage of ARM NEON SIMD kernels on
-    Raspberry Pi 4 / Pi 5.
-    """
+
+    @staticmethod
+    def _env_bool(name, default):
+        value = os.getenv(name)
+        if value is None:
+            return default
+        value = value.strip().lower()
+        if value in ("1", "true", "yes", "on"):
+            return True
+        if value in ("0", "false", "no", "off"):
+            return False
+        raise ValueError(f"{name} must be a boolean (0/1/true/false), got {value!r}")
+
+    @staticmethod
+    def _positive_int_env(name, default):
+        raw = os.getenv(name)
+        if raw is None:
+            return int(default)
+        try:
+            value = int(raw)
+        except ValueError as exc:
+            raise ValueError(f"{name} must be a positive integer, got {raw!r}") from exc
+        if value < 1:
+            raise ValueError(f"{name} must be >= 1, got {value}")
+        return value
+
+    @staticmethod
+    def _default_intra_op_threads():
+        # Prefer a physical-core count when psutil is installed. If not, use a
+        # conservative half of logical CPUs; this is a heuristic, not a hardware claim.
+        try:
+            import psutil
+            physical = psutil.cpu_count(logical=False)
+        except ImportError:
+            physical = None
+        if not physical:
+            physical = max(1, (os.cpu_count() or 2) // 2)
+        return max(1, min(4, int(physical)))
 
     def __init__(self, model_path, input_size=320, conf_threshold=0.4, nms_threshold=0.45):
         try:
@@ -124,25 +163,80 @@ class OrtYoloDetector:
                 "or use OpenCV DNN backend with an unquantized FP32 model."
             )
         opts = ort.SessionOptions()
-        opts.intra_op_num_threads = int(os.getenv("ORT_NUM_THREADS", "4"))
+        # ORT_NUM_THREADS remains supported for backwards compatibility.
+        legacy_threads = os.getenv("ORT_NUM_THREADS")
+        default_threads = int(legacy_threads) if legacy_threads else self._default_intra_op_threads()
+        opts.intra_op_num_threads = self._positive_int_env("ORT_INTRA_OP_THREADS", default_threads)
+        opts.inter_op_num_threads = self._positive_int_env("ORT_INTER_OP_THREADS", 1)
+        opts.enable_cpu_mem_arena = self._env_bool("ORT_ENABLE_CPU_MEM_ARENA", True)
         opts.execution_mode = ort.ExecutionMode.ORT_SEQUENTIAL
         opts.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
         self.session = ort.InferenceSession(model_path, opts, providers=["CPUExecutionProvider"])
+        self.ort_intra_op_threads = opts.intra_op_num_threads
+        self.ort_inter_op_threads = opts.inter_op_num_threads
+        self.ort_enable_cpu_mem_arena = opts.enable_cpu_mem_arena
         self.input_name = self.session.get_inputs()[0].name
+        outputs = self.session.get_outputs()
+        if not outputs:
+            raise RuntimeError("ONNX model exposes no outputs")
+        self.output_name = outputs[0].name
+        self._io_binding = None
+        self._output_buffer = None
         self.input_size = input_size
         self.conf_threshold = conf_threshold
         self.nms_threshold = nms_threshold
+
+    def infer_raw(self, blob, use_iobinding=None):
+        """Run the model. Optional CPU output binding reuses one fixed-shape buffer."""
+        if use_iobinding is None:
+            use_iobinding = self._env_bool("ORT_USE_IO_BINDING", False)
+        if not use_iobinding:
+            return self.session.run(None, {self.input_name: blob})[0]
+
+        # First pass discovers the actual output shape and creates the reusable
+        # buffer. This pass is ordinary session.run; benchmark warm-up must exclude it.
+        if self._io_binding is None:
+            outputs = self.session.run(None, {self.input_name: blob})
+            if len(outputs) != 1:
+                raise RuntimeError("ORT_USE_IO_BINDING currently requires exactly one model output")
+            first_output = np.asarray(outputs[0])
+            self._output_buffer = np.empty(first_output.shape, dtype=first_output.dtype, order="C")
+            try:
+                binding = self.session.io_binding()
+                binding.bind_output(
+                    self.output_name,
+                    "cpu",
+                    0,
+                    self._output_buffer.dtype.type,
+                    self._output_buffer.shape,
+                    self._output_buffer.ctypes.data,
+                )
+            except Exception as exc:
+                self._output_buffer = None
+                raise RuntimeError(f"Could not initialize ORT reusable output binding: {exc}") from exc
+            self._io_binding = binding
+            return first_output
+
+        try:
+            # Input memory changes frame-to-frame, so rebind the input pointer.
+            # The bound output pointer remains the same reusable NumPy allocation.
+            self._io_binding.clear_binding_inputs()
+            self._io_binding.bind_cpu_input(self.input_name, blob)
+            self.session.run_with_iobinding(self._io_binding)
+            self._io_binding.synchronize_outputs()
+        except Exception as exc:
+            raise RuntimeError(f"ORT I/O Binding inference failed: {exc}") from exc
+        return self._output_buffer
 
     def detect(self, frame):
         h, w = frame.shape[:2]
         img = cv2.resize(frame, (self.input_size, self.input_size))
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB).astype(np.float32) / 255.0
         blob = np.transpose(img, (2, 0, 1))[np.newaxis, ...]
-        output = self.session.run(None, {self.input_name: blob})[0]
+        output = self.infer_raw(blob)
         return _postprocess_yolo_output(
             output, w, h, self.input_size, self.conf_threshold, self.nms_threshold
         )
-
 
 def create_yolo_detector(model_path, input_size=320, conf_threshold=0.4, nms_threshold=0.45, engine="auto"):
     """Factory selecting OpenCV DNN or ONNX Runtime based on model file and configuration."""

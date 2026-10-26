@@ -1,0 +1,633 @@
+{
+  "attribution": {
+    "AP50": {
+      "decoding_average_marginal_effect": 0.001603341956829197,
+      "decomposition_sum_check": -0.0010957552789667008,
+      "deployed_argmax": 0.03981052075215106,
+      "deployed_fused": 0.04208722331506915,
+      "domain_gap": null,
+      "domain_gap_status": "NOT_ESTIMATED",
+      "interaction_diagnostic": -0.0013467212121777913,
+      "letterbox_argmax": 0.03778478412244406,
+      "letterbox_fused": 0.03871476547318436,
+      "preprocessing_average_marginal_effect": -0.0026990972357958977,
+      "total_delta": -0.0010957552789667008
+    },
+    "AP50_95": {
+      "decoding_average_marginal_effect": 0.0006159995601466642,
+      "decomposition_sum_check": -0.0011025553204552646,
+      "deployed_argmax": 0.021513875781025357,
+      "deployed_fused": 0.022338336973659674,
+      "domain_gap": null,
+      "domain_gap_status": "NOT_ESTIMATED",
+      "interaction_diagnostic": -0.0004169232649753052,
+      "letterbox_argmax": 0.02000378253291108,
+      "letterbox_fused": 0.020411320460570093,
+      "preprocessing_average_marginal_effect": -0.0017185548806019288,
+      "total_delta": -0.0011025553204552646
+    },
+    "bus.AP50": {
+      "decoding_average_marginal_effect": 8.524810551325483e-05,
+      "decomposition_sum_check": 0.0007219804075804092,
+      "deployed_argmax": 0.01430301606797076,
+      "deployed_fused": 0.014489928201566644,
+      "domain_gap": null,
+      "domain_gap_status": "NOT_ESTIMATED",
+      "interaction_diagnostic": -0.00020332805616526083,
+      "letterbox_argmax": 0.015041412398120544,
+      "letterbox_fused": 0.015024996475551168,
+      "preprocessing_average_marginal_effect": 0.0006367323020671544,
+      "total_delta": 0.0007219804075804092
+    },
+    "bus.AP50_95": {
+      "decoding_average_marginal_effect": 8.271904722465407e-05,
+      "decomposition_sum_check": 0.0007718830669819054,
+      "deployed_argmax": 0.012479019592208086,
+      "deployed_fused": 0.012655722604159527,
+      "domain_gap": null,
+      "domain_gap_status": "NOT_ESTIMATED",
+      "interaction_diagnostic": -0.00018796792945357556,
+      "letterbox_argmax": 0.013262167576692125,
+      "letterbox_fused": 0.013250902659189991,
+      "preprocessing_average_marginal_effect": 0.0006891640197572513,
+      "total_delta": 0.0007718830669819054
+    },
+    "car.AP50": {
+      "decoding_average_marginal_effect": 0.004735286216108456,
+      "decomposition_sum_check": -0.004341618959086829,
+      "deployed_argmax": 0.12346160364311663,
+      "deployed_fused": 0.13081738334552093,
+      "domain_gap": null,
+      "domain_gap_status": "NOT_ESTIMATED",
+      "interaction_diagnostic": -0.005240986972591677,
+      "letterbox_argmax": 0.11700519195421719,
+      "letterbox_fused": 0.1191199846840298,
+      "preprocessing_average_marginal_effect": -0.009076905175195285,
+      "total_delta": -0.004341618959086829
+    },
+    "car.AP50_95": {
+      "decoding_average_marginal_effect": 0.0018178861577070882,
+      "decomposition_sum_check": -0.0035844030827291984,
+      "deployed_argmax": 0.059236736168156445,
+      "deployed_fused": 0.061898091004156414,
+      "domain_gap": null,
+      "domain_gap_status": "NOT_ESTIMATED",
+      "interaction_diagnostic": -0.0016869373565857604,
+      "letterbox_argmax": 0.05467791560601304,
+      "letterbox_fused": 0.05565233308542725,
+      "preprocessing_average_marginal_effect": -0.0054022892404362866,
+      "total_delta": -0.0035844030827291984
+    },
+    "motorcycle.AP50": {
+      "decoding_average_marginal_effect": 0.0012245368871134845,
+      "decomposition_sum_check": 0.0015715857300015717,
+      "deployed_argmax": 0.0028288543140028285,
+      "deployed_fused": 0.003706342358228226,
+      "domain_gap": null,
+      "domain_gap_status": "NOT_ESTIMATED",
+      "interaction_diagnostic": 0.0006940976857761744,
+      "letterbox_argmax": 0.0028288543140028285,
+      "letterbox_fused": 0.0044004400440044,
+      "preprocessing_average_marginal_effect": 0.0003470488428880872,
+      "total_delta": 0.0015715857300015717
+    },
+    "motorcycle.AP50_95": {
+      "decoding_average_marginal_effect": 0.00041346736442931446,
+      "decomposition_sum_check": -0.00040041504150414983,
+      "deployed_argmax": 0.00219059405940594,
+      "deployed_fused": 0.0023345513795108674,
+      "domain_gap": null,
+      "domain_gap_status": "NOT_ESTIMATED",
+      "interaction_diagnostic": 0.000539020088648774,
+      "letterbox_argmax": 0.0011072016091480887,
+      "letterbox_fused": 0.0017901790179017901,
+      "preprocessing_average_marginal_effect": -0.0008138824059334643,
+      "total_delta": -0.00040041504150414983
+    },
+    "truck.AP50": {
+      "decoding_average_marginal_effect": 0.0003682966185815789,
+      "decomposition_sum_check": -0.002334968294361958,
+      "deployed_argmax": 0.01864860898351402,
+      "deployed_fused": 0.019335239354960808,
+      "domain_gap": null,
+      "domain_gap_status": "NOT_ESTIMATED",
+      "interaction_diagnostic": -0.0006366675057304164,
+      "letterbox_argmax": 0.016263677823435692,
+      "letterbox_fused": 0.016313640689152063,
+      "preprocessing_average_marginal_effect": -0.002703264912943537,
+      "total_delta": -0.002334968294361958
+    },
+    "truck.AP50_95": {
+      "decoding_average_marginal_effect": 0.00014992567122559548,
+      "decomposition_sum_check": -0.0011972862245696134,
+      "deployed_argmax": 0.012149153304330957,
+      "deployed_fused": 0.012464982906811884,
+      "domain_gap": null,
+      "domain_gap_status": "NOT_ESTIMATED",
+      "interaction_diagnostic": -0.0003318078625106618,
+      "letterbox_argmax": 0.01096784533979108,
+      "letterbox_fused": 0.010951867079761344,
+      "preprocessing_average_marginal_effect": -0.001347211895795209,
+      "total_delta": -0.0011972862245696134
+    }
+  },
+  "baseline_model_sha256": "2d4c483a11e10a8685ff65a126dd202da02674651d6a80a5e991288ae097f78c",
+  "conf_threshold": 0.001,
+  "configuration_order": [
+    "deployed_fused",
+    "letterbox_argmax",
+    "letterbox_fused",
+    "deployed_argmax"
+  ],
+  "configurations": {
+    "deployed_argmax": {
+      "decode": "argmax",
+      "images": 1554,
+      "latency_benchmark": {
+        "full_pipeline_latency_ms": {
+          "count": 1534,
+          "count_over_3x_p50": 84,
+          "max": 3386.912,
+          "mean": 149.482,
+          "min": 47.451,
+          "p50": 111.758,
+          "p90": 245.637,
+          "p95": 351.763,
+          "p99": 743.636,
+          "p99_9": 1573.642,
+          "std": 153.923,
+          "tail_ratio_p99_over_p50": 6.654
+        },
+        "inference_latency_ms": {
+          "count": 1534,
+          "count_over_3x_p50": 94,
+          "max": 3145.605,
+          "mean": 127.977,
+          "min": 37.066,
+          "p50": 92.87,
+          "p90": 215.166,
+          "p95": 320.137,
+          "p99": 661.132,
+          "p99_9": 1536.48,
+          "std": 144.012,
+          "tail_ratio_p99_over_p50": 7.119
+        },
+        "measured_iterations": 1534,
+        "postprocess_latency_ms": {
+          "count": 1534,
+          "count_over_3x_p50": 63,
+          "max": 230.326,
+          "mean": 17.06,
+          "min": 6.433,
+          "p50": 13.161,
+          "p90": 27.101,
+          "p95": 34.551,
+          "p99": 75.479,
+          "p99_9": 221.454,
+          "std": 15.799,
+          "tail_ratio_p99_over_p50": 5.735
+        },
+        "preprocess_latency_ms": {
+          "count": 1534,
+          "count_over_3x_p50": 85,
+          "max": 64.765,
+          "mean": 4.445,
+          "min": 0.867,
+          "p50": 3.409,
+          "p90": 7.808,
+          "p95": 10.661,
+          "p99": 18.355,
+          "p99_9": 44.972,
+          "std": 3.984,
+          "tail_ratio_p99_over_p50": 5.384
+        },
+        "steady_state_fps_full_pipeline": 6.69,
+        "steady_state_fps_inference_only": 7.81,
+        "warmup_iterations": 20
+      },
+      "model_sha256": "2d4c483a11e10a8685ff65a126dd202da02674651d6a80a5e991288ae097f78c",
+      "model_size_bytes": 12725062,
+      "nms_mode": "class-agnostic",
+      "overall": {
+        "AP50": 0.03981052075215106,
+        "AP50_95": 0.021513875781025357
+      },
+      "per_class": {
+        "bus": {
+          "AP50": 0.01430301606797076,
+          "AP50_95": 0.012479019592208086,
+          "gt_boxes": 1757
+        },
+        "car": {
+          "AP50": 0.12346160364311663,
+          "AP50_95": 0.059236736168156445,
+          "gt_boxes": 33624
+        },
+        "motorcycle": {
+          "AP50": 0.0028288543140028285,
+          "AP50_95": 0.00219059405940594,
+          "gt_boxes": 5842
+        },
+        "truck": {
+          "AP50": 0.01864860898351402,
+          "AP50_95": 0.012149153304330957,
+          "gt_boxes": 1967
+        }
+      },
+      "predictions": 53296,
+      "preprocess": "deployed",
+      "system_metadata": {
+        "cpu_count_logical": 8,
+        "cpu_model": "Apple M2",
+        "numpy_version": "2.5.4",
+        "onnxruntime_version": "1.31.0",
+        "opencv_version": "5.0.0",
+        "ort_enable_cpu_mem_arena": true,
+        "ort_execution_mode": "ORT_SEQUENTIAL",
+        "ort_inter_op_threads": 1,
+        "ort_intra_op_threads": 4,
+        "ort_providers": [
+          "CPUExecutionProvider"
+        ],
+        "ort_use_io_binding": false,
+        "os": "Darwin 24.3.0 (arm64)",
+        "python_version": "3.14.8",
+        "ram_total_bytes": 8589934592,
+        "ram_total_gb": 8.0,
+        "thread_count": 4
+      }
+    },
+    "deployed_fused": {
+      "decode": "fused",
+      "images": 1554,
+      "latency_benchmark": {
+        "full_pipeline_latency_ms": {
+          "count": 1534,
+          "count_over_3x_p50": 44,
+          "max": 1339.198,
+          "mean": 158.201,
+          "min": 34.658,
+          "p50": 129.832,
+          "p90": 256.511,
+          "p95": 319.778,
+          "p99": 677.698,
+          "p99_9": 1302.288,
+          "std": 115.371,
+          "tail_ratio_p99_over_p50": 5.22
+        },
+        "inference_latency_ms": {
+          "count": 1534,
+          "count_over_3x_p50": 44,
+          "max": 1297.171,
+          "mean": 142.528,
+          "min": 21.14,
+          "p50": 116.662,
+          "p90": 231.525,
+          "p95": 292.948,
+          "p99": 609.291,
+          "p99_9": 1278.953,
+          "std": 107.664,
+          "tail_ratio_p99_over_p50": 5.223
+        },
+        "measured_iterations": 1534,
+        "postprocess_latency_ms": {
+          "count": 1534,
+          "count_over_3x_p50": 144,
+          "max": 378.62,
+          "mean": 11.346,
+          "min": 2.105,
+          "p50": 7.267,
+          "p90": 21.017,
+          "p95": 28.671,
+          "p99": 79.389,
+          "p99_9": 221.861,
+          "std": 17.512,
+          "tail_ratio_p99_over_p50": 10.924
+        },
+        "preprocess_latency_ms": {
+          "count": 1534,
+          "count_over_3x_p50": 113,
+          "max": 164.914,
+          "mean": 4.327,
+          "min": 0.85,
+          "p50": 2.953,
+          "p90": 7.683,
+          "p95": 10.476,
+          "p99": 22.307,
+          "p99_9": 76.983,
+          "std": 6.295,
+          "tail_ratio_p99_over_p50": 7.553
+        },
+        "steady_state_fps_full_pipeline": 6.32,
+        "steady_state_fps_inference_only": 7.02,
+        "warmup_iterations": 20
+      },
+      "model_sha256": "2d4c483a11e10a8685ff65a126dd202da02674651d6a80a5e991288ae097f78c",
+      "model_size_bytes": 12725062,
+      "nms_mode": "class-agnostic",
+      "overall": {
+        "AP50": 0.04208722331506915,
+        "AP50_95": 0.022338336973659674
+      },
+      "per_class": {
+        "bus": {
+          "AP50": 0.014489928201566644,
+          "AP50_95": 0.012655722604159527,
+          "gt_boxes": 1757
+        },
+        "car": {
+          "AP50": 0.13081738334552093,
+          "AP50_95": 0.061898091004156414,
+          "gt_boxes": 33624
+        },
+        "motorcycle": {
+          "AP50": 0.003706342358228226,
+          "AP50_95": 0.0023345513795108674,
+          "gt_boxes": 5842
+        },
+        "truck": {
+          "AP50": 0.019335239354960808,
+          "AP50_95": 0.012464982906811884,
+          "gt_boxes": 1967
+        }
+      },
+      "predictions": 69884,
+      "preprocess": "deployed",
+      "system_metadata": {
+        "cpu_count_logical": 8,
+        "cpu_model": "Apple M2",
+        "numpy_version": "2.5.4",
+        "onnxruntime_version": "1.31.0",
+        "opencv_version": "5.0.0",
+        "ort_enable_cpu_mem_arena": true,
+        "ort_execution_mode": "ORT_SEQUENTIAL",
+        "ort_inter_op_threads": 1,
+        "ort_intra_op_threads": 4,
+        "ort_providers": [
+          "CPUExecutionProvider"
+        ],
+        "ort_use_io_binding": false,
+        "os": "Darwin 24.3.0 (arm64)",
+        "python_version": "3.14.8",
+        "ram_total_bytes": 8589934592,
+        "ram_total_gb": 8.0,
+        "thread_count": 4
+      }
+    },
+    "letterbox_argmax": {
+      "decode": "argmax",
+      "images": 1554,
+      "latency_benchmark": {
+        "full_pipeline_latency_ms": {
+          "count": 1534,
+          "count_over_3x_p50": 126,
+          "max": 2314.203,
+          "mean": 181.54,
+          "min": 49.86,
+          "p50": 124.668,
+          "p90": 339.45,
+          "p95": 469.031,
+          "p99": 996.654,
+          "p99_9": 1865.138,
+          "std": 180.92,
+          "tail_ratio_p99_over_p50": 7.994
+        },
+        "inference_latency_ms": {
+          "count": 1534,
+          "count_over_3x_p50": 146,
+          "max": 2279.353,
+          "mean": 156.851,
+          "min": 38.04,
+          "p50": 103.445,
+          "p90": 302.324,
+          "p95": 419.013,
+          "p99": 890.171,
+          "p99_9": 1735.211,
+          "std": 168.311,
+          "tail_ratio_p99_over_p50": 8.605
+        },
+        "measured_iterations": 1534,
+        "postprocess_latency_ms": {
+          "count": 1534,
+          "count_over_3x_p50": 84,
+          "max": 389.437,
+          "mean": 20.829,
+          "min": 6.67,
+          "p50": 15.013,
+          "p90": 33.051,
+          "p95": 47.33,
+          "p99": 107.641,
+          "p99_9": 371.975,
+          "std": 25.335,
+          "tail_ratio_p99_over_p50": 7.17
+        },
+        "preprocess_latency_ms": {
+          "count": 1534,
+          "count_over_3x_p50": 143,
+          "max": 76.965,
+          "mean": 3.689,
+          "min": 0.982,
+          "p50": 2.392,
+          "p90": 6.959,
+          "p95": 10.07,
+          "p99": 22.142,
+          "p99_9": 52.191,
+          "std": 4.507,
+          "tail_ratio_p99_over_p50": 9.256
+        },
+        "steady_state_fps_full_pipeline": 5.51,
+        "steady_state_fps_inference_only": 6.38,
+        "warmup_iterations": 20
+      },
+      "model_sha256": "2d4c483a11e10a8685ff65a126dd202da02674651d6a80a5e991288ae097f78c",
+      "model_size_bytes": 12725062,
+      "nms_mode": "class-agnostic",
+      "overall": {
+        "AP50": 0.03778478412244406,
+        "AP50_95": 0.02000378253291108
+      },
+      "per_class": {
+        "bus": {
+          "AP50": 0.015041412398120544,
+          "AP50_95": 0.013262167576692125,
+          "gt_boxes": 1757
+        },
+        "car": {
+          "AP50": 0.11700519195421719,
+          "AP50_95": 0.05467791560601304,
+          "gt_boxes": 33624
+        },
+        "motorcycle": {
+          "AP50": 0.0028288543140028285,
+          "AP50_95": 0.0011072016091480887,
+          "gt_boxes": 5842
+        },
+        "truck": {
+          "AP50": 0.016263677823435692,
+          "AP50_95": 0.01096784533979108,
+          "gt_boxes": 1967
+        }
+      },
+      "predictions": 78948,
+      "preprocess": "letterbox",
+      "system_metadata": {
+        "cpu_count_logical": 8,
+        "cpu_model": "Apple M2",
+        "numpy_version": "2.5.4",
+        "onnxruntime_version": "1.31.0",
+        "opencv_version": "5.0.0",
+        "ort_enable_cpu_mem_arena": true,
+        "ort_execution_mode": "ORT_SEQUENTIAL",
+        "ort_inter_op_threads": 1,
+        "ort_intra_op_threads": 4,
+        "ort_providers": [
+          "CPUExecutionProvider"
+        ],
+        "ort_use_io_binding": false,
+        "os": "Darwin 24.3.0 (arm64)",
+        "python_version": "3.14.8",
+        "ram_total_bytes": 8589934592,
+        "ram_total_gb": 8.0,
+        "thread_count": 4
+      }
+    },
+    "letterbox_fused": {
+      "decode": "fused",
+      "images": 1554,
+      "latency_benchmark": {
+        "full_pipeline_latency_ms": {
+          "count": 1534,
+          "count_over_3x_p50": 109,
+          "max": 1466.365,
+          "mean": 184.665,
+          "min": 37.124,
+          "p50": 138.103,
+          "p90": 315.347,
+          "p95": 509.603,
+          "p99": 921.43,
+          "p99_9": 1269.401,
+          "std": 156.747,
+          "tail_ratio_p99_over_p50": 6.672
+        },
+        "inference_latency_ms": {
+          "count": 1534,
+          "count_over_3x_p50": 111,
+          "max": 1406.016,
+          "mean": 165.37,
+          "min": 32.757,
+          "p50": 121.157,
+          "p90": 291.087,
+          "p95": 475.092,
+          "p99": 839.546,
+          "p99_9": 1180.84,
+          "std": 146.774,
+          "tail_ratio_p99_over_p50": 6.929
+        },
+        "measured_iterations": 1534,
+        "postprocess_latency_ms": {
+          "count": 1534,
+          "count_over_3x_p50": 120,
+          "max": 204.875,
+          "mean": 14.093,
+          "min": 2.451,
+          "p50": 9.724,
+          "p90": 25.894,
+          "p95": 35.962,
+          "p99": 81.068,
+          "p99_9": 168.358,
+          "std": 15.528,
+          "tail_ratio_p99_over_p50": 8.337
+        },
+        "preprocess_latency_ms": {
+          "count": 1534,
+          "count_over_3x_p50": 155,
+          "max": 135.484,
+          "mean": 4.929,
+          "min": 0.847,
+          "p50": 2.976,
+          "p90": 9.0,
+          "p95": 13.687,
+          "p99": 33.543,
+          "p99_9": 102.51,
+          "std": 7.44,
+          "tail_ratio_p99_over_p50": 11.272
+        },
+        "steady_state_fps_full_pipeline": 5.42,
+        "steady_state_fps_inference_only": 6.05,
+        "warmup_iterations": 20
+      },
+      "model_sha256": "2d4c483a11e10a8685ff65a126dd202da02674651d6a80a5e991288ae097f78c",
+      "model_size_bytes": 12725062,
+      "nms_mode": "class-agnostic",
+      "overall": {
+        "AP50": 0.03871476547318436,
+        "AP50_95": 0.020411320460570093
+      },
+      "per_class": {
+        "bus": {
+          "AP50": 0.015024996475551168,
+          "AP50_95": 0.013250902659189991,
+          "gt_boxes": 1757
+        },
+        "car": {
+          "AP50": 0.1191199846840298,
+          "AP50_95": 0.05565233308542725,
+          "gt_boxes": 33624
+        },
+        "motorcycle": {
+          "AP50": 0.0044004400440044,
+          "AP50_95": 0.0017901790179017901,
+          "gt_boxes": 5842
+        },
+        "truck": {
+          "AP50": 0.016313640689152063,
+          "AP50_95": 0.010951867079761344,
+          "gt_boxes": 1967
+        }
+      },
+      "predictions": 94038,
+      "preprocess": "letterbox",
+      "system_metadata": {
+        "cpu_count_logical": 8,
+        "cpu_model": "Apple M2",
+        "numpy_version": "2.5.4",
+        "onnxruntime_version": "1.31.0",
+        "opencv_version": "5.0.0",
+        "ort_enable_cpu_mem_arena": true,
+        "ort_execution_mode": "ORT_SEQUENTIAL",
+        "ort_inter_op_threads": 1,
+        "ort_intra_op_threads": 4,
+        "ort_providers": [
+          "CPUExecutionProvider"
+        ],
+        "ort_use_io_binding": false,
+        "os": "Darwin 24.3.0 (arm64)",
+        "python_version": "3.14.8",
+        "ram_total_bytes": 8589934592,
+        "ram_total_gb": 8.0,
+        "thread_count": 4
+      }
+    }
+  },
+  "domain_gap": {
+    "reason": "All four comparisons use the same model and VisDrone split; domain shift is not identifiable from this experiment.",
+    "status": "NOT_ESTIMATED"
+  },
+  "evaluation": {
+    "expected_images": 1554,
+    "full_evaluation": true,
+    "holdout_manifest_sha256": "2558226130fdd36f1689d73a4f1b0f8271f5bde53c9f8234942b9a82cd65f100",
+    "note": "COMPLETE refers only to this fixed-model VisDrone experiment; it is not evidence of target-domain highway readiness.",
+    "resolved_images": 1554,
+    "split_sha256": "55d8a53034c9bebf548e940f4baec2055284a5677833e9c413bff5b776e035fd",
+    "split_version": "visdrone-det-split-v1",
+    "taxonomy_version": "highway-proposed-v0"
+  },
+  "holdout_manifest_sha256": "2558226130fdd36f1689d73a4f1b0f8271f5bde53c9f8234942b9a82cd65f100",
+  "model": "models/yolov8n_coco_320.onnx",
+  "model_sha256": "2d4c483a11e10a8685ff65a126dd202da02674651d6a80a5e991288ae097f78c",
+  "nms_mode": "class-agnostic",
+  "schema_version": "detector-attribution-v1",
+  "split": "configs/visdrone_det_split_v1.json",
+  "status": "COMPLETE"
+}
