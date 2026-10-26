@@ -72,7 +72,21 @@ export function hasCameraReport(h) {
 }
 
 // Plain wording for the camera's self-reported health.
-export function cameraStatus(h) {
+export function cameraStatus(h, systemStatus) {
+  if (systemStatus?.feed_health?.status === 'unavailable') {
+    return {
+      tone: 'bad',
+      headline: 'Feed unavailable',
+      detail: systemStatus.feed_health.reason || 'Video source is disconnected or file not found.',
+    }
+  }
+  if (systemStatus?.feed_health?.status === 'stale') {
+    return {
+      tone: 'warn',
+      headline: 'Feed stalled',
+      detail: systemStatus.feed_health.reason || 'No video frames have arrived recently.',
+    }
+  }
   if (!hasCameraReport(h)) return { tone: 'idle', headline: 'Not reported yet', detail: 'The camera has not sent a health report.' }
   if (h.camera_stability === 'WIND_SWAY') return { tone: 'warn', headline: 'Swaying in the wind', detail: 'Detections may be a little less accurate until it settles.' }
   if (h.camera_stability === 'PANNING_OR_DRIFT') return { tone: 'warn', headline: 'Camera has moved', detail: 'The view has shifted. Lane positions may be off until it is re-aligned.' }

@@ -4,7 +4,7 @@ import { isActive } from '../lib/format.js'
 
 export const initial = {
   incidents: {}, metrics: null, metricsAt: null, cameraHealth: null, cameraHealthAt: null,
-  blackspots: [], camera: null, conn: 'connecting', selectedId: null,
+  systemStatus: null, blackspots: [], camera: null, conn: 'connecting', selectedId: null,
 }
 
 export function reducer(s, a) {
@@ -24,8 +24,12 @@ export function reducer(s, a) {
           ...s, incidents,
           blackspots: e.blackspots || s.blackspots,
           camera: e.camera || s.camera,
+          systemStatus: e.system_status || s.systemStatus,
           selectedId: keep ?? pick?.id ?? null,
         }
+      }
+      if (e.kind === 'status') {
+        return { ...s, systemStatus: e.system_status || s.systemStatus }
       }
       if (e.kind === 'incident.upsert') {
         const current = s.selectedId ? s.incidents[s.selectedId] : null
@@ -44,6 +48,7 @@ export function reducer(s, a) {
           ...s,
           metrics: e.metrics, metricsAt: at,
           cameraHealth: e.camera_health || s.cameraHealth,
+          systemStatus: e.system_status || s.systemStatus,
           // A repeated health message is not proof the camera works. When the backend reports how
           // long ago the last video frame arrived, date the health from that frame, not from the message.
           cameraHealthAt: e.camera_health

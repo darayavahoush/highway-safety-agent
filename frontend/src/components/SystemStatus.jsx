@@ -11,16 +11,34 @@ export function withFreshness(card, at, now, what) {
   return { tone: 'warn', headline: `No update for ${secs} s`, detail: `${what} stopped reporting. Last known: ${card.headline.toLowerCase()}.` }
 }
 
-function connection(conn) {
+function connection(conn, systemStatus) {
+  if (conn === 'live') {
+    if (systemStatus?.mode?.is_demo) {
+      const src = systemStatus.video_source?.source || 'sample video'
+      return {
+        tone: 'ok',
+        headline: 'Connected (Demo feed)',
+        detail: `The app is connected to the backend, running on demo video ${src}.`,
+      }
+    }
+    return { tone: 'ok', headline: 'Connected', detail: 'The app is receiving live data from the backend.' }
+  }
   switch (conn) {
-    case 'live': return { tone: 'ok', headline: 'Connected', detail: 'The app is receiving live data from the backend.' }
     case 'demo': return { tone: 'warn', headline: 'Running on demo data', detail: 'No live backend is attached, so incidents on screen are simulated.' }
     case 'offline': return { tone: 'bad', headline: 'Cannot reach the backend', detail: 'The app is retrying on its own. New incidents will not appear until it reconnects.' }
     default: return { tone: 'idle', headline: 'Connecting…', detail: 'Waiting for the first message from the backend.' }
   }
 }
 
-function tracker(m) {
+function tracker(m, systemStatus) {
+  if (systemStatus?.detector?.using_fallback) {
+    const fps = m?.fps != null ? `${m.fps} frames a second` : 'Tracking active'
+    return {
+      tone: 'warn',
+      headline: `${fps} (Fallback)`,
+      detail: 'Running on CPU background subtraction detector because YOLO model was not found.',
+    }
+  }
   if (m?.fps == null) return { tone: 'idle', headline: 'Not reported yet', detail: 'The video tracker has not sent its speed.' }
   if (m.fps < 5) return { tone: 'warn', headline: `${m.fps} frames a second`, detail: 'That is slow. Fast incidents could be spotted late.' }
   return { tone: 'ok', headline: `${m.fps} frames a second`, detail: 'Fast enough to follow vehicles smoothly.' }
@@ -35,9 +53,9 @@ function reaction(m) {
 export default function SystemStatus({ state, list, camera, today, now = Date.now() }) {
   const open = list.filter(isActive).length
   const cards = [
-    [Wifi, 'Connection', connection(state.conn)],
-    [Camera, 'Camera', withFreshness(cameraStatus(state.cameraHealth), state.cameraHealthAt, now, 'The camera')],
-    [Gauge, 'Video tracker', withFreshness(tracker(state.metrics), state.metricsAt, now, 'The video tracker')],
+    [Wifi, 'Connection', connection(state.conn, state.systemStatus)],
+    [Camera, 'Camera', withFreshness(cameraStatus(state.cameraHealth, state.systemStatus), state.cameraHealthAt, now, 'The camera')],
+    [Gauge, 'Video tracker', withFreshness(tracker(state.metrics, state.systemStatus), state.metricsAt, now, 'The video tracker')],
     [Timer, 'Speed of response', reaction(state.metrics)],
     [Database, 'Incident records', {
       tone: 'ok',
