@@ -83,7 +83,9 @@ class SafetyAgentWorker:
         db.upsert_incident(event.to_contract_dict())
 
         # Perform reasoning
+        t_reason_start = time.time()
         briefing, trace, dispatches = self.policy_engine.reason_and_triage(candidate)
+        t_reason_end = time.time()
         event.briefing = briefing
         event.trace = trace
         event.dispatches = dispatches
@@ -93,6 +95,18 @@ class SafetyAgentWorker:
             event.status = IncidentStatus.MONITORING
         else:
             event.status = IncidentStatus.DETECTED
+
+        # Record agent dispatch latency metrics
+        agent_latency_ms = round((t_reason_end - t_reason_start) * 1000.0, 1)
+        detect_to_dispatch_s = round((t_reason_end * 1000.0 - (candidate.timestamp or now_ms)) / 1000.0, 2)
+        try:
+            from app.system_status import system_status_reporter
+            system_status_reporter.record_agent_dispatch_latency(
+                agent_latency_ms=agent_latency_ms,
+                detect_to_dispatch_s=max(0.1, detect_to_dispatch_s),
+            )
+        except Exception:
+            pass
 
         # Execute immediate dispatches (VMS, NHAI)
         for d in event.dispatches:

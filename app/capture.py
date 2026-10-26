@@ -9,9 +9,12 @@ thread, continuously grabbing frames and discarding all but the most
 recent one, so processing always sees "now", not a growing backlog.
 """
 
+from __future__ import annotations
+
 import os
 import threading
 import time
+from typing import Any, Dict, List, Optional
 import cv2
 
 
@@ -47,20 +50,40 @@ class LatestFrameReader:
         # A local video file "disconnecting" just means it hit EOF — loop it
         # (or advance to the next clip in the playlist) instantly instead of
         # treating it like a dropped camera connection.
+        self._is_synthetic_demo = isinstance(source, str) and source.lower() in ("synthetic_demo", "demo")
         self._is_local_file = isinstance(source, str) and os.path.isfile(source)
         self._cap = None
         self._frame = None
         self._lock = threading.Lock()
         self._running = False
         self._thread = None
-        self._connected = False
+        self._connected = bool(self._is_synthetic_demo)
         self._pending_source = None
+        self._frames_captured = 0
+        self._last_frame_ts: Optional[float] = None
+        self._last_error: Optional[str] = None
+        self._frame_delay = 0.033
+        if not self._is_local_file and not self._is_synthetic_demo and isinstance(source, str) and not source.startswith(("rtsp://", "rtsps://", "http://", "https://")):
+            self._last_error = f"Video file not found at path: {source}"
 
     def start(self):
         self._running = True
         self._thread = threading.Thread(target=self._run, daemon=True)
         self._thread.start()
         return self
+
+    def _diagnose_failure(self) -> str:
+        s = str(self.source)
+        if isinstance(self.source, str):
+            if s.startswith(("rtsp://", "rtsps://")):
+                return f"Unable to connect to RTSP stream: {s}"
+            if s.startswith(("http://", "https://")):
+                return f"Unable to connect to HTTP video stream: {s}"
+            if not os.path.exists(s):
+                return f"Video file not found at path: {s}"
+        elif isinstance(self.source, int):
+            return f"Cannot access webcam device index {self.source}"
+        return f"Unable to open video source: {s}"
 
     def _open(self):
         cap = cv2.VideoCapture(self.source)
@@ -72,8 +95,38 @@ class LatestFrameReader:
         return cap
 
     def _run(self):
+        if getattr(self, "_is_synthetic_demo", False):
+            import numpy as np
+            self._connected = True
+            self._last_error = None
+            step = 0
+            while self._running:
+                step += 1
+                cur_time = time.time()
+                frame = np.zeros((360, 640, 3), dtype=np.uint8)
+                frame[:] = (55, 55, 55)
+                # Lane divider lines
+                cv2.line(frame, (213, 0), (213, 360), (255, 255, 255), 2)
+                cv2.line(frame, (426, 0), (426, 360), (255, 255, 255), 2)
+                # Moving simulated vehicle
+                car_y = int((step * 6) % 360)
+                cv2.rectangle(frame, (270, car_y), (370, min(360, car_y + 50)), (180, 110, 40), -1)
+                # Watermark
+                cv2.putText(frame, "DEMO SIMULATION FEED", (20, 35),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
+                with self._lock:
+                    self._frame = frame
+                    self._last_frame_ts = cur_time
+                    self._frames_captured += 1
+                    self._connected = True
+                    self._last_error = None
+                time.sleep(self._frame_delay)
+            return
+
         self._cap = self._open()
-        self._connected = self._cap.isOpened()
+        self._connected = bool(self._cap and self._cap.isOpened())
+        if not self._connected:
+            self._last_error = self._diagnose_failure()
 
         while self._running:
             if self._pending_source:
@@ -86,13 +139,21 @@ class LatestFrameReader:
                 if self._cap:
                     self._cap.release()
                 self._cap = self._open()
-                self._connected = self._cap.isOpened()
+                self._connected = bool(self._cap and self._cap.isOpened())
+                if not self._connected:
+                    self._last_error = self._diagnose_failure()
+                else:
+                    self._last_error = None
                 continue
 
             if not self._cap or not self._cap.isOpened():
                 self._connected = False
+                self._last_error = self._diagnose_failure()
                 time.sleep(self.reconnect_delay)
                 self._cap = self._open()
+                self._connected = bool(self._cap and self._cap.isOpened())
+                if self._connected:
+                    self._last_error = None
                 continue
 
             ok, frame = self._cap.read()
@@ -111,14 +172,19 @@ class LatestFrameReader:
                     self._cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
                     continue
                 self._connected = False
+                self._last_error = f"Stream interrupted: failed to read frame from {self.source}"
                 time.sleep(self.reconnect_delay)
                 self._cap.release()
                 self._cap = self._open()
                 continue
 
-            self._connected = True
+            cur_time = time.time()
             with self._lock:
+                self._connected = True
                 self._frame = frame
+                self._last_frame_ts = cur_time
+                self._frames_captured += 1
+                self._last_error = None
 
             if self._is_local_file or self._playlist:
                 time.sleep(self._frame_delay)
@@ -131,6 +197,74 @@ class LatestFrameReader:
     @property
     def connected(self):
         return self._connected
+
+    @property
+    def last_frame_ts(self) -> Optional[float]:
+        with self._lock:
+            return self._last_frame_ts
+
+    @property
+    def frames_captured(self) -> int:
+        with self._lock:
+            return self._frames_captured
+
+    @property
+    def last_error(self) -> Optional[str]:
+        with self._lock:
+            return self._last_error
+
+    def get_status(self, now: Optional[float] = None) -> Dict[str, Any]:
+        cur = time.time() if now is None else now
+        with self._lock:
+            last_ts = self._last_frame_ts
+            frames = self._frames_captured
+            connected = self._connected
+            last_err = self._last_error
+            src = self.source
+
+        s = str(src)
+        if getattr(self, "_is_synthetic_demo", False):
+            source_type = "synthetic_demo"
+        elif isinstance(src, int):
+            source_type = "webcam"
+        elif isinstance(src, str):
+            if s.startswith(("rtsp://", "rtsps://", "http://", "https://")):
+                source_type = "rtsp"
+            elif self._playlist:
+                source_type = "directory"
+            else:
+                source_type = "file"
+        else:
+            source_type = "unknown"
+
+        frame_age_s = (cur - last_ts) if last_ts is not None else None
+        is_stale = (frame_age_s is not None and frame_age_s > 5.0)
+
+        if not connected:
+            if source_type == "file" and not os.path.exists(s):
+                state = "file_not_found"
+                reason = last_err or f"Video file not found at path: {s}"
+            else:
+                state = "disconnected"
+                reason = last_err or f"Video source unavailable or disconnected: {s}"
+        elif is_stale:
+            state = "stale"
+            reason = f"Video stream stalled: no frame received for {frame_age_s:.1f}s"
+        else:
+            state = "connected"
+            reason = None
+
+        return {
+            "source": s,
+            "source_type": source_type,
+            "connected": connected and not is_stale,
+            "state": state,
+            "frames_captured": frames,
+            "last_frame_captured_at": last_ts,
+            "frame_age_s": round(frame_age_s, 2) if frame_age_s is not None else None,
+            "is_stale": is_stale,
+            "reason": reason,
+        }
 
     def get_playlist_info(self):
         with self._lock:

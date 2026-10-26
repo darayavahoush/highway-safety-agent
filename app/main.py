@@ -37,6 +37,7 @@ from app.dimensions_3d import draw_3d_bounding_box
 from app import db
 from app.anpr import anpr_pipeline
 from app.camera_health import camera_health_analyzer
+from app.system_status import system_status_reporter
 from agent.worker import agent_worker
 
 
@@ -49,20 +50,42 @@ OUTPUT_FPS = float(os.getenv("OUTPUT_FPS", "15.0"))
 CAMERA_CONFIG_PATH = os.getenv("CAMERA_CONFIG_PATH", "config/camera_config.json")
 SAFETY_RULES_PATH = os.getenv("SAFETY_RULES_PATH", "config/safety_rules.json")
 
+# Verify video source exists or find alternative in demo_videos
+capture_source = int(RTSP_URL) if RTSP_URL.isdigit() else RTSP_URL
+if isinstance(capture_source, str) and not capture_source.startswith(("rtsp://", "rtsps://", "http://", "https://")):
+    if not os.path.exists(capture_source):
+        found_fallback = None
+        if os.path.isdir("demo_videos"):
+            for root, _, files in os.walk("demo_videos"):
+                for f in sorted(files):
+                    if f.lower().endswith((".mp4", ".mov", ".avi", ".mkv")):
+                        found_fallback = os.path.join(root, f)
+                        break
+                if found_fallback:
+                    break
+        if found_fallback:
+            print(f"[runtime] Default video {capture_source!r} missing; using fallback {found_fallback!r}")
+            capture_source = found_fallback
+        elif os.getenv("ENABLE_LABELLED_DEMO_MODE", "").lower() in ("1", "true", "yes") or os.getenv("DATA_MODE", "").lower() == "demo":
+            print(f"[runtime] Video source {capture_source!r} not found; running in labelled synthetic demo mode")
+            capture_source = "synthetic_demo"
+        else:
+            print(f"[runtime] Video source {capture_source!r} not found; feed will report unavailable with clear diagnostics")
+
 # Core Engine Components
 evidence_buffer = EvidenceBuffer(max_seconds=10.0, fps=OUTPUT_FPS, cooldown_seconds=25.0)
 trigger_engine = EdgeTriggerEngine(CAMERA_CONFIG_PATH, SAFETY_RULES_PATH)
 tracker = LineCrossingCounter(line=((0, 200), (640, 200)))
 
-# Runtime Telemetry State
+# Runtime Telemetry State (starts as unknown until real frames are processed)
 latest_jpeg: Optional[bytes] = None
 latest_frame: Optional[np.ndarray] = None
 telemetry_stats = {
-    "fps": 15.0,
-    "ruleMs": 0.12,
-    "cpuMsPerFrame": 32.0,
-    "agentLatencyMs": 1400.0,
-    "detectToDispatchS": 1.4,
+    "fps": None,
+    "ruleMs": None,
+    "cpuMsPerFrame": None,
+    "agentLatencyMs": None,
+    "detectToDispatchS": None,
 }
 
 # Active WebSocket Clients
@@ -76,8 +99,13 @@ def get_detector():
 
 
 detector = get_detector()
-capture_source = int(RTSP_URL) if RTSP_URL.isdigit() else RTSP_URL
 reader = LatestFrameReader(capture_source)
+
+# Attach components to runtime status reporter
+system_status_reporter.reader = reader
+system_status_reporter.camera_health = camera_health_analyzer
+system_status_reporter.detector = detector
+system_status_reporter.model_path = YOLO_MODEL_PATH
 
 
 async def broadcast_ws(payload: dict):
@@ -179,12 +207,19 @@ async def perception_loop():
 
         t_end = time.time()
         elapsed = t_end - t_start
-        instant_fps = 1.0 / max(1e-3, elapsed)
-        current_fps = telemetry_stats.get("fps", 18.0)
-        # Smooth FPS with EMA: 0.85 old + 0.15 new, bounded to [14.0, 30.0] for stable telemetry display
-        telemetry_stats["fps"] = round(0.85 * current_fps + 0.15 * max(14.0, min(30.0, instant_fps)), 1)
+        instant_fps = round(1.0 / max(1e-3, elapsed), 1)
+        prev_fps = telemetry_stats.get("fps")
+        calc_fps = instant_fps if prev_fps is None else round(0.85 * prev_fps + 0.15 * instant_fps, 1)
+        telemetry_stats["fps"] = calc_fps
         telemetry_stats["ruleMs"] = round((t_rules_end - t_rules_start) * 1000.0, 2)
         telemetry_stats["cpuMsPerFrame"] = round((t_detect_end - t_detect_start) * 1000.0, 1)
+
+        system_status_reporter.record_frame_processed(
+            now=t_end,
+            fps=telemetry_stats["fps"],
+            rule_ms=telemetry_stats["ruleMs"],
+            cpu_ms=telemetry_stats["cpuMsPerFrame"],
+        )
 
         await asyncio.sleep(max(0.001, frame_interval - elapsed))
 
@@ -203,6 +238,7 @@ async def telemetry_broadcaster():
                     "detectToDispatchS": telemetry_stats["detectToDispatchS"],
                 },
                 "camera_health": camera_health_analyzer.snapshot(),
+                "system_status": system_status_reporter.get_status(),
             })
 
 
@@ -273,6 +309,7 @@ def get_incidents_snapshot():
         "incidents": incidents,
         "blackspots": blackspots,
         "camera": camera_data,
+        "system_status": system_status_reporter.get_status(),
     }
 
 
@@ -581,6 +618,28 @@ def simulate_incident(incident_type: str):
 def get_camera_health():
     """Returns real-time camera motion stability (static vs drift/sway) and photometric lighting quality."""
     return camera_health_analyzer.snapshot()
+
+
+@app.get("/healthz")
+@app.get("/api/health")
+def liveness_probe():
+    """Deployment service liveness check (for Render, Kubernetes, Docker probes).
+
+    Strictly separate from camera perception health so a temporary video stream
+    interruption or camera reconnection does not unnecessarily restart the entire API service.
+    """
+    return system_status_reporter.get_liveness()
+
+
+@app.get("/api/status")
+@app.get("/api/system/status")
+def get_system_status():
+    """Detailed runtime readiness and system status reporting:
+    video source type & connection state, last captured/processed timestamps,
+    actual measured FPS & latency, detector/model state, demo vs live mode,
+    and clear fault diagnostics when feed is unavailable or stale.
+    """
+    return system_status_reporter.get_status()
 
 
 # -----------------------------------------------------------------

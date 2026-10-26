@@ -124,3 +124,11 @@ export function connect({ onEvent, onConn }) {
   const sim = startSimulator(onEvent)
   return { stop: sim.stop, cancelDispatch: sim.cancelDispatch, sendFeedback: sim.sendFeedback }
 }
+
+export async function fetchSystemStatus() {
+  try {
+    const r = await fetch('/api/status')
+    if (r.ok) return await r.json()
+  } catch {}
+  return null
+}
