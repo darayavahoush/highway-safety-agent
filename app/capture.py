@@ -9,9 +9,12 @@ thread, continuously grabbing frames and discarding all but the most
 recent one, so processing always sees "now", not a growing backlog.
 """
 
+from __future__ import annotations
+
 import os
 import threading
 import time
+from typing import Any, Dict, List, Optional
 import cv2
 
 
