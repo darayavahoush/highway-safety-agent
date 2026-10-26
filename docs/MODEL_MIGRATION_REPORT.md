@@ -127,3 +127,48 @@ python tools/eval_detector.py \
 1. **Letterbox vs Stretch Preprocessing**: Benchmark letterboxed input against stretch-to-320x320 to evaluate mAP recovery from aspect-ratio preservation.
 2. **Per-Vehicle-Class Thresholding**: Evaluate per-vehicle sigmoid scoring vs argmax over all 84 outputs to avoid dropping vehicles masked by background classes.
 3. **INT8 Quantization & Edge SBC Profiling**: Quantize the verified model to INT8 and benchmark on target ARM edge devices (Raspberry Pi 4B / 5).
+
+<!-- BEGIN detector comparison attribution -->
+## Preprocessing & Decoding Attribution
+
+**Status: COMPLETE.**
+
+Measured on the same model artifact and held-out VisDrone split. This is a fixed-model 2×2 configuration experiment, not a measure of domain gap or target highway performance.
+
+| Configuration | Preprocessing | Decoder | AP50 | AP50:95 | Inference p50 (ms) | Inference p95 (ms) | Pipeline p50 (ms) | Model size (bytes) |
+|---|---|---|---:|---:|---:|---:|---:|---:|
+| `deployed_argmax` | deployed | argmax | 0.0398 | 0.0215 | 92.8700 | 320.1370 | 111.7580 | 12725062 |
+| `deployed_fused` | deployed | fused | 0.0421 | 0.0223 | 116.6620 | 292.9480 | 129.8320 | 12725062 |
+| `letterbox_argmax` | letterbox | argmax | 0.0378 | 0.0200 | 103.4450 | 419.0130 | 124.6680 | 12725062 |
+| `letterbox_fused` | letterbox | fused | 0.0387 | 0.0204 | 121.1570 | 475.0920 | 138.1030 | 12725062 |
+
+### Per-class AP50
+
+| Configuration | Car | Motorcycle | Truck | Bus |
+|---|---:|---:|---:|---:|
+| `deployed_argmax` | 0.1235 | 0.0028 | 0.0186 | 0.0143 |
+| `deployed_fused` | 0.1308 | 0.0037 | 0.0193 | 0.0145 |
+| `letterbox_argmax` | 0.1170 | 0.0028 | 0.0163 | 0.0150 |
+| `letterbox_fused` | 0.1191 | 0.0044 | 0.0163 | 0.0150 |
+
+### Factor attribution
+
+| Metric | Total delta (D−A) | Preprocessing average marginal effect | Decoder average marginal effect | Interaction diagnostic |
+|---|---:|---:|---:|---:|
+| AP50 | -0.0011 | -0.0027 | +0.0016 | -0.0013 |
+| AP50_95 | -0.0011 | -0.0017 | +0.0006 | -0.0004 |
+
+**Domain gap: NOT ESTIMATED.** All four runs use the same data domain, so aerial-to-fixed-camera domain shift is not identifiable. The two average marginal effects sum to D−A by construction; each receives half of the preprocessing×decoder interaction.
+
+### Latency-tail comparison
+
+| Measurement | Historical committed baseline | Current deployed/argmax run |
+|---|---:|---:|
+| Inference p50 (ms) | 52.03 | 92.87 |
+| Inference p99 (ms) | 576.08 | 661.132 |
+| p99/p50 tail ratio | 11.072 | 7.119 |
+
+The historical/current comparison is valid as a same-host before/after only when host, model hash, runtime and thread settings match. Output-buffer reuse is opt-in; the JSON report records whether ORT I/O Binding was used.
+
+Government-pilot verdict remains **BLOCKED**. VisDrone results do not establish fixed-camera highway performance.
+<!-- END detector comparison attribution -->

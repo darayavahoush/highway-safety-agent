@@ -84,7 +84,7 @@ def test_empty_detections_reports_zero_ap_without_crashing(tmp_path):
 
     assert report["overall"]["AP50_95"] == 0.0
     assert report["overall"]["AP50"] == 0.0
-    assert report["status"] == "no detections"
+    assert report["status"] in ("no detections", "NO_DETECTIONS")
     assert report["per_class"]["car"]["AP50_95"] == 0.0
 
 

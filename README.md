@@ -13,11 +13,45 @@ Built for the **Highway Road Accident Prevention Innovation Challenge (HRAP-2026
 
 ---
 
-## Control Room Overview
+## Command Center Interface & Operator Experience
 
-![Highway Incident Command Control Room](docs/assets/control-room-preview.png)
+The Operator Control Room UI is engineered for NHAI incident commanders, corridor traffic controllers, and trauma dispatchers, delivering sub-second situational awareness with zero cognitive clutter.
 
-*The Operator Control Room UI provides real-time incident triage, a top-down lane telemetry visualizer, an audit-ready 4-stage cognitive reasoning trace, and a 15-second human-in-the-loop dispatch cancellation window.*
+### 1. Tactical Incident Command & Live Telemetry
+![Incident Command Control Room](docs/assets/01-control-room-overview.png)
+* **Top-Down Lane Telemetry Visualizer**: Real-time vehicle bounding boxes, kinematic velocity vectors, and multi-lane flow indicators running at 15–30+ FPS.
+* **Golden Hour Ring**: Dynamic visual countdown timer calibrated to Indian MoRTH emergency response standards, ensuring trauma dispatch within critical survival windows.
+* **Corridor Status TopBar**: Real-time stream health monitoring, AP corridor status pills, and active camera GPS coordinate markers.
+
+---
+
+### 2. 3D Digital Twin & Trauma Care Corridor Routing
+![3D Digital Twin Corridor Map](docs/assets/02-corridor-3d-map.png)
+* **High-Fidelity 3D Terrain**: Powered by MapLibre GL 3D with interactive terrain extrusion and multi-layer highway corridor telemetry.
+* **Designated Level-1 Trauma Network**: Automated routing to regional medical facilities (**AIIMS Mangalagiri, GGH Guntur, GGH Vijayawada**) via OSRM emergency dispatch vectors.
+* **Active Incident Beacons**: Georeferenced pulsating markers highlighting active hazards, congestion tails, and wrong-way vectors along NH-16 / NH-65.
+
+---
+
+### 3. Incident Triage & 4-Stage Cognitive Reasoning Trace
+![Incident Triage & Cognitive Audit Trace](docs/assets/03-incident-triage-reasoning.png)
+* **Deterministic Tier-0 Safety Floor**: Zero-LLM sub-3ms edge rules (Stalled Vehicle, Wrong-Way Driver, Tailgating TTC) strictly eliminate hallucination risks on life-safety triggers.
+* **4-Stage Cognitive Audit Trace**: Every incident synthesizes an audit-ready **Observed → Assessed → Decided → Actions** trace for police, insurer, and NHAI compliance review.
+* **15-Second Human-in-the-Loop Cancellation Guardrail**: Prevents premature or erroneous dispatches while guaranteeing automated transmission if unacknowledged.
+* **Bilingual Multi-Channel Dispatch**: Automated emergency dispatches formatted in English and Telugu for local route patrols, 108 ambulance crews, and VMS gantries.
+
+---
+
+### 4. Edge System Health & Runtime Telemetry
+![System Telemetry & Health Gauges](docs/assets/04-system-telemetry.png)
+* **Honest Runtime Instrumentation**: Actual measured FPS (never hard-coded defaults), isolated forward-pass latency, and circular evidence ring buffer telemetry.
+* **Hardware Telemetry**: Memory consumption gauges, ONNX Runtime CPU session metrics (intra/inter op threads, memory arena status), and stream reconnection watchdogs.
+
+---
+
+### 5. Field Operations Gateway
+![Operations Gateway](docs/assets/05-home-landing.png)
+* **Accessible Mission Landing**: High-contrast, tactile operations portal built for touch-screen field kiosks and central command video walls.
 
 ---
 
@@ -110,18 +144,31 @@ For complete technical specifications, see [docs/ARCHITECTURE.md](docs/ARCHITECT
 │   └── safety_rules.json       # Tracker, motion, and rule threshold parameters
 ├── docs/                       # Architecture & design documentation
 │   ├── ARCHITECTURE.md         # Comprehensive system design document
+│   ├── MODEL_MIGRATION_REPORT.md # Evidence-led model migration & factor attribution report
+│   ├── COMPARISON_HARNESS_NOTES.md # 2x2 factor attribution & latency tail specifications
 │   ├── EDGE_DEPLOYMENT_RASPBERRY_PI.md # Raspberry Pi 4/5 SBC deployment guide
-│   └── assets/                 # Preview screenshots and UI mockups
+│   └── assets/                 # High-resolution UI screenshots & previews
 ├── frontend/                   # React + Vite Operator Control Room UI
-│   ├── src/                    # Components (CorridorMap3D, OperatorCopilot, LaneMap, etc.)
+│   ├── src/                    # Components (CorridorMap3D, LiveStage, IncidentDetail, etc.)
 │   └── package.json            # Node dependencies
-├── models/                     # Pre-trained ONNX models
+├── models/                     # Model binaries and provenance tracking
+│   ├── PROVENANCE_coco_320.md  # Checksum & export provenance documentation
 │   └── yolov8n.onnx            # YOLOv8 nano quantized for edge CPU inference
+├── reports/                    # Small benchmark verification reports
+│   ├── detector_baseline.json  # 1,554-image VisDrone baseline report (immutable reference)
+│   └── detector_attribution.json # 4-way factor attribution & latency tail report
 ├── tests/                      # Synthetic and acceptance verification suites
+│   ├── test_comparison_harness.py # Factor attribution & transform verification
+│   ├── test_eval_detector_guard.py # Immutable baseline & fail-closed safety tests
+│   ├── test_detector_iobinding.py # Optional ORT reusable output buffer tests
 │   ├── test_tracker_and_rules.py # 8-scenario synthetic tracker & rule verification suite
 │   └── test_replay_harness.py  # Phase 1 acceptance benchmark harness
-└── tools/                      # Engineering utilities
+└── tools/                      # Engineering & benchmark utilities
     ├── calibrate_camera.py     # Interactive lane calibration and polygon configuration tool
+    ├── comparison_harness.py   # Deployed/letterbox & fused decoding transform engine
+    ├── eval_detector.py        # COCO mAP & latency profiling evaluator
+    ├── eval_detector_attribution.py # 4-way factor attribution experiment runner
+    ├── visdrone_loader.py      # Resilient cached VisDrone dataset loader
     ├── highway-safety.service  # Production systemd service unit for edge SBCs
     └── replay_video.py         # Headless video replay benchmark & contact sheet generator
 ```

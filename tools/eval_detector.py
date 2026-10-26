@@ -30,6 +30,7 @@ sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.join(ROOT, "tools"))
 
 import visdrone_loader as vl  # noqa: E402
+from comparison_harness import preprocess_frame, decode_yolo_output, PREPROCESS_MODES, DECODE_MODES, NMS_MODES  # noqa: E402
 
 CATEGORIES = ["car", "motorcycle", "truck", "bus"]
 CAT_ID = {name: i + 1 for i, name in enumerate(CATEGORIES)}
@@ -111,8 +112,8 @@ def _coco_metrics(coco_gt, coco_dt, cat_ids=None):
         ev.accumulate()
         ev.summarize()
         return {"AP50_95": _metric_or_none(ev.stats[0]), "AP50": _metric_or_none(ev.stats[1])}
-    except ImportError:
-        return {"AP50_95": 0.0, "AP50": 0.0}
+    except ImportError as exc:
+        raise RuntimeError("pycocotools is required for COCO AP evaluation") from exc
 
 
 def _sha256(path):
@@ -168,39 +169,57 @@ def get_system_metadata(ort_module=None):
     }
 
 
-def timed_detect(det, frame):
-    """Run detection with exact sub-millisecond breakdown.
-    Does NOT include any dataset I/O or network fetching.
-    Returns:
-        detections: list of (x, y, w, h, label, conf)
-        preprocess_ms: resize, color conversion, normalization, transposing
-        inference_ms: ONNX Runtime forward pass only
-        postprocess_ms: argmax, confidence gating, NMS
-        pipeline_ms: sum of preprocess + inference + postprocess
-    """
+def timed_detect(det, frame, preprocess_mode="deployed", decode_mode="argmax", nms_mode="class-agnostic"):
+    """Time one frame. Dataset/file loading is deliberately outside this function."""
     from app.detector import _postprocess_yolo_output
-
     t0 = time.perf_counter()
     h, w = frame.shape[:2]
-    img = cv2.resize(frame, (det.input_size, det.input_size))
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB).astype(np.float32) / 255.0
-    blob = np.transpose(img, (2, 0, 1))[np.newaxis, ...]
-    t1 = time.perf_counter()
+    if preprocess_mode == "deployed":
+        # Keep this path byte-for-byte equivalent to the pre-PR evaluator.
+        img = cv2.resize(frame, (det.input_size, det.input_size))
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB).astype(np.float32) / 255.0
+        blob = np.transpose(img, (2, 0, 1))[np.newaxis, ...]
+        # Avoid even constructing comparison metadata on the exact legacy control.
+        # Only the fused decoder needs the transform for a deployed-preprocess run.
+        transform = None
+        if decode_mode != "argmax":
+            transform = {
+                "mode": "deployed", "original_width": w, "original_height": h,
+                "scale_x": det.input_size / w, "scale_y": det.input_size / h,
+                "pad_x": 0, "pad_y": 0, "input_size": det.input_size,
+            }
+        t1 = time.perf_counter()
+        preprocess_ms = (t1 - t0) * 1000.0
+    elif preprocess_mode == "letterbox":
+        blob, transform, preprocess_ms = preprocess_frame(frame, det.input_size, "letterbox")
+        t1 = time.perf_counter()
+    else:
+        raise ValueError(f"unsupported preprocess mode: {preprocess_mode}")
 
-    output = det.session.run(None, {det.input_name: blob})[0]
+    binding_setting = os.getenv("ORT_USE_IO_BINDING", "0").strip().lower()
+    if binding_setting in ("1", "true", "yes", "on"):
+        output = det.infer_raw(blob, use_iobinding=True)
+    elif binding_setting in ("0", "false", "no", "off", ""):
+        # Preserve the exact historical ORT call for the default comparison path.
+        output = det.session.run(None, {det.input_name: blob})[0]
+    else:
+        raise ValueError(f"ORT_USE_IO_BINDING must be a boolean, got {binding_setting!r}")
     t2 = time.perf_counter()
-
-    dets = _postprocess_yolo_output(
-        output, w, h, det.input_size, det.conf_threshold, det.nms_threshold
-    )
+    if preprocess_mode == "deployed" and decode_mode == "argmax":
+        # Historical parity control: use production decoder, not a clone.
+        dets = _postprocess_yolo_output(
+            output, w, h, det.input_size, det.conf_threshold, det.nms_threshold
+        )
+    else:
+        dets = decode_yolo_output(
+            output, transform, det.conf_threshold, det.nms_threshold,
+            mode=decode_mode, nms_mode=nms_mode,
+        )
     t3 = time.perf_counter()
-
-    preprocess_ms = (t1 - t0) * 1000.0
     inference_ms = (t2 - t1) * 1000.0
     postprocess_ms = (t3 - t2) * 1000.0
     pipeline_ms = (t3 - t0) * 1000.0
     return dets, preprocess_ms, inference_ms, postprocess_ms, pipeline_ms
-
 
 def compute_bootstrap_ci(coco_gt, coco_dt, num_bootstraps=50, seed=42):
     """Compute 95% bootstrap confidence intervals for overall AP50_95 and AP50."""
@@ -248,23 +267,40 @@ def compute_bootstrap_ci(coco_gt, coco_dt, num_bootstraps=50, seed=42):
 
 
 def _calc_stats(arr):
-    """Helper to compute p50, p95, p99, mean, min, max, std."""
+    """Latency distribution with explicit tail diagnostics (milliseconds)."""
     if not arr:
-        return {"p50": None, "p95": None, "p99": None, "mean": None, "min": None, "max": None, "std": None}
+        return {
+            "count": 0, "p50": None, "p90": None, "p95": None, "p99": None,
+            "p99_9": None, "mean": None, "min": None, "max": None, "std": None,
+            "count_over_3x_p50": 0, "tail_ratio_p99_over_p50": None,
+        }
     a = np.array(arr, dtype=np.float64)
+    if not np.all(np.isfinite(a)) or np.any(a < 0):
+        raise ValueError("latency samples must be finite non-negative milliseconds")
+    p50 = float(np.percentile(a, 50))
+    p99 = float(np.percentile(a, 99))
     return {
-        "p50": round(float(np.percentile(a, 50)), 2),
-        "p95": round(float(np.percentile(a, 95)), 2),
-        "p99": round(float(np.percentile(a, 99)), 2),
-        "mean": round(float(np.mean(a)), 2),
-        "min": round(float(np.min(a)), 2),
-        "max": round(float(np.max(a)), 2),
-        "std": round(float(np.std(a)), 2),
+        "count": int(a.size),
+        "p50": round(p50, 3),
+        "p90": round(float(np.percentile(a, 90)), 3),
+        "p95": round(float(np.percentile(a, 95)), 3),
+        "p99": round(p99, 3),
+        "p99_9": round(float(np.percentile(a, 99.9)), 3),
+        "mean": round(float(np.mean(a)), 3),
+        "min": round(float(np.min(a)), 3),
+        "max": round(float(np.max(a)), 3),
+        "std": round(float(np.std(a)), 3),
+        "count_over_3x_p50": int(np.count_nonzero(a > 3 * p50)) if p50 > 0 else int(np.count_nonzero(a > 0)),
+        "tail_ratio_p99_over_p50": round(p99 / p50, 3) if p50 > 0 else None,
     }
 
 
-def run(model_path, split_path, conf=0.001, limit=0, out_path="reports/detector_baseline.json",
-        warmup_count=20, min_bench_iters=200):
+def run(model_path, split_path, conf=0.001, limit=0, out_path="reports/detector_run.json",
+        warmup_count=20, min_bench_iters=200, preprocess_mode="deployed", decode_mode="argmax",
+        nms_mode="class-agnostic", bootstrap_count=50, samples_override=None):
+    baseline_path = os.path.realpath(os.path.join(ROOT, "reports", "detector_baseline.json"))
+    if os.path.realpath(os.path.abspath(out_path)) == baseline_path:
+        raise ValueError("reports/detector_baseline.json is immutable; choose a new --out path")
     if not os.path.isfile(model_path):
         raise FileNotFoundError(f"Model file not found: {model_path}")
     if not os.path.isfile(split_path):
@@ -277,28 +313,24 @@ def run(model_path, split_path, conf=0.001, limit=0, out_path="reports/detector_
 
     try:
         from pycocotools.coco import COCO
-    except ImportError:
-        COCO = None
+    except ImportError as exc:
+        raise RuntimeError(
+            "pycocotools is required for valid AP evaluation; refusing to emit placeholder zero metrics"
+        ) from exc
 
     from app.detector import OrtYoloDetector
 
     with open(split_path) as f:
         split = json.load(f)
 
-    samples = vl.fetch_samples(tag=None)
+    samples = samples_override if samples_override is not None else vl.fetch_samples(tag=None)
     _, test = vl.partition(samples, split)
     if limit:
         test = test[:limit]
 
-    if COCO is not None:
-        coco_gt = COCO()
-        coco_gt.dataset = build_coco_gt(test)
-        coco_gt.createIndex()
-    else:
-        from unittest.mock import MagicMock
-        coco_gt = MagicMock()
-        coco_gt.dataset = build_coco_gt(test)
-        coco_gt.loadRes.return_value = MagicMock()
+    coco_gt = COCO()
+    coco_gt.dataset = build_coco_gt(test)
+    coco_gt.createIndex()
 
     det = OrtYoloDetector(model_path, input_size=320, conf_threshold=conf, nms_threshold=0.45)
 
@@ -321,7 +353,9 @@ def run(model_path, split_path, conf=0.001, limit=0, out_path="reports/detector_
         frame = vl.fetch_image(s["filepath"])
         last_frame = frame
 
-        dets, prep_ms, inf_ms, post_ms, pipe_ms = timed_detect(det, frame)
+        dets, prep_ms, inf_ms, post_ms, pipe_ms = timed_detect(
+            det, frame, preprocess_mode=preprocess_mode, decode_mode=decode_mode, nms_mode=nms_mode
+        )
         preds.extend(detections_to_coco(img_id, dets))
 
         # Record benchmark latency excluding warmup iterations
@@ -339,7 +373,9 @@ def run(model_path, split_path, conf=0.001, limit=0, out_path="reports/detector_
     needed_iters = max(0, min_bench_iters - len(inference_times_ms))
     if needed_iters > 0 and last_frame is not None:
         for _ in range(needed_iters):
-            _, prep_ms, inf_ms, post_ms, pipe_ms = timed_detect(det, last_frame)
+            _, prep_ms, inf_ms, post_ms, pipe_ms = timed_detect(
+                det, last_frame, preprocess_mode=preprocess_mode, decode_mode=decode_mode, nms_mode=nms_mode
+            )
             inference_times_ms.append(inf_ms)
             pipeline_times_ms.append(pipe_ms)
             preprocess_times_ms.append(prep_ms)
@@ -359,6 +395,34 @@ def run(model_path, split_path, conf=0.001, limit=0, out_path="reports/detector_
     model_size = os.path.getsize(model_path)
     model_hash = _sha256(model_path)
     sys_meta = get_system_metadata(ort)
+    intra = getattr(det, "ort_intra_op_threads", None)
+    intra = intra if isinstance(intra, int) else sys_meta.get("thread_count")
+    inter = getattr(det, "ort_inter_op_threads", None)
+    inter = inter if isinstance(inter, int) else None
+    arena = getattr(det, "ort_enable_cpu_mem_arena", None)
+    arena = arena if isinstance(arena, bool) else None
+
+    raw_providers = getattr(det.session, "get_providers", None)
+    if callable(raw_providers):
+        try:
+            res = raw_providers()
+            providers = list(res) if isinstance(res, (list, tuple)) and all(isinstance(x, str) for x in res) else ["CPUExecutionProvider"]
+        except Exception:
+            providers = ["CPUExecutionProvider"]
+    else:
+        providers = ["CPUExecutionProvider"]
+
+    sys_meta.update({
+        "opencv_version": cv2.__version__,
+        "numpy_version": np.__version__,
+        "thread_count": intra,
+        "ort_execution_mode": "ORT_SEQUENTIAL",
+        "ort_providers": providers,
+        "ort_intra_op_threads": intra,
+        "ort_inter_op_threads": inter,
+        "ort_enable_cpu_mem_arena": arena,
+        "ort_use_io_binding": os.getenv("ORT_USE_IO_BINDING", "0").strip().lower() in ("1", "true", "yes", "on"),
+    })
 
     report = {
         "model": model_path,
@@ -369,6 +433,10 @@ def run(model_path, split_path, conf=0.001, limit=0, out_path="reports/detector_
         "taxonomy_version": vl.TAXONOMY_VERSION,
         "conf_threshold": conf,
         "nms_threshold": 0.45,
+        "preprocess_mode": preprocess_mode,
+        "decode_mode": decode_mode,
+        "nms_mode": nms_mode,
+        "ort_io_binding_enabled": os.getenv("ORT_USE_IO_BINDING", "0").strip().lower() in ("1", "true", "yes", "on"),
         "input_resolution": [320, 320],
         "images": len(test),
         "gt_scored_boxes": sum(gt_by_cat.values()),
@@ -394,6 +462,7 @@ def run(model_path, split_path, conf=0.001, limit=0, out_path="reports/detector_
         "full_pipeline_latency_ms": pipe_stats,
     }
 
+    report["status"] = "SMOKE_ONLY" if limit else "COMPLETE"
     if preds:
         coco_dt = coco_gt.loadRes(preds)
         report["overall"] = _coco_metrics(coco_gt, coco_dt)
@@ -404,12 +473,12 @@ def run(model_path, split_path, conf=0.001, limit=0, out_path="reports/detector_
             report["per_class"][n] = cat_metrics
 
         # Compute bootstrap confidence interval if dataset has sufficient images
-        bootstrap_ci = compute_bootstrap_ci(coco_gt, coco_dt, num_bootstraps=50, seed=42)
+        bootstrap_ci = compute_bootstrap_ci(coco_gt, coco_dt, num_bootstraps=bootstrap_count, seed=42) if bootstrap_count > 0 else None
         if bootstrap_ci:
             report["bootstrap_mAP_ci_95"] = bootstrap_ci
             report["bootstrap_ci"] = bootstrap_ci
     else:
-        report["status"] = "no detections"
+        report["status"] = "NO_DETECTIONS"
         report["overall"] = {"AP50_95": 0.0, "AP50": 0.0}
         report["per_class"] = {
             n: {"AP50_95": 0.0, "AP50": 0.0, "gt_boxes": gt_by_cat[n]} for n in CATEGORIES
@@ -445,11 +514,20 @@ def main(argv=None):
     ap.add_argument("--conf", type=float, default=0.001,
                     help="low threshold for mAP; the deployed detector uses 0.4")
     ap.add_argument("--limit", type=int, default=0, help="score only the first N test images")
-    ap.add_argument("--out", default=os.path.join(ROOT, "reports", "detector_baseline.json"))
+    ap.add_argument("--out", default=os.path.join(ROOT, "reports", "detector_run.json"), help="new report path; detector_baseline.json is immutable")
     ap.add_argument("--warmup", type=int, default=20, help="warmup iterations count")
     ap.add_argument("--min-bench-iters", type=int, default=200, help="minimum timed benchmark iterations")
+    ap.add_argument("--preprocess", choices=("deployed", "letterbox"), default="deployed")
+    ap.add_argument("--decode", choices=("argmax", "fused"), default="argmax")
+    ap.add_argument("--nms-mode", choices=("class-aware", "class-agnostic"), default="class-agnostic")
+    ap.add_argument("--bootstrap", type=int, default=50, help="bootstrap iterations; 0 disables bootstrap")
+    ap.add_argument("--io-binding", choices=("auto", "on", "off"), default="auto", help="optional reusable ORT CPU output buffer")
     args = ap.parse_args(argv)
-    run(args.model, args.split, args.conf, args.limit, args.out, warmup_count=args.warmup, min_bench_iters=args.min_bench_iters)
+    if args.io_binding != "auto":
+        os.environ["ORT_USE_IO_BINDING"] = "1" if args.io_binding == "on" else "0"
+    run(args.model, args.split, args.conf, args.limit, args.out, warmup_count=args.warmup,
+        min_bench_iters=args.min_bench_iters, preprocess_mode=args.preprocess, decode_mode=args.decode,
+        nms_mode=args.nms_mode, bootstrap_count=args.bootstrap)
     return 0
 
 

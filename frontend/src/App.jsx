@@ -31,7 +31,13 @@ export default function App() {
   const { state, list, selected, now, actions } = useControlRoom()
   const [filter, setFilter] = useState('active')
   const [isAboutOpen, setIsAboutOpen] = useState(false)
-  const [page, setPage] = useState('home')
+  const [page, setPage] = useState(() => {
+    try {
+      const p = new URLSearchParams(window.location.search).get('page')
+      if (p && ['home', 'control', 'corridor', 'incidents', 'activity', 'system'].includes(p)) return p
+    } catch (_) {}
+    return 'home'
+  })
   const [theme, setTheme] = useState(readTheme)
   const [corridorOverview, setCorridorOverview] = useState(null)
 
