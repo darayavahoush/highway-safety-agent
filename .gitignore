@@ -27,3 +27,5 @@ screenshot_*.png
 labels/frames/
 demo_videos/
 labels/
+models/yolov8n_coco_320.onnx
+reports/smoke_*.json
