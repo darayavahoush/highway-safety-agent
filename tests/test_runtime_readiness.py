@@ -188,7 +188,7 @@ def test_successful_ingestion_populates_actual_measured_telemetry():
 
 def test_camera_reconnection_transitions_state_to_connected():
     """Transitioning from connection error to successful read restores connected state."""
-    reader = LatestFrameReader("demo_videos/drone/DJI_0011.MP4")
+    reader = LatestFrameReader("rtsp://127.0.0.1:59999/live")
     reader._connected = False
     reader._last_error = "Connection dropped"
 
@@ -232,6 +232,8 @@ def test_fallback_detector_state_reporting():
 
 def test_healthy_api_cannot_be_mistaken_for_healthy_camera():
     """Liveness probe /healthz returns 200 OK even when camera feed is unavailable."""
+    from app import db
+    db.init_db()
     client = TestClient(app)
 
     # Liveness check must always return 200 OK
